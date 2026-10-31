@@ -1,0 +1,238 @@
+:root {
+  --bg: #1d1b33;
+  --ink: #2b1d2e;
+  --cream: #fff7e0;
+  --gold: #c9a66b;
+  --text: #f4f1e8;
+  --muted: #b9b4cf;
+  --accent: #ff9f1c;
+  --hint: #ffd23f;
+  --alt: #4cc9f0;
+  --ok: #2f7d3a;
+  --bad: #b3261e;
+  --key: #f4ead2;
+  --key-special: #ddd0b3;
+  --cap: #8a7d6a;
+  --altgr: #2f7fb5;
+  --font: 'Pixelify Sans', ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+}
+
+#app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 12px 16px 40px;
+}
+
+#game {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 4px solid var(--ink);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 0 3px var(--gold);
+}
+
+#type-capture {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  resize: none;
+}
+
+/* Espacio siempre reservado bajo la carrera: el aviso aparece sin mover nada. */
+#caps-row { height: 34px; display: flex; align-items: center; justify-content: center; }
+#caps-warning {
+  visibility: hidden;
+  background: #4a3b12;
+  color: var(--hint);
+  border: 2px solid var(--hint);
+  border-radius: 6px;
+  padding: 3px 14px;
+  font-weight: 700;
+}
+#caps-warning.on { visibility: visible; }
+
+/* ---------- Cajas estilo consola portátil ---------- */
+
+.box {
+  background: var(--cream);
+  color: var(--ink);
+  border: 4px solid var(--ink);
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 3px var(--gold), 3px 4px 0 rgba(0, 0, 0, 0.35);
+  padding: 12px 18px;
+  margin-bottom: 12px;
+}
+.box h2, .box h3 { margin: 4px 0 8px; }
+.box p { margin: 6px 0; }
+.box .stars { color: #e8a400; margin-left: 8px; }
+.box .go { color: var(--ok); font-weight: 700; }
+.box .locked { color: var(--bad); font-weight: 700; }
+.muted { color: #7a6e66; }
+
+.play-box { text-align: center; }
+.target { font-size: 2.2rem; letter-spacing: 3px; min-height: 2.8rem; font-weight: 700; }
+.target .done { color: var(--ok); }
+.target .current { color: #d97706; text-decoration: underline; text-underline-offset: 6px; }
+.target .rest { color: var(--ink); }
+.hint { min-height: 1.3em; }
+.hint.alt { color: #2a7fa8; }
+.tip { min-height: 1.3em; color: var(--bad); font-weight: 700; }
+
+/* ---------- Manos ---------- */
+
+.hands-wrap { text-align: center; margin-bottom: 8px; }
+.hands { width: 100%; max-width: 380px; height: auto; }
+.hands .palm { fill: #3a4170; }
+.hands text { fill: var(--text); font: 700 14px var(--font); text-anchor: middle; }
+.hands .hands-title { fill: var(--hint); font-size: 15px; }
+.hands .hands-sub { fill: var(--muted); font-size: 12px; font-weight: 400; }
+.hands.focus rect[data-f]:not(.on) { opacity: 0.25; }
+.hands.focus text[data-k]:not(.on) { opacity: 0.3; }
+.hands rect.on { stroke: #fff; stroke-width: 3; }
+
+/* ---------- Teclado ---------- */
+
+.keyboard {
+  position: relative;
+  background: #3a3352;
+  border: 4px solid var(--ink);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  user-select: none;
+}
+.kb-row { display: flex; gap: 5px; }
+.kb-key {
+  position: relative;
+  flex-basis: 0;
+  min-width: 0;
+  height: 46px;
+  background: var(--key);
+  border: 2px solid var(--ink);
+  border-bottom-width: 4px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cap);
+}
+.kb-key.special { background: var(--key-special); }
+.kb-key span { position: absolute; line-height: 1; }
+.kb-key .cap-shift { top: 4px; left: 5px; color: var(--cap); font-size: 0.8rem; }
+.kb-key .cap-normal { bottom: 5px; left: 5px; color: var(--cap); font-size: 0.95rem; }
+.kb-key.letter .cap-normal { left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); font-size: 1.1rem; color: var(--ink); font-weight: 700; }
+.kb-key .out-shift { top: 4px; right: 5px; color: #d06a00; font-size: 0.85rem; font-weight: 700; }
+.kb-key .out-normal { bottom: 5px; right: 5px; color: #d06a00; font-size: 1.05rem; font-weight: 700; }
+.kb-key .out-altgr { bottom: 5px; left: 50%; transform: translateX(-50%); color: var(--altgr); font-size: 0.8rem; }
+.kb-key.letter .out-altgr { left: auto; right: 5px; transform: none; }
+.kb-key.home::before {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  width: 12px;
+  height: 2px;
+  margin-left: -6px;
+  background: var(--ink);
+}
+.kb-key.hl { background: var(--hint); }
+.kb-key.hl-alt { background: #a9e4f7; }
+.kb-key[data-step]::after {
+  content: attr(data-step);
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.kb-key.pressed { animation: press 0.25s; }
+@keyframes press { from { background: #9be7a8; } }
+
+.f-pinky { --fc: #c77dff; }
+.f-ring { --fc: #4cc9f0; }
+.f-middle { --fc: #80ed99; }
+.f-index { --fc: #ff9f1c; }
+.f-thumb { --fc: #adb5bd; }
+.keyboard.fingers .kb-key[class*="f-"]:not(.hl) {
+  background: color-mix(in srgb, var(--fc) 45%, var(--key));
+}
+
+.kb-note { text-align: center; color: var(--hint); min-height: 1.2em; font-weight: 700; }
+.kb-legend { text-align: center; font-size: 0.8rem; color: var(--muted); }
+.kb-legend .cap { color: #cbbfa8; font-weight: 700; }
+.kb-legend .out { color: var(--accent); font-weight: 700; }
+.kb-legend .alt { color: var(--alt); font-weight: 700; }
+
+/* Teclado "roto" mientras Sofía está en el suelo. */
+.kb-broken { display: none; }
+.keyboard.broken .kb-row { filter: grayscale(1) brightness(0.55); animation: shake 0.18s infinite; }
+.keyboard.broken .kb-broken {
+  display: flex;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.kb-broken svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.kb-broken polyline { fill: none; stroke: #ff6b6b; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.kb-broken span {
+  position: relative;
+  background: var(--ink);
+  color: #ff6b6b;
+  border: 2px solid #ff6b6b;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-weight: 700;
+}
+@keyframes shake {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  75% { transform: translate(2px, -1px); }
+}
+
+/* ---------- Gráfica y tablas ---------- */
+
+.chart { width: 100%; height: auto; display: block; }
+.chart .grid { stroke: #e6dcc4; stroke-width: 1; }
+.chart .axis { fill: #7a6e66; font: 12px var(--font); }
+.chart .goal { stroke-width: 2; stroke-dasharray: 6 5; }
+.chart .goal-label { font: 700 12px var(--font); }
+.chart .trend { fill: none; stroke: var(--ink); stroke-width: 2; }
+.chart circle { stroke: var(--ink); stroke-width: 2; }
+.chart .pt-stars { fill: #e8a400; font: 700 11px var(--font); }
+.chart .failed line { stroke: var(--bad); stroke-width: 3; }
+.chart-note { font-size: 0.85rem; color: #7a6e66; }
+.x-mark { color: var(--bad); font-weight: 700; }
+
+.log { width: 100%; border-collapse: collapse; }
+.log th, .log td { text-align: left; padding: 5px 8px; border-bottom: 1px solid #e6dcc4; }
+.mono { font-family: ui-monospace, Consolas, monospace; }
+.big { font-size: 1.3rem; }
+
+@media (max-width: 640px) {
+  .kb-key { height: 34px; }
+  .kb-key .cap-shift, .kb-key .out-shift, .kb-key .out-altgr, .kb-legend { display: none; }
+  .target { font-size: 1.6rem; }
+}

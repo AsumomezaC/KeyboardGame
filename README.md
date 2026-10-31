@@ -3,38 +3,53 @@
 Juego de mecanografía tipo parkour contra reloj, pensado para quien usa la distribución
 **Español (Latinoamérica)** en un teclado físico **en inglés (ANSI)**.
 
-## Cómo jugar
+La versión anterior (HTML puro con niveles Básico/Intermedio/Avanzado y diagnóstico) vive en la
+rama `Borrador_Alfa`.
 
-Abre `index.html` con doble clic en Chrome, Edge o Firefox. No hace falta instalar nada.
+## Cómo correrlo
 
-1. Empieza por el **Diagnóstico de teclado**: escribe los símbolos que uses (con Shift, AltGr,
-   teclas muertas y códigos Alt). El juego guarda qué combinación física produce cada carácter
-   y corrige sus pistas con eso.
-2. Elige un nivel y escribe el texto de cada obstáculo antes de llegar a él:
-   - **Básico**: solo letras minúsculas y la ñ.
-   - **Intermedio**: mayúsculas, acentos, números y puntuación común.
-   - **Avanzado**: todos los símbolos.
-3. Durante la cuenta regresiva aparece la posición de las manos y el color de dedo de cada tecla.
-4. Al terminar verás tus últimas 10 partidas con flechas que indican si mejoraste.
+Necesitas [Node.js](https://nodejs.org) (versión LTS, gratuito).
 
-`<` y `>` no tienen tecla en un teclado ANSI con distribución latina; se escriben con
-`Alt` + `60` / `Alt` + `62` en el teclado numérico.
+```bash
+npm install
+npm run dev      # abre http://localhost:5173
+npm test         # pruebas de reglas, tiempos y pistas
+npm run build    # versión final en dist/ (publicable en GitHub Pages)
+```
+
+## Capítulo 1
+
+- Solo la fila central (`a s d f g h j k l ñ`) en minúsculas. Dos letras nuevas por nivel hasta el 5;
+  el espacio entra en el 6. Antes de cada nivel con teclas nuevas hay una lección de qué dedo usar.
+- Cada obstáculo depende de su largo: 1-2 caracteres = tramo plano, 3-4 = charco (salto),
+  5-6 = barrera (deslizarse por debajo), 7-8 = silla (salto con giro de 360°).
+- Cada obstáculo tiene un temporizador. Si se acaba, Sofía tropieza, se levanta (el reloj sigue) y
+  vuelves a escribirlo. Mientras está en el suelo el teclado queda bloqueado.
+- Una tecla equivocada provoca un traspié breve. Escribir rápido hace que Sofía acelere.
+- Estrellas: ★ terminar (a tiempo), ★★ tiempo objetivo y 90 % de precisión,
+  ★★★ tiempo exigente, 97 % de precisión y sin caídas.
+- Niveles 1-3 no se pierden. 4-6, 8 y 9 tienen límite de tiempo. 7: jefe del perro (requiere 10 ★,
+  pierdes con 3 caídas). 10: carrera contra rivales (requiere 20 ★, levantarse tarda más).
+  Secreto: aparece con 30 ★, incluye mayúsculas con consejos de Shift y Bloq Mayús.
+
+Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo en PPM definido en
+`src/data/chapter1.js`; ajustar esos números ajusta la dificultad.
 
 ## Estructura
 
-| Archivo | Qué hace |
+| Carpeta | Qué hay |
 |---|---|
-| `js/layout.js` | Mapa de la distribución latina por tecla física, combinaciones aprendidas y textos de pista |
-| `js/input.js` | Captura con un `textarea` oculto; el sistema resuelve teclas muertas y códigos Alt |
-| `js/keyboard-view.js` | Teclado ANSI dibujado con resaltado de la combinación a presionar |
-| `js/levels.js` | Obstáculos de cada nivel: `[texto, tipo]` (`muro`, `hueco`, `pared`) |
-| `js/game.js` | Bucle del juego, física sencilla, dibujo en canvas y estadísticas |
-| `js/main.js` | Pantallas (menú, diagnóstico, juego, resultados) |
+| `src/core/` | Distribución latina, dedos, captura de teclado y partidas guardadas |
+| `src/game/` | Lógica de la carrera (sin gráficos), reglas de estrellas/desbloqueo y pistas |
+| `src/data/` | Niveles del capítulo 1 |
+| `src/art/` | Pixel art provisional generado por código (personajes, perro, obstáculos, fondos) |
+| `src/scenes/` | Escenas de Phaser: título, capítulos, mapa, lección, carrera y resultados |
+| `src/ui/` | Panel HTML: teclado visual, manos, pistas y gráfica del historial |
+| `tests/` | Pruebas con `node --test` |
 
-Los scripts son clásicos (sin módulos ES) para que funcionen abriendo el archivo directamente.
+Fuente: [Pixelify Sans](https://fonts.google.com/specimen/Pixelify+Sans) (licencia OFL).
 
-## Siguientes pasos
+## Siguientes fases
 
-- Fragmentos de código como nivel extra.
-- Obstáculos generados a partir de tus teclas débiles (práctica adaptativa).
-- Sprites, animaciones y sonido.
+1. Historia y diálogos con retratos (con opción de omitirlos al repetir un nivel).
+2. Arte final en pixel art y sonido.
