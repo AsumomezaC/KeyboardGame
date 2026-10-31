@@ -10,7 +10,12 @@ Abre `index.html` con doble clic en Chrome, Edge o Firefox. No hace falta instal
 1. Empieza por el **Diagnóstico de teclado**: escribe los símbolos que uses (con Shift, AltGr,
    teclas muertas y códigos Alt). El juego guarda qué combinación física produce cada carácter
    y corrige sus pistas con eso.
-2. Luego juega **Ruta de los símbolos**: escribe el texto de cada obstáculo antes de llegar a él.
+2. Elige un nivel y escribe el texto de cada obstáculo antes de llegar a él:
+   - **Básico**: solo letras minúsculas y la ñ.
+   - **Intermedio**: mayúsculas, acentos, números y puntuación común.
+   - **Avanzado**: todos los símbolos.
+3. Durante la cuenta regresiva aparece la posición de las manos y el color de dedo de cada tecla.
+4. Al terminar verás tus últimas 10 partidas con flechas que indican si mejoraste.
 
 `<` y `>` no tienen tecla en un teclado ANSI con distribución latina; se escriben con
 `Alt` + `60` / `Alt` + `62` en el teclado numérico.
@@ -30,6 +35,6 @@ Los scripts son clásicos (sin módulos ES) para que funcionen abriendo el archi
 
 ## Siguientes pasos
 
-- Más niveles por familia de teclas y fragmentos de código.
+- Fragmentos de código como nivel extra.
 - Obstáculos generados a partir de tus teclas débiles (práctica adaptativa).
 - Sprites, animaciones y sonido.

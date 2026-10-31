@@ -1,5 +1,6 @@
-// Teclado físico ANSI (EE. UU.) dibujado en el DOM, rotulado con lo que produce
-// la distribución latina. Sirve para las pistas del juego y para el diagnóstico.
+// Teclado físico ANSI (EE. UU.) dibujado en el DOM. Cada tecla muestra en gris lo que viene
+// impreso en ella y, en color, lo que escribe la distribución latina cuando es distinto.
+// Sirve para las pistas del juego, el diagnóstico y el mapa de dedos.
 const KeyboardView = (() => {
   // [código, ancho en unidades de tecla]
   const ROWS = [
@@ -14,6 +15,18 @@ const KeyboardView = (() => {
     ShiftLeft: 'Shift', ShiftRight: 'Shift', ControlLeft: 'Ctrl', ControlRight: 'Ctrl',
     MetaLeft: 'Win', MetaRight: 'Win', AltLeft: 'Alt', AltRight: 'AltGr', ContextMenu: 'Menú', Space: '',
   };
+  // Dedo de mecanografía al tacto para cada tecla.
+  const FINGERS = {
+    pinky: ['Backquote', 'Digit1', 'Tab', 'KeyQ', 'CapsLock', 'KeyA', 'ShiftLeft', 'KeyZ', 'ControlLeft',
+      'Digit0', 'Minus', 'Equal', 'Backspace', 'KeyP', 'BracketLeft', 'BracketRight', 'Backslash',
+      'Semicolon', 'Quote', 'Enter', 'Slash', 'ShiftRight', 'ControlRight'],
+    ring: ['Digit2', 'KeyW', 'KeyS', 'KeyX', 'Digit9', 'KeyO', 'KeyL', 'Period'],
+    middle: ['Digit3', 'KeyE', 'KeyD', 'KeyC', 'Digit8', 'KeyI', 'KeyK', 'Comma'],
+    index: ['Digit4', 'Digit5', 'KeyR', 'KeyT', 'KeyF', 'KeyG', 'KeyV', 'KeyB',
+      'Digit6', 'Digit7', 'KeyY', 'KeyU', 'KeyH', 'KeyJ', 'KeyN', 'KeyM'],
+    thumb: ['Space', 'AltLeft', 'AltRight'],
+  };
+  const HOME_KEYS = ['KeyF', 'KeyJ'];
 
   function create(container) {
     const keys = {};
@@ -25,7 +38,7 @@ const KeyboardView = (() => {
       for (const entry of row) {
         const [code, width] = Array.isArray(entry) ? entry : [entry, 1];
         const key = document.createElement('div');
-        key.className = 'kb-key' + (code in SPECIAL ? ' special' : '');
+        key.className = 'kb-key' + (code in SPECIAL ? ' special' : '') + (HOME_KEYS.includes(code) ? ' home' : '');
         key.style.flexGrow = width;
         key.dataset.code = code;
         rowEl.appendChild(key);
@@ -33,9 +46,19 @@ const KeyboardView = (() => {
       }
       container.appendChild(rowEl);
     }
+    for (const [finger, codes] of Object.entries(FINGERS)) {
+      for (const code of codes) if (keys[code]) keys[code].classList.add('f-' + finger);
+    }
     const note = document.createElement('div');
     note.className = 'kb-note';
     container.appendChild(note);
+    const legend = document.createElement('div');
+    legend.className = 'kb-legend';
+    legend.innerHTML =
+      '<span class="cap">Gris</span>: lo impreso en tu tecla · ' +
+      '<span class="out">Amarillo</span>: lo que escribe en latino si es distinto (arriba con Shift) · ' +
+      '<span class="alt">Azul</span>: con AltGr';
+    container.appendChild(legend);
 
     function refreshLabels() {
       for (const [code, key] of Object.entries(keys)) {
@@ -43,16 +66,19 @@ const KeyboardView = (() => {
           key.textContent = SPECIAL[code];
           continue;
         }
+        const [capNormal, capShift] = Layout.keycap(code);
         const [normal = '', shift = '', altGr = ''] = Layout.labels(code);
-        const show = c => (c === ' ' ? '' : c);
-        // En las letras el rótulo físico y la mayúscula son obvios; solo se muestran si difieren.
-        const us = Layout.usLegend(code);
-        const isLetter = normal && normal.toUpperCase() === shift;
+        const isLetter = code.startsWith('Key');
+        // Solo se resalta lo que cambia respecto a lo impreso.
+        const outNormal = isLetter ? (normal === capNormal.toLowerCase() ? '' : normal) : (normal === capNormal ? '' : normal);
+        const outShift = isLetter ? (shift === capNormal ? '' : shift) : (shift === capShift ? '' : shift);
+        key.classList.toggle('letter', isLetter);
         key.innerHTML =
-          `<span class="us">${escapeHTML(us.toLowerCase() === normal ? '' : us)}</span>` +
-          `<span class="out">${escapeHTML(show(normal))}</span>` +
-          `<span class="shift">${escapeHTML(isLetter ? '' : shift)}</span>` +
-          `<span class="altgr">${escapeHTML(altGr)}</span>`;
+          `<span class="cap-shift">${escapeHTML(capShift)}</span>` +
+          `<span class="cap-normal">${escapeHTML(capNormal)}</span>` +
+          `<span class="out-shift">${escapeHTML(outShift)}</span>` +
+          `<span class="out-normal">${escapeHTML(outNormal)}</span>` +
+          `<span class="out-altgr">${escapeHTML(altGr)}</span>`;
       }
     }
 
@@ -97,8 +123,12 @@ const KeyboardView = (() => {
       key.classList.add('pressed');
     }
 
+    function showFingers(on) {
+      container.classList.toggle('fingers', on);
+    }
+
     refreshLabels();
-    return { refreshLabels, highlight, clear, press };
+    return { refreshLabels, highlight, clear, press, showFingers };
   }
 
   function escapeHTML(s) {

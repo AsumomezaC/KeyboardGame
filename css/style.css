@@ -8,6 +8,10 @@
   --key: #2a3058;
   --key-special: #222746;
   --altgr: #8ecae6;
+  --cap: #7d84ad;
+  --warn-bg: #4a3b12;
+  --up: #7bd389;
+  --down: #ff6b6b;
 }
 
 * { box-sizing: border-box; }
@@ -94,8 +98,66 @@ kbd, code {
   text-align: center;
   color: var(--muted);
   min-height: 1.4em;
-  margin-bottom: 10px;
 }
+
+#game-tip {
+  text-align: center;
+  color: var(--accent);
+  font-weight: 600;
+  min-height: 1.4em;
+  margin-bottom: 8px;
+}
+
+#caps-warning {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--warn-bg);
+  color: var(--accent);
+  text-align: center;
+  padding: 8px 16px;
+  border-bottom: 2px solid var(--accent);
+}
+
+/* ---------- Manos ---------- */
+
+#hands { text-align: center; margin-bottom: 8px; }
+#hands svg { width: 100%; max-width: 420px; height: auto; }
+#hands text { fill: var(--text); font: 600 14px system-ui, sans-serif; text-anchor: middle; }
+#hands .hands-title { fill: var(--accent); font-size: 15px; }
+#hands .hands-sub { fill: var(--muted); font-size: 12px; font-weight: 400; }
+
+/* ---------- Niveles ---------- */
+
+.level-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.level-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 400;
+  padding: 16px 16px 14px 56px;
+  border: 1px solid var(--key);
+}
+.level-card strong { font-size: 1.2rem; color: var(--accent); }
+.level-card .level-num {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #1a1a1a;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.up { color: var(--up); }
+.down { color: var(--down); }
 
 /* ---------- Teclado ---------- */
 
@@ -124,12 +186,45 @@ kbd, code {
   transition: background 0.1s;
 }
 .kb-key.special { background: var(--key-special); }
-.kb-key .us { position: absolute; top: 3px; left: 5px; font-size: 0.65rem; color: #6d7399; }
-.kb-key .out { font-size: 1.15rem; color: var(--text); font-family: Consolas, monospace; }
-.kb-key .shift { position: absolute; top: 3px; right: 5px; color: var(--text); font-family: Consolas, monospace; }
-.kb-key .altgr { position: absolute; bottom: 3px; right: 5px; color: var(--altgr); font-family: Consolas, monospace; }
+.kb-key span { position: absolute; font-family: Consolas, monospace; line-height: 1; }
+/* Lo impreso en la tecla física (izquierda) */
+.kb-key .cap-shift { top: 5px; left: 6px; color: var(--cap); font-size: 0.8rem; }
+.kb-key .cap-normal { bottom: 6px; left: 6px; color: var(--cap); font-size: 0.95rem; }
+.kb-key.letter .cap-normal { left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); font-size: 1.05rem; color: var(--text); }
+/* Lo que escribe la distribución latina (derecha) */
+.kb-key .out-shift { top: 5px; right: 6px; color: var(--accent); font-size: 0.85rem; font-weight: 700; }
+.kb-key .out-normal { bottom: 6px; right: 6px; color: var(--accent); font-size: 1.05rem; font-weight: 700; }
+.kb-key .out-altgr { bottom: 6px; left: 50%; transform: translateX(-50%); color: var(--altgr); font-size: 0.8rem; }
+.kb-key.letter .out-altgr { left: auto; right: 6px; transform: none; }
+.kb-key.home::before {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 12px;
+  height: 2px;
+  margin-left: -6px;
+  background: var(--cap);
+  border-radius: 1px;
+}
 .kb-key.hl { background: var(--accent); color: #1a1a1a; }
 .kb-key.hl span { color: #1a1a1a; }
+
+/* Colores por dedo (mapa de manos) */
+.f-pinky { --fc: #c77dff; }
+.f-ring { --fc: #4cc9f0; }
+.f-middle { --fc: #80ed99; }
+.f-index { --fc: #ff9f1c; }
+.f-thumb { --fc: #adb5bd; }
+.keyboard.fingers .kb-key[class*="f-"]:not(.hl) {
+  background: color-mix(in srgb, var(--fc) 30%, var(--key));
+  box-shadow: inset 0 -4px 0 var(--fc);
+}
+
+.kb-legend { text-align: center; font-size: 0.8rem; color: var(--muted); }
+.kb-legend .cap { color: var(--cap); font-weight: 700; }
+.kb-legend .out { color: var(--accent); font-weight: 700; }
+.kb-legend .alt { color: var(--altgr); font-weight: 700; }
 .kb-key[data-step]::after {
   content: attr(data-step);
   position: absolute;
@@ -156,6 +251,6 @@ kbd, code {
 
 @media (max-width: 640px) {
   .kb-key { height: 36px; }
-  .kb-key .us, .kb-key .shift, .kb-key .altgr { display: none; }
+  .kb-key .cap-shift, .kb-key .out-shift, .kb-key .out-altgr, .kb-legend { display: none; }
   #target-line { font-size: 1.6rem; }
 }

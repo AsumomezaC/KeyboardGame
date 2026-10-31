@@ -26,11 +26,15 @@ const Layout = (() => {
   const IGNORED_CODES = new Set(['Backspace', 'Enter', 'NumpadEnter', 'Escape', 'Tab']);
   const STORAGE_KEY = 'parkour.learnedLayout';
 
-  const US_LEGEND = {
-    Backquote: '`', Minus: '-', Equal: '=', BracketLeft: '[', BracketRight: ']',
-    Backslash: '\\', Semicolon: ';', Quote: "'", Comma: ',', Period: '.', Slash: '/',
-    Space: 'Espacio', IntlBackslash: '(tecla < >)',
+  // Lo que viene impreso en un teclado físico ANSI (EE. UU.): [normal, Shift].
+  const US_KEYCAP = {
+    Backquote: ['`', '~'], Digit1: ['1', '!'], Digit2: ['2', '@'], Digit3: ['3', '#'],
+    Digit4: ['4', '$'], Digit5: ['5', '%'], Digit6: ['6', '^'], Digit7: ['7', '&'],
+    Digit8: ['8', '*'], Digit9: ['9', '('], Digit0: ['0', ')'], Minus: ['-', '_'],
+    Equal: ['=', '+'], BracketLeft: ['[', '{'], BracketRight: [']', '}'], Backslash: ['\\', '|'],
+    Semicolon: [';', ':'], Quote: ["'", '"'], Comma: [',', '<'], Period: ['.', '>'], Slash: ['/', '?'],
   };
+  const US_NAMES = { Space: 'Espacio', IntlBackslash: '(tecla < >)' };
 
   const defaults = buildDefaults();
   let learned = load();
@@ -95,8 +99,15 @@ const Layout = (() => {
     return learned[ch] || defaults[ch] || null;
   }
 
+  function keycap(code) {
+    if (US_KEYCAP[code]) return US_KEYCAP[code];
+    if (code.startsWith('Key')) return [code.slice(3), ''];
+    return [usLegend(code), ''];
+  }
+
   function usLegend(code) {
-    if (US_LEGEND[code]) return US_LEGEND[code];
+    if (US_KEYCAP[code]) return US_KEYCAP[code][0];
+    if (US_NAMES[code]) return US_NAMES[code];
     if (code.startsWith('Key')) return code.slice(3);
     if (code.startsWith('Digit')) return code.slice(5);
     if (code.startsWith('Numpad')) return 'Num ' + code.slice(6);
@@ -107,11 +118,19 @@ const Layout = (() => {
     if (!combo) return 'Sin pista registrada para este carácter.';
     if (combo.altCode) {
       const digits = combo.altCode.split('').join(' ');
-      const note = combo.missingKey ? ' (tu teclado no tiene la tecla de < >)' : '';
+      const note = combo.missingKey
+        ? ' (ojo: la tecla que tiene impreso < > en tu teclado escribe , ; y . : en latino)'
+        : '';
       return `Mantén Alt izquierdo, teclea ${digits} en el teclado numérico y suelta Alt${note}`;
     }
     return combo.steps
-      .map(s => [s.altGr && 'AltGr', s.shift && 'Shift', 'tecla ' + usLegend(s.code)].filter(Boolean).join(' + '))
+      .map((s, i) => {
+        let text = [s.altGr && 'AltGr', s.shift && 'Shift', 'tecla ' + usLegend(s.code)].filter(Boolean).join(' + ');
+        // Si Shift sigue presionado en la tecla siguiente, sale mayúscula (p. ej. Ü en vez de ü).
+        const next = combo.steps[i + 1];
+        if (s.shift && next && !next.shift) text += ' (suelta Shift)';
+        return text;
+      })
       .join('  →  luego  ');
   }
 
@@ -143,5 +162,5 @@ const Layout = (() => {
     return JSON.stringify({ layout: 'es-419 sobre ANSI', learned }, null, 2);
   }
 
-  return { comboFor, comboFromStrokes, learn, describe, describeCombo, labels, usLegend, learnedCount, reset, exportJSON };
+  return { comboFor, comboFromStrokes, learn, describe, describeCombo, labels, keycap, usLegend, learnedCount, reset, exportJSON };
 })();

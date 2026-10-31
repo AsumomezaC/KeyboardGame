@@ -9,19 +9,31 @@ const TypeInput = (() => {
   let active = false;
   let handlers = {};
   let pending = []; // pulsaciones desde el último carácter producido
+  let capsLock = null;
 
   function init() {
     el = document.getElementById('type-capture');
     el.addEventListener('keydown', onKeyDown);
-    el.addEventListener('keyup', e => { if (e.key === 'Alt') e.preventDefault(); });
+    el.addEventListener('keyup', e => {
+      if (e.key === 'Alt') e.preventDefault();
+      checkCaps(e);
+    });
     el.addEventListener('input', onInput);
     el.addEventListener('compositionend', e => emit(e.data));
     el.addEventListener('blur', () => { if (active) setTimeout(() => el.focus(), 0); });
     document.addEventListener('mousedown', () => { if (active) setTimeout(() => el.focus(), 0); });
   }
 
+  function checkCaps(e) {
+    const on = e.getModifierState('CapsLock');
+    if (on === capsLock) return;
+    capsLock = on;
+    if (handlers.onCaps) handlers.onCaps(on);
+  }
+
   function onKeyDown(e) {
     if (e.key === 'Tab') e.preventDefault();
+    checkCaps(e);
     if (handlers.onKey) handlers.onKey(e);
     if (MODIFIER_CODES.has(e.code)) return;
     pending.push({
@@ -60,5 +72,5 @@ const TypeInput = (() => {
     handlers = h;
   }
 
-  return { init, setActive, on };
+  return { init, setActive, on, isCapsLock: () => capsLock === true };
 })();

@@ -64,6 +64,7 @@ const Game = (() => {
       if (now >= s.countdownEnd) {
         s.phase = 'run';
         s.startTime = now;
+        if (hooks.onStart) hooks.onStart();
       }
       return;
     }
@@ -291,7 +292,8 @@ const Game = (() => {
     ctx.fillText(`Racha ${s.combo}   PPM ${wpm.toFixed(0)}`, W - 14, 23);
 
     if (s.phase === 'countdown') {
-      const n = Math.ceil((s.countdownEnd - now) / 1000);
+      // El tiempo del frame puede ser anterior al de start(); se limita a 3.
+      const n = Math.min(3, Math.ceil((s.countdownEnd - now) / 1000));
       ctx.fillStyle = 'rgba(0,0,0,0.4)';
       ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = '#ffd166';

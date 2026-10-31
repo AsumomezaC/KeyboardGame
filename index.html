@@ -9,16 +9,27 @@
 <body>
   <textarea id="type-capture" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Captura de teclado"></textarea>
 
+  <div id="caps-warning" role="status" hidden>
+    <strong>Bloq Mayús está activo.</strong> Las letras saldrán en mayúscula; desactívalo con la tecla Bloq Mayús cuando quieras.
+  </div>
+
   <main>
     <section id="screen-menu">
       <h1>Parkour Tecla</h1>
       <p class="tagline">Mecanografía contra reloj para la distribución <strong>Español (Latinoamérica)</strong> sobre un teclado físico en inglés.</p>
+      <h2>Elige un nivel</h2>
+      <div id="level-list" class="level-list"></div>
       <div class="actions">
-        <button id="btn-play">Jugar: Ruta de los símbolos</button>
         <button id="btn-diagnostic" class="secondary">Diagnóstico de teclado</button>
       </div>
-      <p id="menu-best" class="muted"></p>
       <p id="menu-learned" class="muted"></p>
+      <div id="menu-history-wrap" hidden>
+        <h3>Tus últimas partidas</h3>
+        <table class="log">
+          <thead><tr><th>Fecha</th><th>Nivel</th><th>Tiempo</th><th>PPM</th><th>Precisión</th><th>Errores</th></tr></thead>
+          <tbody id="menu-history"></tbody>
+        </table>
+      </div>
       <details>
         <summary>¿Cómo se juega?</summary>
         <ul>
@@ -26,6 +37,7 @@
           <li>Si llegas al obstáculo sin terminar, te detienes y el reloj sigue corriendo.</li>
           <li>Cada error te hace tropezar y reinicia tu racha; la racha te da velocidad.</li>
           <li>Abajo verás qué tecla física presionar. <code>&lt;</code> y <code>&gt;</code> se escriben con <kbd>Alt</kbd> + <kbd>6</kbd><kbd>0</kbd> / <kbd>6</kbd><kbd>2</kbd> en el teclado numérico.</li>
+          <li>Para <code>ü</code>: <kbd>Shift</kbd> + <kbd>[</kbd>, suelta Shift y luego <kbd>U</kbd>.</li>
           <li>Haz el diagnóstico primero: el juego aprende lo que produce tu teclado real y corrige sus pistas.</li>
         </ul>
       </details>
@@ -51,12 +63,38 @@
       <canvas id="game-canvas" width="960" height="360"></canvas>
       <div id="target-line" class="mono"></div>
       <div id="hint-text"></div>
+      <div id="game-tip" role="status"></div>
+      <div id="hands" hidden>
+        <svg viewBox="0 0 420 150" role="img" aria-label="Posición de las manos: índices sobre F y J">
+          <defs>
+            <g id="hand">
+              <!-- Colores fijos: los estilos de la página no llegan a las copias de <use>. -->
+              <rect fill="#c77dff" x="20" y="48" width="22" height="46" rx="11"/>
+              <rect fill="#4cc9f0" x="48" y="34" width="22" height="60" rx="11"/>
+              <rect fill="#80ed99" x="76" y="28" width="22" height="66" rx="11"/>
+              <rect fill="#ff9f1c" x="104" y="38" width="22" height="56" rx="11"/>
+              <rect fill="#adb5bd" x="124" y="96" width="44" height="20" rx="10" transform="rotate(-25 124 106)"/>
+              <rect fill="#3a4170" x="18" y="86" width="110" height="44" rx="16"/>
+            </g>
+          </defs>
+          <use href="#hand"/>
+          <use href="#hand" transform="translate(420 0) scale(-1 1)"/>
+          <g class="finger-keys">
+            <text x="31" y="22">A</text><text x="59" y="22">S</text><text x="87" y="22">D</text><text x="115" y="22">F</text>
+            <text x="305" y="22">J</text><text x="333" y="22">K</text><text x="361" y="22">L</text><text x="389" y="22">Ñ</text>
+          </g>
+          <text class="hands-title" x="210" y="46">Índices sobre F y J</text>
+          <text class="hands-sub" x="210" y="64">(tienen un relieve)</text>
+          <text class="hands-sub" x="210" y="142">Pulgares: Espacio</text>
+        </svg>
+        <p class="muted small">Cada color del teclado indica qué dedo presiona esa tecla.</p>
+      </div>
       <div id="game-keyboard"></div>
       <p class="muted small">Esc para salir al menú</p>
     </section>
 
     <section id="screen-results" hidden>
-      <h2>¡Meta!</h2>
+      <h2 id="results-title">¡Meta!</h2>
       <div id="results-stats" class="stats"></div>
       <h3>Teclas a practicar</h3>
       <table class="log">
@@ -67,6 +105,11 @@
         <button id="btn-retry">Reintentar (Enter)</button>
         <button id="btn-menu" class="secondary">Menú</button>
       </div>
+      <h3>Tus últimas partidas</h3>
+      <table class="log">
+        <thead><tr><th>Fecha</th><th>Nivel</th><th>Tiempo</th><th>PPM</th><th>Precisión</th><th>Errores</th></tr></thead>
+        <tbody id="results-history"></tbody>
+      </table>
     </section>
   </main>
 
