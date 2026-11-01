@@ -1,11 +1,11 @@
 // Mapa del capítulo: 10 niveles en un camino, más el secreto cuando se reúnen 30 estrellas.
 import Phaser from 'phaser';
 import { Save } from '../core/save.js';
-import { levelRules, levelStatus, chapterStars, canFail } from '../game/rules.js';
+import { levelRules, levelStatus, chapterStars, chapterMaxStars, canFail, ACCURACY_STAR } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
 import { escapeHTML } from '../ui/keyboard-view.js';
 import { levelName } from '../data/chapter1.js';
-import { W, text, backdrop, onKeys, stars, formatTime } from './common.js';
+import { W, text, backdrop, onKeys, stars, formatTime, keyLegend } from './common.js';
 
 const NODES = [
   [100, 360], [190, 290], [280, 360], [370, 285], [460, 355],
@@ -18,8 +18,6 @@ export function goalLines(level) {
   const lines = [];
   if (rules.limitMs && level.kind !== 'race') lines.push({ label: 'límite', ms: rules.limitMs, color: '#d1495b' });
   if (level.kind === 'race') lines.push({ label: '1.er lugar', ms: rules.limitMs, color: '#d1495b' });
-  lines.push({ label: '★★', ms: rules.twoMs, color: '#4f9fd1' });
-  lines.push({ label: '★★★', ms: rules.threeMs, color: '#e8a400' });
   return lines;
 }
 
@@ -36,7 +34,7 @@ export function levelInfoHtml(chapter, level) {
   else if (level.kind === 'secret') rows.push(`Nivel secreto con mayúsculas. Límite: <b>${formatTime(rules.limitMs)}</b>.`);
   else if (rules.limitMs) rows.push(`Límite de tiempo: <b>${formatTime(rules.limitMs)}</b>. Si no lo logras, no avanzas.`);
   else rows.push('Aquí no se pierde: solo cuenta para tus estrellas.');
-  rows.push(`★ terminar${canFail(level) ? ' a tiempo' : ''} · ★★ en ${formatTime(rules.twoMs)} y 90 % de precisión · ★★★ en ${formatTime(rules.threeMs)}, 97 % y sin caídas`);
+  rows.push(`Cada estrella se gana aparte: ★ terminar${canFail(level) ? ' a tiempo' : ''} · ★ velocidad: ${formatTime(rules.fastMs)} o menos · ★ precisión: ${Math.round(ACCURACY_STAR * 100)} % o más`);
   return `<h2>${escapeHTML(levelName(level))} <span class="stars">${'★'.repeat(best.stars)}${'☆'.repeat(3 - best.stars)}</span></h2>` +
     `<p>${keys}${level.requiresStars && level.kind !== 'secret' ? ` · Requiere ${level.requiresStars} ★` : ''}</p>` +
     rows.map(r => `<p>${r}</p>`).join('') +
@@ -59,10 +57,9 @@ export class LevelMapScene extends Phaser.Scene {
     const ch = this.chapter;
     backdrop(this, 'barrio').scroll(0);
     this.add.rectangle(0, 0, W, 540, 0x1d1b33, 0.35).setOrigin(0);
-    const total = chapterStars(ch, Save);
+    const total = chapterStars(ch, Save, { includeSecret: true });
     text(this, 24, 18, `${ch.title} — ${ch.subtitle}`, 30, '#ffd23f');
-    text(this, W - 24, 22, `★ ${total} / 30`, 26, '#ffffff', { ox: 1 });
-    text(this, 24, 60, '← → elegir · Enter jugar · Esc capítulos', 16, '#ffffff', { bold: false });
+    text(this, W - 24, 22, `★ ${total} / ${chapterMaxStars(ch, Save)}`, 26, '#ffffff', { ox: 1 });
 
     this.entries = ch.levels.map((level, i) => ({ level, pos: NODES[i] }));
     const secretStatus = levelStatus(ch, ch.secret, Save);
@@ -85,6 +82,7 @@ export class LevelMapScene extends Phaser.Scene {
     }
 
     for (const e of this.entries) this.drawNode(e);
+    keyLegend(this, [['← →', 'elegir nivel'], ['Enter', 'jugar'], ['Esc', 'capítulos']]);
     this.marker = this.add.image(0, 0, 'sofia-head').setScale(3);
     this.tweens.add({ targets: this.marker, y: '-=8', duration: 450, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
 

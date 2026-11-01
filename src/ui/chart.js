@@ -1,5 +1,5 @@
 // Gráfica del historial de un nivel: tiempo de cada carrera (más arriba = más rápido),
-// con las metas de estrellas como líneas punteadas. Funciona con 0, 1 o hasta 10 carreras.
+// con el límite del nivel como línea punteada. Funciona con 0, 1 o hasta 10 carreras.
 import { escapeHTML } from './keyboard-view.js';
 
 const W = 600, H = 210;
@@ -39,8 +39,10 @@ export function renderChart(container, history, lines, title) {
   }
   history.forEach((h, i) => {
     const date = new Date(h.at).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const earned = ['meta', h.speedStar && 'velocidad', h.accuracyStar && 'precisión'].filter(Boolean).join(', ');
+    const detail = h.speedStar !== undefined ? ` (${earned})` : '';
     const tip = `${date} · ${fmt(h.timeMs)} s · ${Math.round(h.wpm)} PPM · ${(h.accuracy * 100).toFixed(0)} % · ` +
-      (h.passed ? `${'★'.repeat(h.stars) || 'sin estrellas'}` : 'no superado');
+      (h.passed ? `${'★'.repeat(h.stars)}${detail}` : 'no superado');
     const cx = x(i), cy = y(h.timeMs);
     if (h.passed) {
       parts.push(`<g><title>${escapeHTML(tip)}</title><circle cx="${cx}" cy="${cy}" r="6" style="fill:${STAR_COLORS[h.stars] || STAR_COLORS[1]}"/>` +

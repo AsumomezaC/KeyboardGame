@@ -134,8 +134,8 @@ export class RunScene extends Phaser.Scene {
 
   refreshTarget() {
     const o = this.runner.targetObstacle;
-    if (!o) {
-      Panel.setTarget(null);
+    if (!o || this.runner.mustRun) {
+      Panel.setTarget(null, 0, o ? '¡Corre!' : undefined);
       Panel.setHints('');
       Panel.keyboard.clear();
       return;
@@ -268,7 +268,7 @@ export class RunScene extends Phaser.Scene {
     label.setVisible(visible && !(o.done && this.runner.x >= o.start));
     if (!visible) return;
     sprite.x = sx;
-    const isTarget = this.runner.targetObstacle === o;
+    const isTarget = this.runner.targetObstacle === o && !this.runner.mustRun;
     const key = `${o.typed}|${isTarget}|${o.done}`;
     if (key !== v.key) {
       v.key = key;

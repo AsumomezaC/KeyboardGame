@@ -1,4 +1,5 @@
 // Antes de un nivel con teclas nuevas: qué dedo usar y una mini práctica de 5 pulsaciones por tecla.
+// Al terminar la práctica arranca la carrera sola (con su cuenta regresiva).
 import Phaser from 'phaser';
 import { TypeInput } from '../core/input.js';
 import { fingerOf, fingerLabel } from '../core/fingers.js';
@@ -6,9 +7,10 @@ import * as Layout from '../core/layout.js';
 import { Panel } from '../ui/panel.js';
 import { levelName } from '../data/chapter1.js';
 import { fingersFor } from './RunScene.js';
-import { W, SCALE, FEET_Y, text, box, backdrop } from './common.js';
+import { SCALE, FEET_Y, text, box, backdrop, keyLegend } from './common.js';
 
 const REPS = 5;
+const START_DELAY_MS = 900;
 
 export class LessonScene extends Phaser.Scene {
   constructor() {
@@ -31,7 +33,7 @@ export class LessonScene extends Phaser.Scene {
     this.keyText = text(this, 600, 190, '', 110, '#ff9f1c', { ox: 0.5, oy: 0.5, strokeThickness: 10 });
     this.fingerText = text(this, 600, 268, '', 24, '#2b1d2e', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
     this.pips = Array.from({ length: REPS }, (_, i) => this.add.circle(600 + (i - 2) * 34, 320, 11, 0xd8c3a5).setStrokeStyle(3, 0x2b1d2e));
-    text(this, W / 2, 16, 'Esc: volver al mapa', 16, '#ffffff', { ox: 0.5 });
+    keyLegend(this, [['Esc', 'volver al mapa']]);
 
     Panel.show('play');
     Panel.setCapsContext(true);
@@ -40,7 +42,6 @@ export class LessonScene extends Phaser.Scene {
     TypeInput.start({
       onKey: e => {
         if (e.key === 'Escape') this.scene.start('LevelMap', { chapter: this.chapter, select: this.level.id });
-        else if (e.key === 'Enter' && this.finished) this.scene.start('Run', { chapter: this.chapter, level: this.level });
         else Panel.keyboard.press(e.code);
       },
       onChar: ch => this.onChar(ch),
@@ -97,8 +98,9 @@ export class LessonScene extends Phaser.Scene {
     Panel.keyboard.clear();
     Panel.showHands(false);
     this.keyText.setText('¡LISTA!').setFontSize(80).setColor('#7bd389');
-    this.fingerText.setText('Presiona Enter para correr');
-    Panel.setTarget(null);
-    Panel.setHints('Presiona Enter para empezar el nivel.');
+    this.fingerText.setText('¡A correr!');
+    Panel.setTarget(null, 0, '¡Lista!');
+    Panel.setHints('');
+    this.time.delayedCall(START_DELAY_MS, () => this.scene.start('Run', { chapter: this.chapter, level: this.level }));
   }
 }

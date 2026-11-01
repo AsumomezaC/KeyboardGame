@@ -43,6 +43,8 @@ export const Save = {
       accuracy: run.accuracy,
       falls: run.falls,
       stars: run.stars,
+      speedStar: !!run.breakdown?.speed,
+      accuracyStar: !!run.breakdown?.accuracy,
       passed: run.passed,
       failReason: run.failReason || null,
     }].slice(-HISTORY_SIZE);

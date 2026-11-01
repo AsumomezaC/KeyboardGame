@@ -19,15 +19,19 @@ npm run build    # versión final en dist/ (publicable en GitHub Pages)
 
 ## Capítulo 1
 
-- Solo la fila central (`a s d f g h j k l ñ`) en minúsculas. Dos letras nuevas por nivel hasta el 5;
-  el espacio entra en el 6. Antes de cada nivel con teclas nuevas hay una lección de qué dedo usar.
+- Solo la fila central (`a s d f g h j k l ñ`) en minúsculas. 1: `f j`, 2: `d k`, 3: combina
+  `d f j k`, 4: `s l`, 5: `a ñ`, 6: `g h`; el 7 repasa palabras sin espacios y el espacio entra en
+  el 8. Antes de cada nivel con teclas nuevas hay una lección de qué dedo usar.
 - Cada obstáculo depende de su largo: 1-2 caracteres = tramo plano, 3-4 = charco (salto),
   5-6 = barrera (deslizarse por debajo), 7-8 = silla (salto con giro de 360°).
 - Cada obstáculo tiene un temporizador. Si se acaba, Sofía tropieza, se levanta (el reloj sigue) y
   vuelves a escribirlo. Mientras está en el suelo el teclado queda bloqueado.
+- Solo se escribe el obstáculo actual: al terminarlo aparece «¡Corre!» y el siguiente se desbloquea
+  cuando Sofía lo supera.
 - Una tecla equivocada provoca un traspié breve. Escribir rápido hace que Sofía acelere.
-- Estrellas: ★ terminar (a tiempo), ★★ tiempo objetivo y 90 % de precisión,
-  ★★★ tiempo exigente, 97 % de precisión y sin caídas.
+- Estrellas independientes: ★ terminar (a tiempo), ★ velocidad (tiempo objetivo del nivel) y
+  ★ precisión (95 % o más). Se puede llegar a ★★ por velocidad o por precisión.
+- El total del capítulo se muestra sobre 30 y pasa a 33 cuando aparece el nivel secreto.
 - Niveles 1-3 no se pierden. 4-6, 8 y 9 tienen límite de tiempo. 7: jefe del perro (requiere 10 ★,
   pierdes con 3 caídas). 10: carrera contra rivales (requiere 20 ★, levantarse tarda más).
   Secreto: aparece con 30 ★, incluye mayúsculas con consejos de Shift y Bloq Mayús.

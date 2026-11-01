@@ -2,12 +2,12 @@
 import Phaser from 'phaser';
 import { Save } from '../core/save.js';
 import * as Layout from '../core/layout.js';
-import { starsFor, levelStatus, nextLevel } from '../game/rules.js';
+import { starsFor, starBreakdown, levelRules, levelStatus, nextLevel, canFail, ACCURACY_STAR } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
 import { escapeHTML } from '../ui/keyboard-view.js';
 import { levelName } from '../data/chapter1.js';
 import { goalLines } from './LevelMapScene.js';
-import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime } from './common.js';
+import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime, keyLegend } from './common.js';
 
 const FAIL_TEXT = {
   time: 'Se acabó el tiempo. Necesitas ser más rápida para avanzar.',
@@ -29,7 +29,8 @@ export class ResultsScene extends Phaser.Scene {
   create() {
     const { level, result, chapter } = this;
     const starsWon = starsFor(level, result);
-    const { prev } = Save.record(level.id, { ...result, stars: starsWon });
+    const breakdown = starBreakdown(level, result);
+    const { prev } = Save.record(level.id, { ...result, stars: starsWon, breakdown });
 
     backdrop(this, level.theme).scroll(0);
     const kid = this.add.sprite(160, FEET_Y, 'sofia', 'sad').setOrigin(0.5, 1).setScale(SCALE);
@@ -39,10 +40,22 @@ export class ResultsScene extends Phaser.Scene {
     const title = result.passed ? '¡Nivel superado!' : 'No lo lograste';
     text(this, 590, 66, `${levelName(level)} · ${title}`, 28, result.passed ? '#2f7d3a' : '#b3261e', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
 
-    [0, 1, 2].forEach(i => {
-      const star = this.add.image(510 + i * 80, 150, 'star-off').setScale(6);
-      if (i < starsWon) {
-        this.time.delayedCall(300 + i * 350, () => {
+    // Cada estrella dice qué mide y si se logró.
+    const rules = levelRules(level);
+    const starDefs = [
+      { won: breakdown.finish, name: 'Meta', goal: canFail(level) ? 'a tiempo' : 'terminar' },
+      { won: breakdown.speed, name: 'Velocidad', goal: `≤ ${formatTime(rules.fastMs)}` },
+      { won: breakdown.accuracy, name: 'Precisión', goal: `≥ ${Math.round(ACCURACY_STAR * 100)} %` },
+    ];
+    let lit = 0;
+    starDefs.forEach((d, i) => {
+      const x = 490 + i * 100;
+      const star = this.add.image(x, 136, 'star-off').setScale(6);
+      const color = d.won ? '#2f7d3a' : '#8a8799';
+      text(this, x, 174, d.name, 16, color, { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
+      text(this, x, 194, d.goal, 15, color, { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
+      if (d.won) {
+        this.time.delayedCall(300 + lit++ * 350, () => {
           star.setTexture('star-on').setScale(0.5);
           this.tweens.add({ targets: star, scale: 6, duration: 300, ease: 'Back.out' });
         });
@@ -57,14 +70,13 @@ export class ResultsScene extends Phaser.Scene {
     ];
     if (reason) lines.push(FAIL_TEXT[reason]);
     else if (starsWon > prev.stars) lines.push(`¡Nueva marca de estrellas en este nivel!`);
-    text(this, 590, 220, lines.join('\n'), 20, '#2b1d2e', { ox: 0.5, align: 'center', stroke: '#fff7e0', strokeThickness: 2, wrap: 560, lineSpacing: 10 });
+    text(this, 590, 230, lines.join('\n'), 20, '#2b1d2e', { ox: 0.5, align: 'center', stroke: '#fff7e0', strokeThickness: 2, wrap: 560, lineSpacing: 10 });
 
     const next = nextLevel(chapter, level);
     this.next = next && levelStatus(chapter, next, Save).unlocked ? next : null;
     const secretNow = level.kind !== 'secret' && levelStatus(chapter, chapter.secret, Save).visible &&
       !Save.level(chapter.secret.id).passed;
-    const keys = `Enter reintentar${this.next ? '  ·  → siguiente nivel' : ''}  ·  Esc mapa`;
-    text(this, 590, 380, keys, 18, '#5a4a3a', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
+    keyLegend(this, [['Enter', 'reintentar'], ...(this.next ? [['→', 'siguiente nivel']] : []), ['Esc', 'mapa']]);
     if (secretNow) text(this, W / 2, 470, '¡Apareció un nivel secreto en el mapa!', 24, '#b388ff', { ox: 0.5 });
 
     const weak = Object.entries(result.errByChar).sort((a, b) => b[1] - a[1]);

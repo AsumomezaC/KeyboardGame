@@ -55,9 +55,10 @@ export const Panel = {
     updateCaps();
   },
 
-  setTarget(chars, typed) {
+  // Sin caracteres muestra un aviso en lugar del texto a escribir.
+  setTarget(chars, typed, message = '¡Corre a la meta!') {
     if (!chars) {
-      $('target-line').innerHTML = '<span class="done">¡Corre a la meta!</span>';
+      $('target-line').innerHTML = `<span class="done">${escapeHTML(message)}</span>`;
       return;
     }
     $('target-line').innerHTML = chars

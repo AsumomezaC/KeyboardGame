@@ -66,6 +66,29 @@ export function onKeys(scene, map) {
   });
 }
 
+// Barra inferior con las teclas disponibles: cada tecla en su propia tapa, seguida de lo que hace.
+// items: [['Enter', 'jugar'], ['Esc', 'volver'], ...]
+export function keyLegend(scene, items) {
+  const BAR_H = 40;
+  const y = H - BAR_H / 2;
+  scene.add.rectangle(0, H - BAR_H, W, BAR_H, 0x000000, 0.55).setOrigin(0);
+  const parts = items.map(([key, label]) => {
+    const cap = scene.add.text(0, y, key, {
+      fontFamily: FONT, fontSize: '16px', fontStyle: 'bold', color: INK,
+      backgroundColor: CREAM, padding: { x: 8, y: 3 },
+    }).setOrigin(0, 0.5);
+    const desc = text(scene, 0, y, label, 16, '#ffffff', { oy: 0.5, bold: false, strokeThickness: 0 });
+    return { cap, desc, w: cap.width + 8 + desc.width };
+  });
+  const GAP = 28;
+  let x = (W - parts.reduce((n, p) => n + p.w, 0) - GAP * (parts.length - 1)) / 2;
+  for (const p of parts) {
+    p.cap.x = x;
+    p.desc.x = x + p.cap.width + 8;
+    x += p.w + GAP;
+  }
+}
+
 export function stars(scene, x, y, count, { gap = 30, scale = 3 } = {}) {
   return [0, 1, 2].map(i =>
     scene.add.image(x + (i - 1) * gap, y, i < count ? 'star-on' : 'star-off').setScale(scale));

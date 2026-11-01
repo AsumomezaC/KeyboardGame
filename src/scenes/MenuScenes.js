@@ -2,10 +2,10 @@
 import Phaser from 'phaser';
 import { generateArt } from '../art/index.js';
 import { Save } from '../core/save.js';
-import { chapterStars } from '../game/rules.js';
+import { chapterStars, chapterMaxStars } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
 import { CHAPTERS } from '../data/chapter1.js';
-import { W, SCALE, FEET_Y, text, box, backdrop, onKeys } from './common.js';
+import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, keyLegend } from './common.js';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -56,8 +56,8 @@ export class ChaptersScene extends Phaser.Scene {
     backdrop(this, 'barrio').scroll(400);
     this.add.rectangle(0, 0, W, 540, 0x1d1b33, 0.4).setOrigin(0);
     text(this, W / 2, 30, 'Elige un capítulo', 34, '#ffd23f', { ox: 0.5 });
-    text(this, W / 2, 76, '← → elegir · Enter entrar · Esc título', 16, '#ffffff', { ox: 0.5, bold: false });
     this.cards = CHAPTERS.map((chap, i) => this.drawCard(chap, 90 + i * 270));
+    keyLegend(this, [['← →', 'elegir'], ['Enter', 'entrar'], ['Esc', 'título']]);
     this.select(0);
     onKeys(this, {
       ArrowRight: () => this.select(Math.min(this.cards.length - 1, this.index + 1)),
@@ -77,7 +77,7 @@ export class ChaptersScene extends Phaser.Scene {
       text(this, x + 120, y + 64, chap.subtitle, 24, '#b83350', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
       this.add.sprite(x + 120, y + 210, 'sofia').setOrigin(0.5, 1).setScale(SCALE).play('sofia-idle');
       const total = chapterStars(chap.data, Save, { includeSecret: true });
-      text(this, x + 120, y + 240, `★ ${total} / 33`, 24, '#e8a400', { ox: 0.5 });
+      text(this, x + 120, y + 240, `★ ${total} / ${chapterMaxStars(chap.data, Save)}`, 24, '#e8a400', { ox: 0.5 });
     } else {
       this.add.image(x + 120, y + 170, 'sign').setScale(SCALE);
       text(this, x + 120, y + 150, 'EN\nCONSTRUCCIÓN', 18, '#2b1d2e', { ox: 0.5, oy: 0.5, align: 'center', stroke: '#c8955c', strokeThickness: 2 });

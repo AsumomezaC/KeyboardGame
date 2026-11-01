@@ -1,6 +1,7 @@
 // Lógica de la carrera sin Phaser: posiciones en px del mundo y tiempos en ms.
 //
 // Cada obstáculo tiene un temporizador que arranca cuando Sofía termina de superar el anterior.
+// Solo se puede escribir ese obstáculo: el siguiente se desbloquea al superarlo.
 // El hueco hasta él mide BASE_SPEED × ventana, así que corriendo a velocidad base llega justo
 // cuando se acaba el tiempo. Si no terminaste de escribirlo, tropieza, se levanta y lo vuelves
 // a escribir con el temporizador reiniciado. Si lo escribes rápido, Sofía acelera hacia él.
@@ -90,8 +91,13 @@ export class Runner {
     return this.obstacles[this.target] || null;
   }
 
+  // Solo se escribe el obstáculo que tiene el temporizador: si ya lo escribiste, a correr.
+  get mustRun() {
+    return this.phase === 'run' && this.target !== this.timed && !!this.targetObstacle;
+  }
+
   get canType() {
-    return this.phase === 'run';
+    return this.phase === 'run' && this.target === this.timed;
   }
 
   timeLeftMs(o) {
@@ -155,7 +161,7 @@ export class Runner {
   }
 
   type(ch) {
-    if (this.phase !== 'run') return { ignored: true };
+    if (!this.canType) return { ignored: true };
     const o = this.targetObstacle;
     if (!o) return { ignored: true };
     const expected = o.chars[o.typed];

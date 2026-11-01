@@ -2,6 +2,7 @@
 import { simulate } from './runner.js';
 
 const DEFAULT_GETUP_MS = 1200;
+export const ACCURACY_STAR = 0.95;
 const RIVAL_FACTORS = [1, 1.07, 1.16];
 const cache = new Map();
 
@@ -14,8 +15,7 @@ export function levelRules(level) {
     getupMs,
     maxFalls: level.maxFalls ?? null,
     limitMs: level.ppm.pass ? timeAt(level.ppm.pass) : null,
-    twoMs: timeAt(level.ppm.two),
-    threeMs: timeAt(level.ppm.three),
+    fastMs: timeAt(level.ppm.fast),
     rivals: null,
   };
   if (level.kind === 'race') {
@@ -29,18 +29,31 @@ export function canFail(level) {
   return level.ppm.pass != null || level.maxFalls != null;
 }
 
+// Tres estrellas independientes: terminar (a tiempo), velocidad y precisión.
+// Las dos últimas solo cuentan si terminas el nivel.
+export function starBreakdown(level, result) {
+  const passed = !!result.passed;
+  return {
+    finish: passed,
+    speed: passed && result.timeMs <= levelRules(level).fastMs,
+    accuracy: passed && result.accuracy >= ACCURACY_STAR,
+  };
+}
+
 export function starsFor(level, result) {
-  if (!result.passed) return 0;
-  const rules = levelRules(level);
-  let stars = 1;
-  if (result.timeMs <= rules.twoMs && result.accuracy >= 0.9) stars = 2;
-  if (result.timeMs <= rules.threeMs && result.accuracy >= 0.97 && result.falls === 0) stars = 3;
-  return stars;
+  const b = starBreakdown(level, result);
+  return b.finish + b.speed + b.accuracy;
 }
 
 export function chapterStars(chapter, save, { includeSecret = false } = {}) {
   const levels = includeSecret ? [...chapter.levels, chapter.secret] : chapter.levels;
   return levels.reduce((n, l) => n + save.level(l.id).stars, 0);
+}
+
+// Estrellas posibles del capítulo: el secreto solo suma sus 3 cuando ya apareció.
+export function chapterMaxStars(chapter, save) {
+  const base = chapter.levels.length * 3;
+  return levelStatus(chapter, chapter.secret, save).visible ? base + 3 : base;
 }
 
 // { visible, unlocked, reason }: reason explica por qué está bloqueado.
