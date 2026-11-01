@@ -125,6 +125,71 @@ export const TRACKS = {
     'C#5 - - - - - - - E5 - - - A4 - - -',
   ], { bassStyle: 'ostinato', arpOpts: { every: 4 }, drums: 'k . . . . . . . k . . . s . . .', leadOpts: { duty: 12 } }),
 
+  // ---- Momentos clave de la historia ----
+  // Nivel 1: Sofía descubre que correr la hace sentir viva.
+  despertar: track(120, ['C', 'G', 'Am', 'F'], [
+    'G4 - C5 - E5 - G5 - - - E5 - G5 - C6 -',
+    'B5 - - - A5 - G5 - D5 - - - G5 - - -',
+    'C6 - - - B5 - A5 - E5 - - - A5 - C6 -',
+    'C6 - - - A5 - F5 - G5 - - - - - - -',
+  ], { bassStyle: 'walk', drums: 'k . . . s . . . k . h . s . h .' }),
+
+  // La primera fila vacía: cajita musical.
+  ausencia: track(84, ['Am', 'F', 'C', 'E'], [
+    'E6 - . A5 - . C6 - . E6 - . D6 - C6 -',
+    'C6 - . F5 - . A5 - . C6 - . B5 - A5 -',
+    'G5 - . C5 - . E5 - . G5 - . A5 - G5 -',
+    'G#5 - - - B5 - - - E5 - - - . . . .',
+  ], { bassStyle: 'long', arpOpts: { every: 4 }, leadOpts: { duty: 12, vol: 0.24 } }),
+
+  // Los Gatos: calle, gorras al revés y azoteas.
+  gatos: track(104, ['Em', 'C', 'D', 'B'], [
+    'E5 . . E5 . G5 . . A5 . G5 . E5 . D5 .',
+    'E5 . . E5 . G5 . . C6 . B5 . G5 . . .',
+    'F#5 . . F#5 . A5 . . D6 . C6 . A5 . F#5 .',
+    'D#5 - - - F#5 - - - B5 - A5 - F#5 - D#5 -',
+  ], { bassStyle: 'ostinato', drums: 'k . h k s . h . k k h . s . h h', leadOpts: { duty: 25 } }),
+
+  // Corazón roto: «¡LOS ODIO!», la pelea con Dani, el abandono.
+  ruptura: track(70, ['Dm', 'Gm', 'Bb', 'A'], [
+    'A5 - - - - - - - F5 - - - D5 - - -',
+    'G5 - - - - - - - Bb5 - - - A5 - G5 -',
+    'F5 - - - - - - - D5 - - - F5 - - -',
+    'E5 - - - - - - - C#5 - - - - - - -',
+  ], { bassStyle: 'long', arpOpts: { every: 4, pattern: [0, 1, 2, 3] }, leadOpts: { duty: 25, vibrato: true } }),
+
+  // Algo gruñe en la niebla.
+  peligro: track(92, ['Cm', 'Cm', 'Ab', 'G'], [
+    'C5 . . . C#5 . . . C5 . . . . . G4 .',
+    'C5 . . . C#5 . . . D5 . . . Eb5 . . .',
+    'Eb5 . . . E5 . . . Eb5 . . . C5 . . .',
+    'B4 - - - - - - - D5 - - - G5 - - -',
+  ], { bassStyle: 'ostinato', arpOpts: { every: 1, pattern: [0, 1] }, drums: 'k . . . . . . . k . . . . . . .', leadOpts: { duty: 12, vol: 0.26 } }),
+
+  // Sola y con hambre.
+  soledad: track(66, ['Fm', 'Db', 'Bbm', 'C'], [
+    'C5 - - - Ab4 - - - F4 - - - . . . .',
+    'Db5 - - - Ab4 - - - F4 - - - . . . .',
+    'Bb4 - - - Db5 - - - F5 - - - Eb5 - - -',
+    'E5 - - - - - - - C5 - - - - - - -',
+  ], { bassStyle: 'long', arpOpts: { every: 4 }, leadOpts: { duty: 25, vol: 0.24, vibrato: true } }),
+
+  // El paraguas amarillo: Sofía y Dani hacen las paces.
+  reencuentro: track(84, ['G', 'D', 'Em', 'C'], [
+    'D5 - - - G5 - - - B5 - - - A5 - G5 -',
+    'F#5 - - - A5 - - - D6 - - - C6 - B5 -',
+    'B5 - - - - - - - G5 - A5 - B5 - - -',
+    'C6 - - - B5 - - - A5 - - - G5 - - -',
+  ], { bassStyle: 'walk', arpOpts: { every: 2, pattern: [0, 1, 2, 3, 2, 1] }, drums: 'k . . . . . . . s . . . . . . .', leadOpts: { duty: 25, vibrato: true } }),
+
+  // Primer lugar.
+  victoria: track(132, ['C', 'F', 'G', 'C'], [
+    'C5 . C5 . C5 . G5 - - - - - E5 - G5 -',
+    'A5 - - - F5 - A5 - C6 - - - A5 - - -',
+    'B5 - - - G5 - B5 - D6 - - - B5 - D6 -',
+    'C6 - - - - - - - G5 - E5 - C6 - - -',
+  ], { drums: 'k . s . k . s . k k s . k . s s' }),
+
   // K-drama: el primer amor.
   amor: track(90, ['F', 'Am', 'Bb', 'C'], [
     'C5 - - - F5 - - - A5 - - - G5 - F5 -',

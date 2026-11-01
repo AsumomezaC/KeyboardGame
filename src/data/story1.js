@@ -46,14 +46,14 @@ export const STORY1 = {
         { s: 'leticia', m: 'angry', t: '¡Tú no te metas, Sofía! Y tus tenis rotos se quedan así. No hay dinero. ¡NO HAY!', fx: 'zoom' },
         { s: 'ramiro', m: 'happy', t: 'No le hables así a mi princesa... ven, dale un abrazo a papi...' },
         { s: 'sofia', m: 'shock', t: '¡Hueles a cantina!', fx: 'zoom' },
-        { music: 'drama' },
+        { music: 'ruptura' },
         { t: 'Algo dentro de Sofía se rompió. Como sus tenis. Como el vidrio del cuadro familiar.' },
         { s: 'sofia', m: 'cry', t: '¡LOS ODIO! ¡A LOS DOS!', fx: 'shake' },
         { t: 'Y salió corriendo, sin mirar atrás.' },
       ],
     },
     after: {
-      place: 'barrio', music: 'alegre', scroll: 900,
+      place: 'barrio', music: 'despertar', scroll: 900,
       cast: [['sofia', 440, 'right', 'sad']],
       lines: [
         { t: 'El sol brillaba como si nada hubiera pasado. Qué descaro el del cielo.' },
@@ -122,7 +122,7 @@ export const STORY1 = {
       ],
     },
     after: {
-      place: 'barrio', music: 'drama', weather: 'despejado', scroll: 1500,
+      place: 'barrio', music: 'ausencia', weather: 'despejado', scroll: 1500,
       cast: [['sofia', 420, 'right', 'cheer'], ['dani', 260, 'right', 'happy']],
       lines: [
         { t: 'Viernes, 10 de la mañana. Carrera de la escuela.' },
@@ -159,7 +159,7 @@ export const STORY1 = {
       ],
     },
     after: {
-      place: 'barrio', music: 'tension', scroll: 2000,
+      place: 'barrio', music: 'gatos', scroll: 2000,
       cast: [['sofia', 260, 'right', 'sad'], ['kevin', 580, 'left'], ['yesi', 700, 'left'], ['chuy', 800, 'left'], ['brayan', 890, 'left']],
       lines: [
         { t: 'Sofía corrió hasta el viejo deportivo abandonado. No estaba sola.' },
@@ -182,7 +182,7 @@ export const STORY1 = {
     age: 10, weather: 'atardecer', music: 'carrera',
     phrases: ['¡Demuestra quién eres!', '¡Antes de que se meta el sol!', '¡Vuela!', '¡Sin miedo!'],
     before: {
-      place: 'barrio', music: 'alegre', scroll: 2400,
+      place: 'barrio', music: 'gatos', scroll: 2400,
       cast: [['sofia', 260], ['kevin', 520, 'left'], ['yesi', 620, 'left', 'angry'], ['chuy', 720, 'left'], ['brayan', 810, 'left'], ['memo', 900, 'left']],
       lines: [
         { t: 'Los Gatos entrenan en las azoteas cuando el sol se mete y el barrio se pinta de naranja.' },
@@ -223,7 +223,7 @@ export const STORY1 = {
         { s: 'sofia', m: 'angry', t: '¡Tú no conoces a Kevin! ¡Él sí me entiende!', fx: 'shake' },
         { s: 'dani', m: 'sad', t: '¿Y yo qué? ¿Yo no te entendí todos estos años?' },
         { s: 'sofia', m: 'angry', t: '¡Contigo todo es aburrido! ¡Correr hasta la tienda, la abuela, los consejos...!' },
-        { music: 'drama' },
+        { music: 'ruptura' },
         { s: 'dani', m: 'cry', t: '...Entonces vete con ellos. Pero cuando te dejen sola, no vengas a buscarme.' },
         { s: 'sofia', m: 'cry', t: '¡No te voy a buscar NUNCA!', fx: 'shake' },
         { t: 'El viento se llevó la última palabra. Nadie se dio la vuelta.' },
@@ -245,7 +245,7 @@ export const STORY1 = {
     age: 12, weather: 'niebla', music: 'perro', correRate: 0.7,
     phrases: ['¡Ahí viene!', '¡No te detengas!', '¡Salta!', '¡Más rápido!'],
     before: {
-      place: 'prohibida', music: 'tension', scroll: 300,
+      place: 'prohibida', music: 'gatos', scroll: 300,
       cast: [['sofia', 240], ['kevin', 460, 'left'], ['yesi', 570, 'left'], ['chuy', 670, 'left'], ['brayan', 760, 'left']],
       lines: [
         { t: 'Dos años después. Sofía tiene 12. Es la más rápida de Los Gatos.' },
@@ -255,6 +255,7 @@ export const STORY1 = {
         { s: 'yesi', m: 'angry', t: 'Ay, la santita. ¿Tienes miedo, nuevecita?' },
         { s: 'kevin', m: 'happy', t: 'Eres la más rápida. Entras, agarras lo que puedas y sales. Confío en ti, Sofía.' },
         { s: 'sofia', m: 'sad', t: '...Lo hago por ti, Kevin.' },
+        { music: 'peligro' },
         { t: 'Saltó la malla. Del otro lado, algo gruñó en la niebla.' },
         { enter: 'perro', x: 820, face: 'left' },
         { s: 'perro', t: '¡GRRRRRRRR!', fx: 'shake' },
@@ -264,7 +265,7 @@ export const STORY1 = {
       ],
     },
     after: {
-      place: 'prohibida', music: 'drama', scroll: 1800,
+      place: 'prohibida', music: 'ruptura', scroll: 1800,
       cast: [['sofia', 360, 'right', 'cry']],
       lines: [
         { t: 'Sofía logró escapar. Con un raspón en la rodilla y el corazón hecho pedazos.' },
@@ -301,7 +302,7 @@ export const STORY1 = {
       ],
     },
     after: {
-      place: 'noche', music: 'drama', scroll: 900,
+      place: 'noche', music: 'soledad', scroll: 900,
       cast: [['sofia', 440, 'right', 'sad']],
       lines: [
         { s: 'sofia', m: 'sad', t: '*grrr*... Mi estómago ruge más fuerte que el perro de la fábrica.' },
@@ -316,14 +317,14 @@ export const STORY1 = {
     age: 12, weather: 'lluvia', music: 'carrera',
     phrases: ['¡Hasta la casa de Dani!', 'La lluvia grande sí moja', 'Que Dani lave los platos', '¡Vamos!'],
     before: {
-      place: 'noche', music: 'drama', scroll: 1300,
+      place: 'noche', music: 'soledad', scroll: 1300,
       cast: [['sofia', 320, 'right', 'sad']],
       lines: [
         { t: 'Llueve a cántaros. Sofía se esconde bajo el techito de la tienda.' },
         { s: 'sofia', m: 'sad', t: 'Ni modo. Esta noche duermo aquí.' },
         { t: 'De pronto, la lluvia dejó de caerle encima. Alguien sostenía un paraguas amarillo.' },
         { enter: 'dani', x: 460, face: 'left' },
-        { music: 'amor' },
+        { music: 'reencuentro' },
         { s: 'dani', m: 'talk', t: 'La lluvia grande sí moja. Eso no lo dice mi abuela, lo digo yo.' },
         { s: 'sofia', m: 'shock', t: '¿D-Dani...?', fx: 'zoom' },
         { s: 'dani', m: 'happy', t: 'Dejé la lámpara prendida dos años. Mi mamá ya me quería cobrar la luz.' },
@@ -366,7 +367,7 @@ export const STORY1 = {
       ],
     },
     after: {
-      place: 'carrera', music: 'alegre', scroll: 1600,
+      place: 'carrera', music: 'victoria', scroll: 1600,
       cast: [['sofia', 380, 'right', 'cheer'], ['dani', 260, 'right', 'cheer'], ['kevin', 680, 'left', 'sad']],
       lines: [
         { t: '¡PRIMER LUGAR: SOFÍA!', fx: 'flash' },
@@ -397,7 +398,7 @@ export const STORY1 = {
       ],
     },
     after: {
-      place: 'mercado', music: 'drama', scroll: 1400,
+      place: 'mercado', music: 'soledad', scroll: 1400,
       cast: [['sofia', 420, 'right', 'sad']],
       lines: [
         { s: 'sofia', m: 'shock', t: '*jadeo*... Lo logré...' },

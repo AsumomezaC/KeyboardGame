@@ -2,12 +2,12 @@
 import Phaser from 'phaser';
 import { Save } from '../core/save.js';
 import * as Layout from '../core/layout.js';
-import { starsFor, starBreakdown, levelRules, levelStatus, nextLevel, canFail, ACCURACY_STAR } from '../game/rules.js';
+import { starsFor, starBreakdown, levelRules, levelStatus, nextLevel, canFail, accuracyTarget } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
 import { escapeHTML } from '../ui/keyboard-view.js';
 import { levelName } from '../data/chapter1.js';
 import { goalLines } from './LevelMapScene.js';
-import { startLevel } from './flow.js';
+import { startLevel, storyFor } from './flow.js';
 import { Music } from '../audio/music.js';
 import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime, keyLegend } from './common.js';
 
@@ -47,7 +47,7 @@ export class ResultsScene extends Phaser.Scene {
     const starDefs = [
       { won: breakdown.finish, name: 'Meta', goal: canFail(level) ? 'a tiempo' : 'terminar' },
       { won: breakdown.speed, name: 'Velocidad', goal: `≤ ${formatTime(rules.fastMs)}` },
-      { won: breakdown.accuracy, name: 'Precisión', goal: `≥ ${Math.round(ACCURACY_STAR * 100)} %` },
+      { won: breakdown.accuracy, name: 'Precisión', goal: `≥ ${Math.round(accuracyTarget(level) * 100)} %` },
     ];
     let lit = 0;
     starDefs.forEach((d, i) => {
@@ -78,7 +78,15 @@ export class ResultsScene extends Phaser.Scene {
     this.next = next && levelStatus(chapter, next, Save).unlocked ? next : null;
     const secretNow = level.kind !== 'secret' && levelStatus(chapter, chapter.secret, Save).visible &&
       !Save.level(chapter.secret.id).passed;
-    keyLegend(this, [['Enter', 'reintentar'], ...(this.next ? [['→', 'siguiente nivel']] : []), ['Esc', 'mapa'], ['M', 'música']]);
+    // Si el nivel ya está superado puedes repetirlo sin diálogos (Enter) o viéndolos de nuevo (H).
+    const replay = Save.level(level.id).passed && storyFor(chapter, level);
+    keyLegend(this, [
+      ['Enter', replay ? 'reintentar sin diálogos' : 'reintentar'],
+      ...(replay ? [['H', 'con diálogos']] : []),
+      ...(this.next ? [['→', 'siguiente']] : []),
+      ['Esc', 'mapa'],
+      ['M', 'música'],
+    ]);
     if (secretNow) text(this, W / 2, 470, '¡Apareció un nivel secreto en el mapa!', 24, '#b388ff', { ox: 0.5 });
 
     const weak = Object.entries(result.errByChar).sort((a, b) => b[1] - a[1]);
@@ -92,6 +100,8 @@ export class ResultsScene extends Phaser.Scene {
 
     onKeys(this, {
       Enter: () => this.scene.start('Run', { chapter, level, story: false }),
+      h: () => replay && startLevel(this, chapter, level, { story: true }),
+      H: () => replay && startLevel(this, chapter, level, { story: true }),
       ArrowRight: () => this.next && startLevel(this, chapter, this.next),
       Escape: () => this.scene.start('LevelMap', { chapter, select: (result.passed && this.next ? this.next : level).id }),
     });

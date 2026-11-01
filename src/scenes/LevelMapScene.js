@@ -1,14 +1,14 @@
 // Mapa del capítulo: 10 niveles en un camino, más el secreto cuando se reúnen 30 estrellas.
 import Phaser from 'phaser';
 import { Save } from '../core/save.js';
-import { levelRules, levelStatus, chapterStars, chapterMaxStars, canFail, ACCURACY_STAR } from '../game/rules.js';
+import { levelRules, levelStatus, chapterStars, chapterMaxStars, canFail, accuracyTarget } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
 import { escapeHTML } from '../ui/keyboard-view.js';
 import { levelName } from '../data/chapter1.js';
 import { WEATHER_NAMES } from '../data/weathers.js';
 import { Music } from '../audio/music.js';
 import { startLevel, storyFor } from './flow.js';
-import { W, text, backdrop, onKeys, stars, formatTime, keyLegend } from './common.js';
+import { W, H, text, box, backdrop, onKeys, stars, formatTime, keyLegend } from './common.js';
 
 const NODES = [
   [100, 360], [190, 290], [280, 360], [370, 285], [460, 355],
@@ -38,13 +38,13 @@ export function levelInfoHtml(chapter, level) {
   else if (level.kind === 'secret') rows.push(`Nivel secreto con mayúsculas. Límite: <b>${formatTime(rules.limitMs)}</b>.`);
   else if (rules.limitMs) rows.push(`Límite de tiempo: <b>${formatTime(rules.limitMs)}</b>. Si no lo logras, no avanzas.`);
   else rows.push('Aquí no se pierde: solo cuenta para tus estrellas.');
-  rows.push(`Cada estrella se gana aparte: ★ terminar${canFail(level) ? ' a tiempo' : ''} · ★ velocidad: ${formatTime(rules.fastMs)} o menos · ★ precisión: ${Math.round(ACCURACY_STAR * 100)} % o más`);
+  rows.push(`Cada estrella se gana aparte: ★ terminar${canFail(level) ? ' a tiempo' : ''} · ★ velocidad: ${formatTime(rules.fastMs)} o menos · ★ precisión: ${Math.round(accuracyTarget(level) * 100)} % o más`);
   return `<h2>${escapeHTML(levelName(level))} <span class="stars">${'★'.repeat(best.stars)}${'☆'.repeat(3 - best.stars)}</span></h2>` +
     `<p>${keys}${level.requiresStars && level.kind !== 'secret' ? ` · Requiere ${level.requiresStars} ★` : ''}` +
     `${story ? ` · Clima: ${WEATHER_NAMES[story.weather]}` : ''}</p>` +
     rows.map(r => `<p>${r}</p>`).join('') +
     (status.unlocked
-      ? `<p class="go">${best.passed && story ? 'Enter: jugar sin historia · H: ver historia' : 'Enter para jugar'}${best.bestTimeMs ? ` · Mejor tiempo: ${formatTime(best.bestTimeMs)}` : ''}</p>`
+      ? `<p class="go">${best.passed && story ? 'Enter: elegir jugar con o sin diálogos' : 'Enter para jugar'}${best.bestTimeMs ? ` · Mejor tiempo: ${formatTime(best.bestTimeMs)}` : ''}</p>`
       : `<p class="locked">🔒 ${escapeHTML(status.reason)}</p>`);
 }
 
@@ -99,13 +99,17 @@ export class LevelMapScene extends Phaser.Scene {
     }
     this.select(index);
 
+    this.choice = null;
+    // Mientras el menú «con o sin diálogos» está abierto, las flechas y Enter son suyos.
     onKeys(this, {
-      ArrowRight: () => this.select(Math.min(this.entries.length - 1, this.index + 1)),
-      ArrowLeft: () => this.select(Math.max(0, this.index - 1)),
-      Enter: () => this.play(),
+      ArrowRight: () => !this.choice && this.select(Math.min(this.entries.length - 1, this.index + 1)),
+      ArrowLeft: () => !this.choice && this.select(Math.max(0, this.index - 1)),
+      ArrowUp: () => this.moveChoice(-1),
+      ArrowDown: () => this.moveChoice(1),
+      Enter: e => (this.choice ? this.confirmChoice(e) : !e.repeat && this.play()),
       h: () => this.play({ story: true }),
       H: () => this.play({ story: true }),
-      Escape: () => this.scene.start('Chapters'),
+      Escape: () => (this.choice ? this.closeChoice() : this.scene.start('Chapters')),
     });
     Panel.show('info');
   }
@@ -145,14 +149,63 @@ export class LevelMapScene extends Phaser.Scene {
     Panel.setInfo(levelInfoHtml(this.chapter, level), Save.history(level.id), goalLines(level), `Historial · ${levelName(level)}`);
   }
 
-  // Primera vez: con historia. Ya superado: Enter juega directo y H vuelve a ver la historia.
+  // Primera vez: siempre con historia. Ya superado: menú para jugar con o sin diálogos (H = con).
   play({ story } = {}) {
     const { level } = this.entries[this.index];
     if (!levelStatus(this.chapter, level, Save).unlocked) {
       this.cameras.main.shake(150, 0.004);
       return;
     }
-    startLevel(this, this.chapter, level, story ? { story: true } : undefined);
+    const replay = Save.level(level.id).passed && storyFor(this.chapter, level);
+    if (story === undefined && replay) {
+      this.openChoice();
+      return;
+    }
+    startLevel(this, this.chapter, level, story === undefined ? undefined : { story });
+  }
+
+  openChoice() {
+    if (this.choice) return;
+    const c = this.add.container(0, 0).setDepth(200);
+    c.add(this.add.rectangle(0, 0, W, H, 0x000000, 0.55).setOrigin(0));
+    c.add(box(this, 300, 170, 360, 190));
+    c.add(text(this, 480, 196, levelName(this.entries[this.index].level), 24, '#2b1d2e', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 }));
+    const options = [
+      { label: 'Jugar sin diálogos', story: false },
+      { label: 'Ver diálogos y jugar', story: true },
+    ];
+    const texts = options.map((o, i) => {
+      const t = text(this, 350, 248 + i * 46, '', 22, '#2b1d2e', { stroke: '#fff7e0', strokeThickness: 2 });
+      t.setInteractive({ useHandCursor: true }).on('pointerdown', () => {
+        this.choice.index = i;
+        this.confirmChoice();
+      });
+      c.add(t);
+      return t;
+    });
+    this.choice = { c, options, texts, index: 0, openedAt: this.time.now };
+    this.moveChoice(0);
+  }
+
+  moveChoice(d) {
+    const ch = this.choice;
+    if (!ch) return;
+    ch.index = (ch.index + d + ch.options.length) % ch.options.length;
+    ch.texts.forEach((t, i) => t.setText(`${i === ch.index ? '▶ ' : '   '}${ch.options[i].label}`)
+      .setColor(i === ch.index ? '#b83350' : '#2b1d2e'));
+  }
+
+  // Ignora el Enter sostenido que abrió el menú: hay que soltarlo y presionarlo otra vez.
+  confirmChoice(e) {
+    if (e && (e.repeat || this.time.now - this.choice.openedAt < 200)) return;
+    const { options, index } = this.choice;
+    this.closeChoice();
+    this.play({ story: options[index].story });
+  }
+
+  closeChoice() {
+    this.choice?.c.destroy();
+    this.choice = null;
   }
 
   drawLegend() {
@@ -163,8 +216,7 @@ export class LevelMapScene extends Phaser.Scene {
     const before = this.children.list.length;
     keyLegend(this, [
       ['← →', 'elegir nivel'],
-      ['Enter', replay ? 'jugar sin historia' : 'jugar'],
-      ...(replay ? [['H', 'ver historia']] : []),
+      ['Enter', replay ? 'jugar (con o sin diálogos)' : 'jugar'],
       ['Esc', 'capítulos'],
       ['M', 'música'],
     ]);

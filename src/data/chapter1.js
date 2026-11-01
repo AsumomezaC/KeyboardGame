@@ -3,7 +3,8 @@
 // repasa palabras sin espacios y el espacio entra en el 8. Máximo 8 caracteres por obstáculo.
 //
 // ppm.pass: ritmo mínimo para no quedarse sin tiempo (null = no se puede perder por tiempo).
-// ppm.fast: ritmo para la estrella de velocidad. windowPpm y react definen cuánto
+// ppm.fast: ritmo para la estrella de velocidad. Ambos son los del último nivel; los primeros
+// niveles piden menos (ver effectivePpm en game/rules.js). windowPpm y react definen cuánto
 // tiempo tienes para cada obstáculo antes de tropezar. Valores de primera calibración.
 
 import { STORY1 } from './story1.js';
@@ -77,6 +78,11 @@ export const CHAPTERS = [
   { id: 'cap2', title: 'Capítulo 2', subtitle: null, data: null },
   { id: 'cap3', title: 'Capítulo 3', subtitle: null, data: null },
 ];
+
+// Avance dentro del capítulo para la dificultad progresiva (ver game/rules.js):
+// 0 en el nivel 1, 1 en el 10; el secreto ocurre entre el 8 y el 9.
+CHAPTER1.levels.forEach((level, i, all) => { level.step = i / (all.length - 1); });
+CHAPTER1.secret.step = 7.5 / 9;
 
 export function levelName(level) {
   if (level.kind === 'secret') return 'Nivel secreto';

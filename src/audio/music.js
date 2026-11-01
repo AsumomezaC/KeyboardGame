@@ -17,6 +17,7 @@ let timer = 0;
 let current = null;   // nombre de la pista sonando (o pedida antes de desbloquear el audio)
 let state = null;     // { track, step, nextTime }
 let muted = readMuted();
+const muteListeners = [];
 
 function readMuted() {
   try { return localStorage.getItem(KEY) === 'off'; } catch { return false; }
@@ -195,6 +196,11 @@ export const Music = {
     muted = !muted;
     try { localStorage.setItem(KEY, muted ? 'off' : 'on'); } catch { /* sin almacenamiento */ }
     if (master) master.gain.setTargetAtTime(muted ? 0 : MASTER, ctx.currentTime, 0.05);
+    for (const fn of muteListeners) fn(muted);
     return muted;
+  },
+
+  onMuteChange(fn) {
+    muteListeners.push(fn);
   },
 };

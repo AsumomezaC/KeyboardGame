@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CHAPTER1, allLevels } from '../src/data/chapter1.js';
-import { levelRules, starsFor, starBreakdown, levelStatus, chapterMaxStars } from '../src/game/rules.js';
+import { levelRules, starsFor, starBreakdown, levelStatus, chapterMaxStars, effectivePpm, accuracyTarget } from '../src/game/rules.js';
 import { Runner, simulate } from '../src/game/runner.js';
 
 const levels = allLevels(CHAPTER1);
@@ -36,7 +36,7 @@ test('el nivel 2 solo usa d y k; el 3 combina d f j k', () => {
 
 test('a ritmo de aprobar no se tropieza', () => {
   for (const level of levels) {
-    const ppm = level.ppm.pass ?? level.ppm.fast;
+    const ppm = effectivePpm(level, level.ppm.pass ?? level.ppm.fast);
     const { falls } = simulate(level, ppm, { getupMs: levelRules(level).getupMs });
     assert.equal(falls, 0, `${level.id} a ${ppm} PPM se cae ${falls} veces`);
   }
@@ -97,10 +97,24 @@ test('estrellas y desbloqueos', () => {
   assert.equal(chapterMaxStars(CHAPTER1, fake(allThree)), 33);
 });
 
+test('la dificultad sube poco a poco: precisión de 90 % a 97 % y ritmos más lentos al inicio', () => {
+  const [first] = CHAPTER1.levels;
+  const last = CHAPTER1.levels.at(-1);
+  assert.equal(accuracyTarget(first), 0.9);
+  assert.equal(accuracyTarget(last), 0.97);
+  assert.ok(effectivePpm(first, 10) < 10);
+  assert.equal(effectivePpm(last, 10), 10);
+  let prev = 0;
+  for (const level of CHAPTER1.levels) {
+    assert.ok(accuracyTarget(level) >= prev, `${level.id}: la precisión no debe bajar`);
+    prev = accuracyTarget(level);
+  }
+});
+
 test('tabla de tiempos (informativa)', () => {
   for (const level of levels) {
     const r = levelRules(level);
     const s = ms => (ms == null ? '—' : (ms / 1000).toFixed(1) + ' s');
-    console.log(`${level.id.padEnd(6)} límite ${s(r.limitMs).padStart(8)}  velocidad ${s(r.fastMs).padStart(8)}`);
+    console.log(`${level.id.padEnd(6)} límite ${s(r.limitMs).padStart(8)}  velocidad ${s(r.fastMs).padStart(8)}  precisión ${Math.round(accuracyTarget(level) * 100)} %`);
   }
 });

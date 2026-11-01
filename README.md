@@ -45,7 +45,10 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
   cuando Sofía lo supera.
 - Una tecla equivocada provoca un traspié breve. Escribir rápido hace que Sofía acelere.
 - Estrellas independientes: ★ terminar (a tiempo), ★ velocidad (tiempo objetivo del nivel) y
-  ★ precisión (95 % o más). Se puede llegar a ★★ por velocidad o por precisión.
+  ★ precisión. Se puede llegar a ★★ por velocidad o por precisión.
+- Dificultad progresiva: el nivel 1 pide el 75 % del ritmo (más tiempo para el límite y para la
+  estrella de velocidad) y 90 % de precisión; ambos suben poco a poco hasta el ritmo completo y
+  97 % en el nivel 10.
 - El total del capítulo se muestra sobre 30 y pasa a 33 cuando aparece el nivel secreto.
 - Niveles 1-3 no se pierden. 4-6, 8 y 9 tienen límite de tiempo. 7: jefe del perro (requiere 10 ★,
   pierdes con 3 caídas). 10: carrera contra rivales (requiere 20 ★, levantarse tarda más).
@@ -55,8 +58,9 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
 
 - Antes y después de cada nivel hay una escena de diálogo con estética de RPG portátil de los 90:
   personajes en escena y caja de texto que se escribe letra por letra (Enter avanza).
-- La primera vez los diálogos siempre se ven. Al repetir un nivel superado, Enter juega sin
-  historia y H vuelve a verla; dentro de un diálogo repetido, Esc lo omite.
+- La primera vez los diálogos siempre se ven. Al repetir un nivel superado aparece un menú para
+  jugar sin diálogos o verlos de nuevo (H es atajo para verlos); en resultados, Enter reintenta
+  sin diálogos y H con diálogos. Dentro de un diálogo repetido, Esc lo omite.
 - Personajes: Sofía; su papá Ramiro, su mamá Leticia y su hermano Tomasito; Dani, su amistad
   de la infancia y vecindad (su género nunca se define); Los Gatos (Kevin, Yesi, Chuy, Brayan y
   Memo); el perro guardián y Don Chema, el panadero del mercado.
@@ -73,7 +77,10 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
 
 Música de 8 bits generada en el navegador (WebAudio, sin archivos de audio): pulsos para la
 melodía, triángulo para el bajo y ruido para la batería. Pistas en `src/audio/tracks.js`.
-La tecla M la prende o apaga en menús y diálogos (se recuerda entre partidas).
+La tecla M la prende o apaga en menús y diálogos (se recuerda entre partidas) y aparece un aviso
+con el ícono de bocina. Hay pistas propias para los momentos clave: el despertar de Sofía, la
+primera fila vacía, Los Gatos, los corazones rotos, el peligro en la niebla, la soledad, el
+reencuentro con Dani y la victoria.
 
 Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo en PPM definido en
 `src/data/chapter1.js`; ajustar esos números ajusta la dificultad.

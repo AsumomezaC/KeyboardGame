@@ -11,11 +11,13 @@ import { RunScene } from './scenes/RunScene.js';
 import { ResultsScene } from './scenes/ResultsScene.js';
 import { DialogueScene } from './scenes/DialogueScene.js';
 import { Music } from './audio/music.js';
+import { showMusicToast } from './ui/music-toast.js';
 
 TypeInput.init();
 
 // El navegador solo deja sonar audio después de la primera tecla o clic.
 for (const ev of ['keydown', 'pointerdown']) window.addEventListener(ev, () => Music.unlock(), true);
+Music.onMuteChange(showMusicToast);
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,

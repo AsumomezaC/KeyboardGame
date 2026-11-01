@@ -2,7 +2,23 @@
 import { simulate } from './runner.js';
 
 const DEFAULT_GETUP_MS = 1200;
-export const ACCURACY_STAR = 0.95;
+// Dificultad progresiva: al principio se piden ritmos más lentos (más tiempo para el límite y
+// para la estrella de velocidad) y menos precisión; ambos suben hasta su valor original en el
+// último nivel. level.step va de 0 (nivel 1) a 1 (nivel 10).
+const EASY_PPM = 0.75;
+const ACCURACY_FROM = 0.9;
+const ACCURACY_TO = 0.97;
+
+const progress = level => level.step ?? 1;
+
+export function effectivePpm(level, ppm) {
+  return ppm * (EASY_PPM + (1 - EASY_PPM) * progress(level));
+}
+
+// Precisión para la estrella, redondeada a un porcentaje entero (90 % … 97 %).
+export function accuracyTarget(level) {
+  return Math.round((ACCURACY_FROM + (ACCURACY_TO - ACCURACY_FROM) * progress(level)) * 100) / 100;
+}
 const RIVAL_FACTORS = [1, 1.07, 1.16];
 const cache = new Map();
 
@@ -10,7 +26,7 @@ const cache = new Map();
 export function levelRules(level) {
   if (cache.has(level.id)) return cache.get(level.id);
   const getupMs = level.getupMs ?? DEFAULT_GETUP_MS;
-  const timeAt = ppm => Math.round(simulate(level, ppm, { getupMs }).timeMs);
+  const timeAt = ppm => Math.round(simulate(level, effectivePpm(level, ppm), { getupMs }).timeMs);
   const rules = {
     getupMs,
     maxFalls: level.maxFalls ?? null,
@@ -36,7 +52,7 @@ export function starBreakdown(level, result) {
   return {
     finish: passed,
     speed: passed && result.timeMs <= levelRules(level).fastMs,
-    accuracy: passed && result.accuracy >= ACCURACY_STAR,
+    accuracy: passed && result.accuracy >= accuracyTarget(level),
   };
 }
 
