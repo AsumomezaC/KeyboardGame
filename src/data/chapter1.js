@@ -6,10 +6,13 @@
 // ppm.fast: ritmo para la estrella de velocidad. windowPpm y react definen cuánto
 // tiempo tienes para cada obstáculo antes de tropezar. Valores de primera calibración.
 
+import { STORY1 } from './story1.js';
+
 export const CHAPTER1 = {
   id: 'cap1',
   title: 'Capítulo 1',
   subtitle: 'Me llamo Sofía',
+  story: STORY1,
   levels: [
     {
       id: 'c1-1', label: '1', kind: 'normal', theme: 'barrio', newKeys: ['f', 'j'],

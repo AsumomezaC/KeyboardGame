@@ -1,6 +1,7 @@
 // Piezas compartidas por las escenas: textos con contorno, fondo con paralaje y cajas de diálogo.
 import Phaser from 'phaser';
 import { THEMES, FAR, MID, GROUND } from '../art/backgrounds.js';
+import { Music } from '../audio/music.js';
 
 export const W = 960;
 export const H = 540;
@@ -59,10 +60,12 @@ export function backdrop(scene, theme) {
 }
 
 // Atajos de teclado para menús, sin capturar teclas (no interfieren con el texto).
+// La M prende o apaga la música en cualquier menú.
 export function onKeys(scene, map) {
   scene.input.keyboard.on('keydown', e => {
     const fn = map[e.key];
     if (fn) fn(e);
+    else if (e.key === 'm' || e.key === 'M') Music.toggleMute();
   });
 }
 
@@ -71,13 +74,13 @@ export function onKeys(scene, map) {
 export function keyLegend(scene, items) {
   const BAR_H = 40;
   const y = H - BAR_H / 2;
-  scene.add.rectangle(0, H - BAR_H, W, BAR_H, 0x000000, 0.55).setOrigin(0);
+  const bar = scene.add.rectangle(0, H - BAR_H, W, BAR_H, 0x000000, 0.55).setOrigin(0).setScrollFactor(0).setDepth(100);
   const parts = items.map(([key, label]) => {
     const cap = scene.add.text(0, y, key, {
       fontFamily: FONT, fontSize: '16px', fontStyle: 'bold', color: INK,
       backgroundColor: CREAM, padding: { x: 8, y: 3 },
-    }).setOrigin(0, 0.5);
-    const desc = text(scene, 0, y, label, 16, '#ffffff', { oy: 0.5, bold: false, strokeThickness: 0 });
+    }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
+    const desc = text(scene, 0, y, label, 16, '#ffffff', { oy: 0.5, bold: false, strokeThickness: 0 }).setScrollFactor(0).setDepth(100);
     return { cap, desc, w: cap.width + 8 + desc.width };
   });
   const GAP = 28;
@@ -87,6 +90,7 @@ export function keyLegend(scene, items) {
     p.desc.x = x + p.cap.width + 8;
     x += p.w + GAP;
   }
+  return bar;
 }
 
 export function stars(scene, x, y, count, { gap = 30, scale = 3 } = {}) {

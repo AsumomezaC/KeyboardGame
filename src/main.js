@@ -9,8 +9,13 @@ import { LevelMapScene } from './scenes/LevelMapScene.js';
 import { LessonScene } from './scenes/LessonScene.js';
 import { RunScene } from './scenes/RunScene.js';
 import { ResultsScene } from './scenes/ResultsScene.js';
+import { DialogueScene } from './scenes/DialogueScene.js';
+import { Music } from './audio/music.js';
 
 TypeInput.init();
+
+// El navegador solo deja sonar audio después de la primera tecla o clic.
+for (const ev of ['keydown', 'pointerdown']) window.addEventListener(ev, () => Music.unlock(), true);
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -20,7 +25,7 @@ const game = new Phaser.Game({
   pixelArt: true,
   backgroundColor: '#1d1b33',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_HORIZONTALLY },
-  scene: [BootScene, TitleScene, ChaptersScene, LevelMapScene, LessonScene, RunScene, ResultsScene],
+  scene: [BootScene, TitleScene, ChaptersScene, LevelMapScene, DialogueScene, LessonScene, RunScene, ResultsScene],
 });
 
 // Solo en desarrollo: acceso desde la consola para depurar.

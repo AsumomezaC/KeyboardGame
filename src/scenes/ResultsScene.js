@@ -7,6 +7,8 @@ import { Panel } from '../ui/panel.js';
 import { escapeHTML } from '../ui/keyboard-view.js';
 import { levelName } from '../data/chapter1.js';
 import { goalLines } from './LevelMapScene.js';
+import { startLevel } from './flow.js';
+import { Music } from '../audio/music.js';
 import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime, keyLegend } from './common.js';
 
 const FAIL_TEXT = {
@@ -76,7 +78,7 @@ export class ResultsScene extends Phaser.Scene {
     this.next = next && levelStatus(chapter, next, Save).unlocked ? next : null;
     const secretNow = level.kind !== 'secret' && levelStatus(chapter, chapter.secret, Save).visible &&
       !Save.level(chapter.secret.id).passed;
-    keyLegend(this, [['Enter', 'reintentar'], ...(this.next ? [['→', 'siguiente nivel']] : []), ['Esc', 'mapa']]);
+    keyLegend(this, [['Enter', 'reintentar'], ...(this.next ? [['→', 'siguiente nivel']] : []), ['Esc', 'mapa'], ['M', 'música']]);
     if (secretNow) text(this, W / 2, 470, '¡Apareció un nivel secreto en el mapa!', 24, '#b388ff', { ox: 0.5 });
 
     const weak = Object.entries(result.errByChar).sort((a, b) => b[1] - a[1]);
@@ -85,11 +87,12 @@ export class ResultsScene extends Phaser.Scene {
         `<tr><td class="mono big">${c === ' ' ? '␣' : escapeHTML(c)}</td><td>${n}</td><td>${escapeHTML(Layout.describe(c))}</td></tr>`).join('')}</table>`
       : '<p>Sin traspiés. ¡Recorrido limpio!</p>');
     Panel.show('results');
+    Music.play('mapa');
     Panel.setResults(Save.history(level.id), goalLines(level), `Historial · ${levelName(level)}`, weakHtml);
 
     onKeys(this, {
-      Enter: () => this.scene.start('Run', { chapter, level }),
-      ArrowRight: () => this.next && this.scene.start(this.next.newKeys.length && !Save.level(this.next.id).passed ? 'Lesson' : 'Run', { chapter, level: this.next }),
+      Enter: () => this.scene.start('Run', { chapter, level, story: false }),
+      ArrowRight: () => this.next && startLevel(this, chapter, this.next),
       Escape: () => this.scene.start('LevelMap', { chapter, select: (result.passed && this.next ? this.next : level).id }),
     });
   }

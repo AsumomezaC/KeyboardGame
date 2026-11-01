@@ -6,6 +6,7 @@ import { chapterStars, chapterMaxStars } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
 import { CHAPTERS } from '../data/chapter1.js';
 import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, keyLegend } from './common.js';
+import { Music } from '../audio/music.js';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -36,6 +37,8 @@ export class TitleScene extends Phaser.Scene {
     const press = text(this, W / 2, 260, 'Presiona Enter', 30, '#ffffff', { ox: 0.5 });
     this.tweens.add({ targets: press, alpha: 0.2, duration: 600, yoyo: true, repeat: -1 });
     Panel.show('none');
+    Music.play('titulo');
+    keyLegend(this, [['Enter', 'empezar'], ['M', 'música']]);
     const go = () => this.scene.start('Chapters');
     onKeys(this, { Enter: go, ' ': go });
     this.input.on('pointerdown', go);
@@ -57,7 +60,8 @@ export class ChaptersScene extends Phaser.Scene {
     this.add.rectangle(0, 0, W, 540, 0x1d1b33, 0.4).setOrigin(0);
     text(this, W / 2, 30, 'Elige un capítulo', 34, '#ffd23f', { ox: 0.5 });
     this.cards = CHAPTERS.map((chap, i) => this.drawCard(chap, 90 + i * 270));
-    keyLegend(this, [['← →', 'elegir'], ['Enter', 'entrar'], ['Esc', 'título']]);
+    keyLegend(this, [['← →', 'elegir'], ['Enter', 'entrar'], ['Esc', 'título'], ['M', 'música']]);
+    Music.play('mapa');
     this.select(0);
     onKeys(this, {
       ArrowRight: () => this.select(Math.min(this.cards.length - 1, this.index + 1)),

@@ -1,5 +1,6 @@
-// Personaje infantil como "marioneta" de pixeles: las poses se definen por articulaciones
-// y el contorno se agrega al final. Sirve para Sofía y para los rivales (cambiando la paleta).
+// Personajes como "marionetas" de pixeles: las poses se definen por articulaciones
+// y el contorno se agrega al final. Una paleta define ropa, peinado y accesorios; una
+// complexión (niño, adolescente, adulto, niño pequeño) estira o encoge el cuerpo sin cambiar la cabeza.
 import { makeCanvas, outline, addSheet } from './pixel.js';
 
 export const FRAME_W = 24;
@@ -30,6 +31,78 @@ export const PALETTES = {
     shoe: '#f5f5f5', shoeAccent: '#ffd23f', accent: '#ffd23f', eye: '#120d0b', blush: '#b5654a',
     outline: '#140d12', hairStyle: 'short',
   },
+  // ---- Familia ----
+  ramiro: {
+    skin: '#d9a37a', skinDark: '#b8825a', hair: '#2e2724', hairLight: '#5a4d47',
+    shirt: '#e8e2d0', shirtDark: '#c9c0a8', shorts: '#5b4a3a', shortsDark: '#45372b',
+    shoe: '#3a2a20', shoeAccent: '#3a2a20', accent: '#2e2724', eye: '#2b1d2e', blush: '#e0605a',
+    outline: '#2b1d2e', hairStyle: 'short', longPants: true, mustache: true, stubble: true, prop: 'bottle',
+  },
+  leticia: {
+    skin: '#e8b48f', skinDark: '#c98f6a', hair: '#3a2018', hairLight: '#6a3a2a',
+    shirt: '#4fb3a9', shirtDark: '#33877f', shorts: '#4fb3a9', shortsDark: '#33877f',
+    shoe: '#f5f5f5', shoeAccent: '#dddddd', accent: '#f5f5f5', eye: '#2b1d2e', blush: '#e89a8a',
+    outline: '#2b1d2e', hairStyle: 'bun', longPants: true,
+  },
+  tomasito: {
+    skin: '#f0c09a', skinDark: '#d39a72', hair: '#5a3424', hairLight: '#7d4a33',
+    shirt: '#7cc65a', shirtDark: '#57a03a', shorts: '#e9c46a', shortsDark: '#c9a44a',
+    shoe: '#e94f64', shoeAccent: '#ffffff', accent: '#3d7a28', eye: '#2b1d2e', blush: '#f08a8a',
+    outline: '#2b1d2e', hairStyle: 'messy', dino: true,
+  },
+  // ---- Vecindario ----
+  dani: {
+    skin: '#d6a07a', skinDark: '#b5805a', hair: '#2a1d1a', hairLight: '#4e3a33',
+    shirt: '#f4a261', shirtDark: '#d0803f', shorts: '#4a6fa5', shortsDark: '#36557f',
+    shoe: '#f5f5f5', shoeAccent: '#4a6fa5', accent: '#f4a261', eye: '#2b1d2e', blush: '#e08a7a',
+    outline: '#2b1d2e', hairStyle: 'messy', glasses: '#2b1d2e',
+  },
+  // ---- Los Gatos ----
+  kevin: {
+    skin: '#c48a60', skinDark: '#a26c45', hair: '#1a1412', hairLight: '#3a2e28',
+    shirt: '#2b2d42', shirtDark: '#1d1e2e', shorts: '#4a4e69', shortsDark: '#363a52',
+    shoe: '#f5f5f5', shoeAccent: '#e94f64', accent: '#e94f64', eye: '#1a1412', blush: '#c97a62',
+    outline: '#140d12', hairStyle: 'cap', longPants: true,
+  },
+  yesi: {
+    skin: '#e3ab84', skinDark: '#c48b64', hair: '#2a1410', hairLight: '#5a2e22',
+    shirt: '#9b5de5', shirtDark: '#7440b8', shorts: '#2b2d42', shortsDark: '#1d1e2e',
+    shoe: '#f5f5f5', shoeAccent: '#9b5de5', accent: '#ffd23f', eye: '#2b1d2e', blush: '#e88a8a',
+    outline: '#2b1d2e', hairStyle: 'pony', longPants: true, earrings: true,
+  },
+  chuy: {
+    skin: '#a8714c', skinDark: '#875636', hair: '#16100e', hairLight: '#2e2420',
+    shirt: '#c1121f', shirtDark: '#8f0d17', shorts: '#3d405b', shortsDark: '#2c2e42',
+    shoe: '#f5f5f5', shoeAccent: '#c1121f', accent: '#ffffff', eye: '#16100e', blush: '#b8664a',
+    outline: '#140d12', hairStyle: 'buzz', longPants: true,
+  },
+  brayan: {
+    skin: '#f0c8a8', skinDark: '#d2a686', hair: '#c9a227', hairLight: '#e8c547',
+    shirt: '#118ab2', shirtDark: '#0b6585', shorts: '#2b2d42', shortsDark: '#1d1e2e',
+    shoe: '#f5f5f5', shoeAccent: '#118ab2', accent: '#ffffff', eye: '#2b1d2e', blush: '#f08a8a',
+    outline: '#2b1d2e', hairStyle: 'messy', longPants: true,
+  },
+  memo: {
+    skin: '#8d5a3b', skinDark: '#6e4329', hair: '#120d0b', hairLight: '#2e2420',
+    shirt: '#f4f1e8', shirtDark: '#cfc9b8', shorts: '#606c38', shortsDark: '#454f27',
+    shoe: '#2b2b2b', shoeAccent: '#f4f1e8', accent: '#606c38', eye: '#120d0b', blush: '#b5654a',
+    outline: '#140d12', hairStyle: 'cap', longPants: true,
+  },
+  // ---- Mercado ----
+  panadero: {
+    skin: '#e0a882', skinDark: '#bf8862', hair: '#f4f1e8', hairLight: '#ffffff',
+    shirt: '#f4f1e8', shirtDark: '#d8d2c0', shorts: '#6d4c41', shortsDark: '#523830',
+    shoe: '#3a2a20', shoeAccent: '#3a2a20', accent: '#f4f1e8', eye: '#2b1d2e', blush: '#e0605a',
+    outline: '#2b1d2e', hairStyle: 'chef', longPants: true, mustache: true,
+  },
+};
+
+// Complexiones: tamaño del cuadro y cuánto se estiran piernas y torso respecto al niño.
+export const BUILDS = {
+  kid: { w: 24, h: 32, legs: 1, torso: 1, dx: 0, body: 5, limb: 2 },
+  teen: { w: 24, h: 36, legs: 1.3, torso: 1.2, dx: 0, body: 5, limb: 2 },
+  adult: { w: 28, h: 46, legs: 1.75, torso: 1.55, dx: 2, body: 7, limb: 3 },
+  toddler: { w: 20, h: 26, legs: 0.6, torso: 0.75, dx: -2, body: 5, limb: 2 },
 };
 
 const lerp = (a, b, t) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
@@ -39,23 +112,33 @@ function polar(origin, len, ang) {
   return { x: origin.x + Math.sin(ang) * len, y: origin.y + Math.cos(ang) * len };
 }
 
-function drawLeg(p, hip, knee, foot, pal, back) {
+function drawLeg(p, hip, knee, foot, pal, back, limb = 2) {
   const skin = back ? pal.skinDark : pal.skin;
   const shorts = back ? pal.shortsDark : pal.shorts;
-  p.line(knee.x, knee.y, foot.x, foot.y, skin, 2);
-  p.line(hip.x, hip.y, knee.x, knee.y, skin, 2);
-  const mid = lerp(hip, knee, 0.55);
-  p.line(hip.x, hip.y, mid.x, mid.y, shorts, 3);
+  if (pal.longPants) {
+    p.line(knee.x, knee.y, foot.x, foot.y, shorts, limb);
+    p.line(hip.x, hip.y, knee.x, knee.y, shorts, limb);
+  } else {
+    p.line(knee.x, knee.y, foot.x, foot.y, skin, limb);
+    p.line(hip.x, hip.y, knee.x, knee.y, skin, limb);
+    const mid = lerp(hip, knee, 0.55);
+    p.line(hip.x, hip.y, mid.x, mid.y, shorts, limb + 1);
+  }
   p.rect(foot.x - 1, foot.y - 1, 4, 2, pal.shoe);
   p.px(foot.x + 1, foot.y - 1, pal.shoeAccent);
 }
 
-function drawArm(p, shoulder, elbow, hand, pal, back) {
+function drawArm(p, shoulder, elbow, hand, pal, back, limb = 2) {
   const skin = back ? pal.skinDark : pal.skin;
-  p.line(elbow.x, elbow.y, hand.x, hand.y, skin, 2);
-  p.line(shoulder.x, shoulder.y, elbow.x, elbow.y, skin, 2);
+  p.line(elbow.x, elbow.y, hand.x, hand.y, skin, limb);
+  p.line(shoulder.x, shoulder.y, elbow.x, elbow.y, skin, limb);
   const sleeve = lerp(shoulder, elbow, 0.45);
-  p.line(shoulder.x, shoulder.y, sleeve.x, sleeve.y, back ? pal.shirtDark : pal.shirt, 2);
+  p.line(shoulder.x, shoulder.y, sleeve.x, sleeve.y, back ? pal.shirtDark : pal.shirt, limb);
+  if (!back && pal.prop === 'bottle') {
+    p.rect(hand.x, hand.y - 4, 2, 5, '#4f7a35');
+    p.px(hand.x, hand.y - 5, '#6fa04a');
+    p.px(hand.x + 1, hand.y - 2, '#e9c46a');
+  }
 }
 
 function drawHead(p, h, pal, face, swing) {
@@ -66,13 +149,42 @@ function drawHead(p, h, pal, face, swing) {
     p.px(h.x - 4, h.y - 3, pal.accent);
     p.px(h.x - 4, h.y - 2, pal.accent);
   }
-  p.disc(h.x - 1, h.y - 1, 5, pal.hair);
+  if (pal.hairStyle === 'bun') p.disc(h.x - 5, h.y - 4, 2, pal.hair);
+  p.disc(h.x - 1, h.y - 1, pal.hairStyle === 'buzz' ? 4 : 5, pal.hair);
   p.disc(h.x + 1, h.y + 1, 4, pal.skin);
-  p.rect(h.x - 1, h.y - 4, 5, 2, pal.hair); // fleco
-  p.px(h.x - 2, h.y - 4, pal.hairLight);
+  if (pal.hairStyle !== 'buzz') {
+    p.rect(h.x - 1, h.y - 4, 5, 2, pal.hair); // fleco
+    p.px(h.x - 2, h.y - 4, pal.hairLight);
+  }
+  if (pal.hairStyle === 'messy') {
+    p.px(h.x - 3, h.y - 6, pal.hair); p.px(h.x, h.y - 6, pal.hair); p.px(h.x + 3, h.y - 5, pal.hair);
+  }
+  if (pal.hairStyle === 'cap') {
+    // gorra al revés: la visera queda atrás
+    p.rect(h.x - 5, h.y - 6, 10, 3, pal.accent);
+    p.rect(h.x - 9, h.y - 4, 4, 2, pal.accent);
+    p.px(h.x - 1, h.y - 6, '#ffffff');
+  }
+  if (pal.hairStyle === 'chef') {
+    p.rect(h.x - 5, h.y - 9, 10, 5, pal.hair);
+    p.rect(h.x - 4, h.y - 10, 8, 1, pal.hair);
+  }
   p.px(h.x - 1, h.y + 1, pal.skinDark); // oreja
+  if (pal.earrings) p.px(h.x - 1, h.y + 3, pal.accent);
   const ex = h.x + 3, ey = h.y;
-  if (face === 'ouch') {
+  if (pal.stubble) { p.px(h.x + 1, h.y + 4, pal.skinDark); p.px(h.x + 3, h.y + 4, pal.skinDark); }
+  if (face === 'cry') {
+    p.px(ex - 1, ey + 1, pal.eye); p.px(ex, ey + 1, pal.eye); p.px(ex + 1, ey + 1, pal.eye);
+    p.px(ex, ey + 2, '#6fb1f2'); p.px(ex, ey + 3, '#6fb1f2');
+    p.px(ex + 1, ey + 4, pal.eye); p.px(ex + 2, ey + 3, pal.eye);
+  } else if (face === 'angry') {
+    p.px(ex - 1, ey - 2, pal.eye); p.px(ex, ey - 1, pal.eye);
+    p.px(ex, ey, pal.eye); p.px(ex, ey + 1, pal.eye);
+    p.px(ex, ey + 3, pal.eye); p.px(ex + 1, ey + 3, pal.eye); p.px(ex + 2, ey + 3, pal.eye);
+  } else if (face === 'shock') {
+    p.rect(ex, ey - 1, 2, 2, pal.eye);
+    p.rect(ex + 1, ey + 3, 2, 2, pal.eye);
+  } else if (face === 'ouch') {
     p.px(ex - 1, ey, pal.eye); p.px(ex, ey + 1, pal.eye); p.px(ex + 1, ey, pal.eye);
     p.px(ex + 1, ey + 3, pal.eye); p.px(ex + 2, ey + 3, pal.eye);
   } else if (face === 'happy') {
@@ -86,17 +198,30 @@ function drawHead(p, h, pal, face, swing) {
     else { p.px(ex + 1, ey + 3, pal.eye); p.px(ex + 2, ey + 3, pal.eye); }
   }
   p.px(h.x + 2, h.y + 2, pal.blush);
+  if (pal.mustache) p.rect(ex, ey + 2, 3, 1, pal.hair);
+  if (pal.glasses) {
+    const g = pal.glasses;
+    p.px(ex - 1, ey - 1, g); p.px(ex, ey - 1, g); p.px(ex + 1, ey - 1, g);
+    p.px(ex + 1, ey + 1, g); p.px(ex - 1, ey + 1, g); p.px(ex, ey + 2, g);
+    p.line(h.x - 1, ey - 1, ex - 2, ey - 1, g);
+  }
 }
 
-function drawKid(p, j, pal) {
-  drawArm(p, j.shoulder, j.elbowB, j.handB, pal, true);
-  drawLeg(p, j.hip, j.kneeB, j.footB, pal, true);
-  p.line(j.shoulder.x, j.shoulder.y, j.hip.x, j.hip.y, pal.shirt, 5);
+function drawKid(p, j, pal, build = BUILDS.kid) {
+  const { body, limb } = build;
+  drawArm(p, j.shoulder, j.elbowB, j.handB, pal, true, limb);
+  drawLeg(p, j.hip, j.kneeB, j.footB, pal, true, limb);
+  p.line(j.shoulder.x, j.shoulder.y, j.hip.x, j.hip.y, pal.shirt, body);
   const band = lerp(j.hip, j.shoulder, 0.2);
-  p.line(j.hip.x, j.hip.y, band.x, band.y, pal.shorts, 5);
-  drawLeg(p, j.hip, j.kneeF, j.footF, pal, false);
+  p.line(j.hip.x, j.hip.y, band.x, band.y, pal.shorts, body);
+  if (pal.dino) {
+    // dinosaurio en la playera
+    p.rect(j.shoulder.x - 1, j.shoulder.y + 2, 3, 2, pal.accent);
+    p.px(j.shoulder.x + 2, j.shoulder.y + 1, pal.accent);
+  }
+  drawLeg(p, j.hip, j.kneeF, j.footF, pal, false, limb);
   drawHead(p, j.head, pal, j.face || 'smile', j.swing || 0);
-  drawArm(p, j.shoulder, j.elbowF, j.handF, pal, false);
+  drawArm(p, j.shoulder, j.elbowF, j.handF, pal, false, limb);
 }
 
 // Zancada de carrera: t va de 0 a 1 a lo largo del ciclo.
@@ -140,13 +265,40 @@ const POSES = {
   cheer0: { hip: P(12, 20), shoulder: P(12, 13), head: P(13, 8), kneeF: P(13, 25), footF: P(14, 30), kneeB: P(11, 25), footB: P(10, 30), elbowF: P(16, 10), handF: P(17, 6), elbowB: P(9, 10), handB: P(8, 6), face: 'happy' },
   cheer1: { hip: P(12, 18), shoulder: P(12, 11), head: P(13, 6), kneeF: P(14, 23), footF: P(15, 27), kneeB: P(10, 23), footB: P(9, 27), elbowF: P(16, 8), handF: P(18, 4), elbowB: P(9, 8), handB: P(7, 4), face: 'happy', swing: -1 },
   sad: { hip: P(12, 20), shoulder: P(12, 14), head: P(13, 10), kneeF: P(13, 25), footF: P(13, 30), kneeB: P(11, 25), footB: P(10, 30), elbowF: P(12, 18), handF: P(12, 22), elbowB: P(11, 18), handB: P(11, 22), face: 'sad', swing: 1 },
+  // calentamiento antes de correr (lección)
+  stretch0: { hip: P(12, 20), shoulder: P(12, 13), head: P(13, 8), kneeF: P(13, 25), footF: P(14, 30), kneeB: P(11, 25), footB: P(10, 30), elbowF: P(14, 9), handF: P(15, 4), elbowB: P(11, 9), handB: P(10, 4) },
+  stretch1: { hip: P(12, 20), shoulder: P(11, 13), head: P(11, 8), kneeF: P(13, 25), footF: P(14, 30), kneeB: P(11, 25), footB: P(10, 30), elbowF: P(10, 8), handF: P(7, 4), elbowB: P(9, 9), handB: P(6, 5), swing: -1 },
+  lunge0: { hip: P(11, 22), shoulder: P(13, 15), head: P(14, 10), kneeF: P(16, 25), footF: P(17, 30), kneeB: P(7, 26), footB: P(3, 30), elbowF: P(15, 19), handF: P(16, 23), elbowB: P(13, 19), handB: P(15, 22), face: 'grit' },
+  lunge1: { hip: P(12, 22), shoulder: P(12, 15), head: P(13, 10), kneeF: P(8, 26), footF: P(4, 30), kneeB: P(16, 25), footB: P(17, 30), elbowF: P(14, 19), handF: P(16, 23), elbowB: P(12, 19), handB: P(15, 22), face: 'grit', swing: 1 },
+  set: { hip: P(10, 22), shoulder: P(15, 19), head: P(18, 15), kneeF: P(14, 26), footF: P(13, 30), kneeB: P(9, 29), footB: P(5, 30), elbowF: P(17, 24), handF: P(18, 30), elbowB: P(15, 24), handB: P(16, 30), face: 'grit', swing: 1 },
+  // gestos para los diálogos
+  angry: { hip: P(12, 20), shoulder: P(12, 13), head: P(13, 8), kneeF: P(14, 25), footF: P(15, 30), kneeB: P(10, 25), footB: P(9, 30), elbowF: P(15, 16), handF: P(13, 19), elbowB: P(9, 16), handB: P(11, 19), face: 'angry' },
+  cry: { hip: P(12, 20), shoulder: P(12, 14), head: P(13, 9), kneeF: P(13, 25), footF: P(13, 30), kneeB: P(11, 25), footB: P(10, 30), elbowF: P(15, 16), handF: P(16, 11), elbowB: P(14, 17), handB: P(15, 12), face: 'cry', swing: 1 },
+  shock: { hip: P(12, 20), shoulder: P(12, 13), head: P(13, 8), kneeF: P(14, 25), footF: P(15, 30), kneeB: P(10, 25), footB: P(9, 30), elbowF: P(15, 15), handF: P(18, 13), elbowB: P(9, 15), handB: P(6, 13), face: 'shock', swing: -1 },
+  talk: { hip: P(12, 20), shoulder: P(12, 13), head: P(13, 8), kneeF: P(13, 25), footF: P(13, 30), kneeB: P(11, 25), footB: P(10, 30), elbowF: P(14, 16), handF: P(17, 15), elbowB: P(11, 17), handB: P(10, 20), face: 'open' },
 };
+
+// Poses de pie que también existen para adultos, adolescentes y niños pequeños.
+export const STANDING = ['idle0', 'idle1', 'sad', 'angry', 'cry', 'shock', 'talk', 'cheer0', 'cheer1'];
+
+// Estira o encoge una pose de niño a otra complexión (solo sirve para poses de pie).
+function reshape(joints, b) {
+  if (b === BUILDS.kid) return joints;
+  const FOOT = 30, HIP = 20, SH = 13;
+  const footN = b.h - 2;
+  const hipN = footN - (FOOT - HIP) * b.legs;
+  const shN = hipN - (HIP - SH) * b.torso;
+  const mapY = y => (y >= HIP ? footN - (FOOT - y) * b.legs : y >= SH ? hipN - (HIP - y) * b.torso : shN - (SH - y));
+  const out = {};
+  for (const [k, v] of Object.entries(joints)) out[k] = v && typeof v === 'object' ? { x: v.x + b.dx, y: mapY(v.y) } : v;
+  return out;
+}
 
 export const RUN_FRAMES = 6;
 
-function frame(name, joints, pal) {
-  const { c, p } = makeCanvas(FRAME_W, FRAME_H);
-  drawKid(p, joints, pal);
+function frame(name, joints, pal, build = BUILDS.kid) {
+  const { c, p } = makeCanvas(build.w, build.h);
+  drawKid(p, reshape(joints, build), pal, build);
   outline(c, pal.outline);
   return { name, canvas: c };
 }
@@ -156,6 +308,13 @@ export function buildKidSheet(scene, key, pal) {
   for (let i = 0; i < RUN_FRAMES; i++) frames.push(frame(`run${i}`, runPose(i / RUN_FRAMES), pal));
   for (const [name, joints] of Object.entries(POSES)) frames.push(frame(name, joints, pal));
   addSheet(scene, key, frames, FRAME_W, FRAME_H);
+}
+
+// Personajes que solo aparecen en diálogos: únicamente poses de pie.
+export function buildStandingSheet(scene, key, pal, buildName) {
+  const build = BUILDS[buildName];
+  const frames = STANDING.map(name => frame(name, POSES[name], pal, build));
+  addSheet(scene, key, frames, build.w, build.h);
 }
 
 // Retrato pequeño (cabeza) para marcadores del mapa.

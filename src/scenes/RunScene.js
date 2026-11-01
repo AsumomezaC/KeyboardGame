@@ -9,6 +9,10 @@ import * as Layout from '../core/layout.js';
 import { Panel } from '../ui/panel.js';
 import { levelName } from '../data/chapter1.js';
 import { W, SCALE, FEET_Y, FONT, INK, text, backdrop, formatTime } from './common.js';
+import { addWeather } from './weather.js';
+import { storyFor, finishLevel } from './flow.js';
+import { CORRE } from '../data/story1.js';
+import { Music } from '../audio/music.js';
 
 const PLAYER_X = 230;
 const COUNTDOWN_MS = 3000;
@@ -31,6 +35,9 @@ export class RunScene extends Phaser.Scene {
     // Phaser reutiliza la instancia de la escena: limpiar lo que solo existe en ciertos niveles.
     this.dog = null;
     this.rivals = null;
+    this.buddy = null;
+    this.story = !!data.story;
+    this.phraseFor = new Map(); // frase elegida para cada obstáculo ya escrito
   }
 
   create() {
@@ -38,6 +45,13 @@ export class RunScene extends Phaser.Scene {
     this.rules = levelRules(level);
     this.runner = new Runner(level, { getupMs: this.rules.getupMs, limitMs: this.rules.limitMs, maxFalls: this.rules.maxFalls });
     this.bg = backdrop(this, level.theme);
+    this.tale = storyFor(this.chapter, level);
+    this.weather = addWeather(this, this.tale?.weather);
+    Music.play(this.tale?.music || { dog: 'perro', race: 'final', secret: 'secreto' }[level.kind] || 'carrera');
+    // Compañía que corre detrás de Sofía (Dani en el nivel 3).
+    if (this.tale?.companion) {
+      this.buddy = this.add.sprite(PLAYER_X - 70, FEET_Y - 4, this.tale.companion, 'idle0').setOrigin(0.5, 1).setScale(SCALE * 0.95);
+    }
     this.countdownLeft = COUNTDOWN_MS;
     this.ended = false;
 
@@ -92,9 +106,11 @@ export class RunScene extends Phaser.Scene {
     const prop = PROPS[o.type];
     const sprite = this.add.image(0, FEET_Y + prop.y, prop.key).setOrigin(0, 1).setScale(SCALE);
     const label = this.add.container(0, 0);
+    // Placa oscura detrás del texto: se lee igual sobre cielo claro, lluvia o niebla.
+    const plate = this.add.graphics();
     const parts = [0, 1, 2].map(() => this.add.text(0, 0, '', LABEL_STYLE(20)));
-    label.add(parts);
-    return { o, sprite, label, parts, prop, key: '' };
+    label.add([plate, ...parts]);
+    return { o, sprite, label, plate, parts, prop, key: '' };
   }
 
   createHud() {
@@ -135,7 +151,7 @@ export class RunScene extends Phaser.Scene {
   refreshTarget() {
     const o = this.runner.targetObstacle;
     if (!o || this.runner.mustRun) {
-      Panel.setTarget(null, 0, o ? '¡Corre!' : undefined);
+      Panel.setTarget(null, 0, o ? this.runPhrase(o) : undefined);
       Panel.setHints('');
       Panel.keyboard.clear();
       return;
@@ -147,6 +163,16 @@ export class RunScene extends Phaser.Scene {
     Panel.keyboard.highlight(o.chars[o.typed], { capsLock });
     if (h.codes) Panel.keyboard.highlightCodes(h.codes);
     if (h.altCodes.length) Panel.keyboard.highlightAlt(h.altCodes);
+  }
+
+  // Al terminar un obstáculo: casi siempre «¡Corre!», a veces una frase del momento de la historia.
+  runPhrase(o) {
+    if (!this.phraseFor.has(o)) {
+      const phrases = this.tale?.phrases || [];
+      const rate = this.tale?.correRate ?? 0.5;
+      this.phraseFor.set(o, !phrases.length || Math.random() < rate ? CORRE : Phaser.Utils.Array.GetRandom(phrases));
+    }
+    return this.phraseFor.get(o);
   }
 
   leave() {
@@ -232,7 +258,8 @@ export class RunScene extends Phaser.Scene {
     this.tweens.add({ targets: banner, scale: 1, duration: 300, ease: 'Back.out' });
     if (result.passed) this.player.play('sofia-cheer');
     else this.player.setTexture('sofia', result.failReason === 'caught' ? 'down' : 'sad');
-    this.time.delayedCall(1800, () => this.scene.start('Results', { chapter: this.chapter, level: this.level, result }));
+    if (this.buddy) this.buddy.play(result.passed ? 'dani-cheer' : 'dani-idle');
+    this.time.delayedCall(1800, () => finishLevel(this, this.chapter, this.level, result, { story: this.story }));
   }
 
   // ---------- dibujo ----------
@@ -257,6 +284,8 @@ export class RunScene extends Phaser.Scene {
       }
     }
     if (this.dog) this.drawDog(dt);
+    if (this.buddy && !this.ended) this.drawBuddy(dt);
+    this.weather.update(dt);
     this.drawHud();
   }
 
@@ -283,6 +312,8 @@ export class RunScene extends Phaser.Scene {
         x += parts[i].width - (str ? 5 : 0);
       });
       v.labelW = x;
+      const h = parts[0].height || size * 1.4;
+      v.plate.clear().fillStyle(0x1d1b33, 0.55).fillRoundedRect(-8, -2, x + 16, h + 4, 8);
     }
     label.x = sx + (o.w - v.labelW) / 2;
     label.y = FEET_Y - v.prop.h - 54;
@@ -345,6 +376,23 @@ export class RunScene extends Phaser.Scene {
     }
     if (p.anims.currentAnim?.key !== 'sofia-run' || !p.anims.isPlaying) p.play('sofia-run');
     p.anims.timeScale = Phaser.Math.Clamp(r.v / BASE_SPEED, 0.5, 2.5);
+  }
+
+  // Dani corre un poco detrás y se detiene cuando Sofía se detiene.
+  drawBuddy(dt) {
+    const r = this.runner;
+    const b = this.buddy;
+    const moving = r.phase === 'run' && r.v > 30 && this.countdownLeft <= 0;
+    const targetX = PLAYER_X - 70 - (r.phase === 'fallen' ? -40 : 0) + Math.sin(r.clock / 700) * 10;
+    b.x += (targetX - b.x) * Math.min(1, dt / 300);
+    const key = `${b.texture.key}-run`;
+    if (moving) {
+      if (b.anims.currentAnim?.key !== key || !b.anims.isPlaying) b.play(key);
+      b.anims.timeScale = Phaser.Math.Clamp(r.v / BASE_SPEED, 0.6, 2.2);
+    } else {
+      b.anims.stop();
+      b.setFrame(r.phase === 'fallen' ? 'shock' : 'ready');
+    }
   }
 
   drawDog(dt) {

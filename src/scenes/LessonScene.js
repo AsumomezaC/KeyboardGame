@@ -1,5 +1,6 @@
 // Antes de un nivel con teclas nuevas: qué dedo usar y una mini práctica de 5 pulsaciones por tecla.
-// Al terminar la práctica arranca la carrera sola (con su cuenta regresiva).
+// Mientras practicas, Sofía calienta (estira, hace zancadas y se pone en posición de salida);
+// al terminar sale corriendo y arranca la carrera sola, con su cuenta regresiva.
 import Phaser from 'phaser';
 import { TypeInput } from '../core/input.js';
 import { fingerOf, fingerLabel } from '../core/fingers.js';
@@ -7,10 +8,14 @@ import * as Layout from '../core/layout.js';
 import { Panel } from '../ui/panel.js';
 import { levelName } from '../data/chapter1.js';
 import { fingersFor } from './RunScene.js';
-import { SCALE, FEET_Y, text, box, backdrop, keyLegend } from './common.js';
+import { W, SCALE, FEET_Y, text, box, backdrop, keyLegend } from './common.js';
+import { addWeather } from './weather.js';
+import { storyFor } from './flow.js';
 
 const REPS = 5;
-const START_DELAY_MS = 900;
+const START_DELAY_MS = 700;
+// Poses de calentamiento según el avance de la práctica.
+const WARMUP = ['idle0', 'stretch0', 'stretch1', 'stretch0', 'lunge0', 'lunge1', 'set'];
 
 export class LessonScene extends Phaser.Scene {
   constructor() {
@@ -23,11 +28,14 @@ export class LessonScene extends Phaser.Scene {
     this.keyIndex = 0;
     this.count = 0;
     this.finished = false;
+    this.story = data.story;
+    this.presses = 0;
   }
 
   create() {
     backdrop(this, this.level.theme).scroll(0);
-    this.add.sprite(170, FEET_Y, 'sofia', 'ready').setOrigin(0.5, 1).setScale(SCALE);
+    this.weather = addWeather(this, storyFor(this.chapter, this.level)?.weather);
+    this.kid = this.add.sprite(170, FEET_Y, 'sofia', 'idle0').setOrigin(0.5, 1).setScale(SCALE).setDepth(10);
     box(this, 300, 70, 600, 300);
     text(this, 600, 96, `${levelName(this.level)} · Teclas nuevas`, 24, '#2b1d2e', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
     this.keyText = text(this, 600, 190, '', 110, '#ff9f1c', { ox: 0.5, oy: 0.5, strokeThickness: 10 });
@@ -52,6 +60,20 @@ export class LessonScene extends Phaser.Scene {
       Panel.showHands(false);
       Panel.keyboard.showFingers(false);
     });
+  }
+
+  warmUp() {
+    this.presses++;
+    const total = REPS * this.level.newKeys.length;
+    const i = Math.min(WARMUP.length - 1, Math.floor((this.presses / total) * WARMUP.length));
+    this.kid.setFrame(WARMUP[i]);
+    this.tweens.killTweensOf(this.kid);
+    this.kid.setScale(SCALE * 1.08, SCALE * 0.92);
+    this.tweens.add({ targets: this.kid, scaleX: SCALE, scaleY: SCALE, duration: 160, ease: 'Back.out' });
+  }
+
+  update(_, delta) {
+    this.weather.update(delta);
   }
 
   get key() {
@@ -84,6 +106,7 @@ export class LessonScene extends Phaser.Scene {
       return;
     }
     this.pips[this.count].setFillStyle(0x7bd389);
+    this.warmUp();
     this.tweens.add({ targets: this.pips[this.count], scale: 1.4, duration: 90, yoyo: true });
     this.count++;
     Panel.setTarget(Array(REPS).fill(this.key), this.count);
@@ -101,6 +124,12 @@ export class LessonScene extends Phaser.Scene {
     this.fingerText.setText('¡A correr!');
     Panel.setTarget(null, 0, '¡Lista!');
     Panel.setHints('');
-    this.time.delayedCall(START_DELAY_MS, () => this.scene.start('Run', { chapter: this.chapter, level: this.level }));
+    this.time.delayedCall(START_DELAY_MS, () => {
+      this.kid.play('sofia-run');
+      this.tweens.add({
+        targets: this.kid, x: W + 60, duration: 900, ease: 'Quad.in',
+        onComplete: () => this.scene.start('Run', { chapter: this.chapter, level: this.level, story: this.story }),
+      });
+    });
   }
 }

@@ -17,7 +17,22 @@ npm test         # pruebas de reglas, tiempos y pistas
 npm run build    # versión final en dist/ (publicable en GitHub Pages)
 ```
 
-## Capítulo 1
+## Clasificación de contenido: 12+
+
+La historia está escrita para mayores de 12 años. Toca temas de familia disfuncional con un tono
+de telenovela exagerado, sin violencia gráfica ni lenguaje vulgar:
+
+- Un padre con problemas de alcohol (se muestra una botella y se habla de la cantina) y apuestas.
+- Discusiones familiares, favoritismo entre hermanos y abandono emocional.
+- Una pandilla de adolescentes que entra a un lugar prohibido; persecución de un perro guardián.
+- Hambre y el robo de un pan, presentado con remordimiento, no como algo deseable.
+- Un primer amor inocente (sin contenido romántico explícito).
+
+Cualquier cambio a la historia debe mantenerse dentro de esta clasificación. Si una escena
+necesitara algo más fuerte (15+), debe acordarse antes y anotarse aquí. Los personajes, nombres y
+hechos son ficticios; cualquier parecido con personas reales es coincidencia.
+
+## Capítulo 1: «Me llamo Sofía»
 
 - Solo la fila central (`a s d f g h j k l ñ`) en minúsculas. 1: `f j`, 2: `d k`, 3: combina
   `d f j k`, 4: `s l`, 5: `a ñ`, 6: `g h`; el 7 repasa palabras sin espacios y el espacio entra en
@@ -36,6 +51,30 @@ npm run build    # versión final en dist/ (publicable en GitHub Pages)
   pierdes con 3 caídas). 10: carrera contra rivales (requiere 20 ★, levantarse tarda más).
   Secreto: aparece con 30 ★, incluye mayúsculas con consejos de Shift y Bloq Mayús.
 
+### Modo historia
+
+- Antes y después de cada nivel hay una escena de diálogo con estética de RPG portátil de los 90:
+  personajes en escena y caja de texto que se escribe letra por letra (Enter avanza).
+- La primera vez los diálogos siempre se ven. Al repetir un nivel superado, Enter juega sin
+  historia y H vuelve a verla; dentro de un diálogo repetido, Esc lo omite.
+- Personajes: Sofía; su papá Ramiro, su mamá Leticia y su hermano Tomasito; Dani, su amistad
+  de la infancia y vecindad (su género nunca se define); Los Gatos (Kevin, Yesi, Chuy, Brayan y
+  Memo); el perro guardián y Don Chema, el panadero del mercado.
+- El guion está en `src/data/story1.js` (formato explicado al inicio del archivo).
+- Al terminar un obstáculo, en lugar de siempre «¡Corre!» aparecen frases del momento de la
+  historia; «¡Corre!» sigue siendo la más común y domina en el perro, la carrera y el secreto.
+- Cada nivel tiene su clima (sol, jacarandas, llovizna, nublado, atardecer, ventarrón, niebla,
+  noche fría, aguacero, calor). El clima se dibuja detrás de obstáculos, personajes y textos, y
+  los textos de los obstáculos tienen una placa oscura para leerse igual con cualquier clima.
+- En la lección de teclas nuevas, Sofía calienta (estira, zancadas, posición de salida) con cada
+  pulsación y sale corriendo al terminar.
+
+### Música
+
+Música de 8 bits generada en el navegador (WebAudio, sin archivos de audio): pulsos para la
+melodía, triángulo para el bajo y ruido para la batería. Pistas en `src/audio/tracks.js`.
+La tecla M la prende o apaga en menús y diálogos (se recuerda entre partidas).
+
 Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo en PPM definido en
 `src/data/chapter1.js`; ajustar esos números ajusta la dificultad.
 
@@ -45,9 +84,10 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 |---|---|
 | `src/core/` | Distribución latina, dedos, captura de teclado y partidas guardadas |
 | `src/game/` | Lógica de la carrera (sin gráficos), reglas de estrellas/desbloqueo y pistas |
-| `src/data/` | Niveles del capítulo 1 |
+| `src/data/` | Niveles, historia y climas del capítulo 1 |
+| `src/audio/` | Sintetizador de 8 bits y pistas de música |
 | `src/art/` | Pixel art provisional generado por código (personajes, perro, obstáculos, fondos) |
-| `src/scenes/` | Escenas de Phaser: título, capítulos, mapa, lección, carrera y resultados |
+| `src/scenes/` | Escenas de Phaser: título, capítulos, mapa, diálogos, lección, carrera, resultados y climas |
 | `src/ui/` | Panel HTML: teclado visual, manos, pistas y gráfica del historial |
 | `tests/` | Pruebas con `node --test` |
 
@@ -55,5 +95,4 @@ Fuente: [Pixelify Sans](https://fonts.google.com/specimen/Pixelify+Sans) (licenc
 
 ## Siguientes fases
 
-1. Historia y diálogos con retratos (con opción de omitirlos al repetir un nivel).
-2. Arte final en pixel art y sonido.
+1. Arte final en pixel art y efectos de sonido.

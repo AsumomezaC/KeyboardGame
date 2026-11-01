@@ -5,6 +5,9 @@ import { levelRules, levelStatus, chapterStars, chapterMaxStars, canFail, ACCURA
 import { Panel } from '../ui/panel.js';
 import { escapeHTML } from '../ui/keyboard-view.js';
 import { levelName } from '../data/chapter1.js';
+import { WEATHER_NAMES } from '../data/weathers.js';
+import { Music } from '../audio/music.js';
+import { startLevel, storyFor } from './flow.js';
 import { W, text, backdrop, onKeys, stars, formatTime, keyLegend } from './common.js';
 
 const NODES = [
@@ -25,6 +28,7 @@ export function levelInfoHtml(chapter, level) {
   const rules = levelRules(level);
   const status = levelStatus(chapter, level, Save);
   const best = Save.level(level.id);
+  const story = storyFor(chapter, level);
   const keys = level.newKeys.length
     ? `Teclas nuevas: <b>${level.newKeys.map(k => (k === ' ' ? 'espacio' : k)).join(' ')}</b>`
     : 'Sin teclas nuevas';
@@ -36,10 +40,11 @@ export function levelInfoHtml(chapter, level) {
   else rows.push('Aquí no se pierde: solo cuenta para tus estrellas.');
   rows.push(`Cada estrella se gana aparte: ★ terminar${canFail(level) ? ' a tiempo' : ''} · ★ velocidad: ${formatTime(rules.fastMs)} o menos · ★ precisión: ${Math.round(ACCURACY_STAR * 100)} % o más`);
   return `<h2>${escapeHTML(levelName(level))} <span class="stars">${'★'.repeat(best.stars)}${'☆'.repeat(3 - best.stars)}</span></h2>` +
-    `<p>${keys}${level.requiresStars && level.kind !== 'secret' ? ` · Requiere ${level.requiresStars} ★` : ''}</p>` +
+    `<p>${keys}${level.requiresStars && level.kind !== 'secret' ? ` · Requiere ${level.requiresStars} ★` : ''}` +
+    `${story ? ` · Clima: ${WEATHER_NAMES[story.weather]}` : ''}</p>` +
     rows.map(r => `<p>${r}</p>`).join('') +
     (status.unlocked
-      ? `<p class="go">Enter para jugar${best.bestTimeMs ? ` · Mejor tiempo: ${formatTime(best.bestTimeMs)}` : ''}</p>`
+      ? `<p class="go">${best.passed && story ? 'Enter: jugar sin historia · H: ver historia' : 'Enter para jugar'}${best.bestTimeMs ? ` · Mejor tiempo: ${formatTime(best.bestTimeMs)}` : ''}</p>`
       : `<p class="locked">🔒 ${escapeHTML(status.reason)}</p>`);
 }
 
@@ -82,7 +87,8 @@ export class LevelMapScene extends Phaser.Scene {
     }
 
     for (const e of this.entries) this.drawNode(e);
-    keyLegend(this, [['← →', 'elegir nivel'], ['Enter', 'jugar'], ['Esc', 'capítulos']]);
+    this.legend = null;
+    Music.play('mapa');
     this.marker = this.add.image(0, 0, 'sofia-head').setScale(3);
     this.tweens.add({ targets: this.marker, y: '-=8', duration: 450, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
 
@@ -97,6 +103,8 @@ export class LevelMapScene extends Phaser.Scene {
       ArrowRight: () => this.select(Math.min(this.entries.length - 1, this.index + 1)),
       ArrowLeft: () => this.select(Math.max(0, this.index - 1)),
       Enter: () => this.play(),
+      h: () => this.play({ story: true }),
+      H: () => this.play({ story: true }),
       Escape: () => this.scene.start('Chapters'),
     });
     Panel.show('info');
@@ -133,16 +141,33 @@ export class LevelMapScene extends Phaser.Scene {
     this.tweens.add({ targets: this.marker, y: '-=8', duration: 450, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     for (const other of this.entries) other.node.setStrokeStyle(other === e ? 7 : 5, other === e ? 0xffd23f : 0x2b1d2e);
     const level = e.level;
+    this.drawLegend();
     Panel.setInfo(levelInfoHtml(this.chapter, level), Save.history(level.id), goalLines(level), `Historial · ${levelName(level)}`);
   }
 
-  play() {
+  // Primera vez: con historia. Ya superado: Enter juega directo y H vuelve a ver la historia.
+  play({ story } = {}) {
     const { level } = this.entries[this.index];
     if (!levelStatus(this.chapter, level, Save).unlocked) {
       this.cameras.main.shake(150, 0.004);
       return;
     }
-    const needsLesson = level.newKeys.length > 0 && !Save.level(level.id).passed;
-    this.scene.start(needsLesson ? 'Lesson' : 'Run', { chapter: this.chapter, level });
+    startLevel(this, this.chapter, level, story ? { story: true } : undefined);
+  }
+
+  drawLegend() {
+    const level = this.entries[this.index].level;
+    const replay = Save.level(level.id).passed && storyFor(this.chapter, level);
+    this.legend?.destroy();
+    this.legend = this.add.container(0, 0);
+    const before = this.children.list.length;
+    keyLegend(this, [
+      ['← →', 'elegir nivel'],
+      ['Enter', replay ? 'jugar sin historia' : 'jugar'],
+      ...(replay ? [['H', 'ver historia']] : []),
+      ['Esc', 'capítulos'],
+      ['M', 'música'],
+    ]);
+    this.legend.add(this.children.list.slice(before));
   }
 }

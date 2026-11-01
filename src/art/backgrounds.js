@@ -236,10 +236,58 @@ function ground(theme) {
   return c;
 }
 
+// Interior de la casa de Sofía para los diálogos: sala-comedor con la mesa de las botellas.
+// 320×144 px: la pared ocupa hasta y=112 y el piso coincide con la banqueta de los exteriores.
+export const ROOM = { w: 320, h: 144, floor: 112 };
+
+function room() {
+  const { c, p } = makeCanvas(ROOM.w, ROOM.h);
+  const F = ROOM.floor;
+  p.rect(0, 0, ROOM.w, F, '#e9d8a6');
+  for (let x = 0; x < ROOM.w; x += 12) p.rect(x, 0, 5, F, '#e1cc93'); // papel tapiz a rayas
+  p.rect(0, F - 10, ROOM.w, 10, '#b08968'); // zoclo
+  p.rect(0, F - 11, ROOM.w, 1, '#8d6e53');
+  // ventana con cortina
+  p.rect(28, 18, 52, 40, '#6d4c41');
+  p.rect(31, 21, 46, 34, '#8ecae6');
+  p.rect(53, 21, 2, 34, '#6d4c41');
+  p.rect(24, 14, 14, 50, '#e76f51'); p.rect(70, 14, 14, 50, '#e76f51');
+  for (let y = 14; y < 64; y += 4) { p.rect(26, y, 2, 2, '#c4553a'); p.rect(78, y, 2, 2, '#c4553a'); }
+  // cuadro familiar torcido (falta la mamá: siempre trabaja)
+  p.rect(110, 22, 30, 22, '#6d4c41');
+  p.rect(112, 24, 26, 18, '#f4f1e8');
+  p.disc(118, 31, 3, '#d9a37a'); p.disc(128, 33, 2, '#f2c29b'); p.disc(134, 34, 2, '#f0c09a');
+  // reloj de pared
+  p.disc(170, 24, 7, '#f4f1e8'); p.line(170, 24, 170, 19, '#2b1d2e'); p.line(170, 24, 174, 25, '#2b1d2e');
+  // calendario
+  p.rect(196, 18, 18, 22, '#ffffff'); p.rect(196, 18, 18, 5, '#c1121f');
+  for (let y = 26; y < 38; y += 3) for (let x = 198; x < 212; x += 3) p.px(x, y, '#9a9a9a');
+  // refrigerador
+  p.rect(268, 30, 34, F - 30, '#dfe7ec'); p.rect(268, 62, 34, 1, '#a9b5bc'); p.rect(296, 38, 2, 14, '#a9b5bc');
+  p.rect(272, 40, 8, 6, '#ffd23f'); p.rect(283, 70, 6, 8, '#80ed99'); // dibujos pegados
+  // mesa con mantel de plástico y botellas
+  p.rect(150, F - 34, 84, 5, '#c1121f');
+  for (let x = 150; x < 234; x += 6) p.rect(x, F - 34, 3, 5, '#f4f1e8');
+  p.rect(156, F - 29, 4, 29, '#6d4c41'); p.rect(224, F - 29, 4, 29, '#6d4c41');
+  for (const [bx, color] of [[178, '#4f7a35'], [186, '#6b3f1d'], [208, '#4f7a35']]) {
+    p.rect(bx, F - 44, 4, 10, color); p.rect(bx + 1, F - 47, 2, 3, color);
+  }
+  p.rect(196, F - 39, 7, 5, '#f4f1e8'); // plato
+  // televisor viejo
+  p.rect(92, F - 40, 34, 30, '#5a4636'); p.rect(96, F - 36, 22, 20, '#2b3a4a'); p.rect(120, F - 34, 3, 3, '#ffd23f');
+  p.rect(92, F - 10, 34, 10, '#8d6e53');
+  // piso de mosaico
+  for (let y = F; y < ROOM.h; y += 8) {
+    for (let x = 0; x < ROOM.w; x += 8) p.rect(x, y, 8, 8, ((x + y) / 8) % 2 ? '#c9b79c' : '#b3a185');
+  }
+  return c;
+}
+
 export function buildBackgrounds(scene) {
   for (const theme of Object.keys(THEMES)) {
     scene.textures.addCanvas(`far-${theme}`, far(theme));
     scene.textures.addCanvas(`mid-${theme}`, mid(theme));
     scene.textures.addCanvas(`ground-${theme}`, ground(theme));
   }
+  scene.textures.addCanvas('room-casa', room());
 }
