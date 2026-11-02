@@ -11,16 +11,19 @@ export const H = 540;
 export const SCALE = 3;
 export const GROUND_TOP = 444; // donde empieza el suelo en pantalla
 export const FEET_Y = 458;     // donde pisan los personajes
-// Tiny5 (licencia OFL): pixel, de trazo grueso y con buenos acentos, ñ y ¡¿. Solo tiene un
-// grosor, así que nunca se pide negrita (el navegador la inventaría y se vería borrosa).
-export const FONT = '"Tiny5", monospace';
+// VT323 (licencia OFL): pixelada pero suave, de terminal; distingue bien l, I, 1 y |, y tiene
+// acentos, ñ y ¡¿. Es angosta, así que todos los tamaños se multiplican por FONT_SCALE. Solo tiene
+// un grosor: nunca se pide negrita (el navegador la inventaría y se vería borrosa).
+export const FONT = '"VT323", monospace';
+export const FONT_SCALE = 1.3;
+export const px = size => `${Math.round(size * FONT_SCALE)}px`;
 export const INK = '#2b1d2e';
 export const CREAM = '#fff7e0';
 
 export function text(scene, x, y, str, size = 20, color = '#ffffff', opts = {}) {
   return scene.add.text(x, y, str, {
     fontFamily: FONT,
-    fontSize: `${size}px`,
+    fontSize: px(size),
     fontStyle: 'normal',
     color,
     stroke: opts.stroke ?? INK,
@@ -102,7 +105,7 @@ export function keyLegend(scene, items) {
   const bar = scene.add.rectangle(0, H - BAR_H, W, BAR_H, 0x000000, 0.55).setOrigin(0).setScrollFactor(0).setDepth(100);
   const parts = items.map(([key, label, action]) => {
     const cap = scene.add.text(0, y, key, {
-      fontFamily: FONT, fontSize: '16px', fontStyle: 'normal', color: INK,
+      fontFamily: FONT, fontSize: px(16), fontStyle: 'normal', color: INK,
       backgroundColor: CREAM, padding: { x: 8, y: 3 },
     }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
     const desc = text(scene, 0, y, label, 16, '#ffffff', { oy: 0.5, bold: false, strokeThickness: 0 }).setScrollFactor(0).setDepth(100);
@@ -127,6 +130,51 @@ export function keyLegend(scene, items) {
     x += p.w + GAP;
   }
   return bar;
+}
+
+// Botón con relieve: borde oscuro, sombra, brillo y la tecla de atajo dibujada a la izquierda.
+// Se ilumina al pasar el ratón y se hunde al pulsarlo. Devuelve { container, width }.
+const BTN_H = 40;
+export function button(scene, x, y, { key, label, onClick, primary = false }) {
+  const c = scene.add.container(x, y).setDepth(110);
+  const g = scene.add.graphics();
+  const keyT = scene.add.text(0, 0, key, { fontFamily: FONT, fontSize: px(15), color: CREAM }).setOrigin(0.5);
+  const labelT = text(scene, 0, 0, label, 18, INK, { oy: 0.5, strokeThickness: 0 });
+  const kw = Math.max(26, keyT.width + 12);
+  const width = 14 + kw + 10 + labelT.width + 16;
+  const face = primary ? 0xffe680 : Phaser.Display.Color.HexStringToColor(CREAM).color;
+  const draw = state => {
+    const dy = state === 'down' ? 3 : 0;
+    g.clear();
+    g.fillStyle(0x000000, 0.35).fillRoundedRect(3, 6, width, BTN_H, 9);
+    g.fillStyle(Phaser.Display.Color.HexStringToColor(INK).color, 1).fillRoundedRect(0, dy, width, BTN_H, 9);
+    g.fillStyle(state === 'hover' ? 0xffd23f : face, 1).fillRoundedRect(3, dy + 3, width - 6, BTN_H - 6, 7);
+    g.fillStyle(0xffffff, 0.55).fillRect(10, dy + 6, width - 20, 2);
+    g.fillStyle(0xc9a66b, 1).fillRect(6, dy + BTN_H - 9, width - 12, 3);
+    g.fillStyle(Phaser.Display.Color.HexStringToColor(INK).color, 1).fillRoundedRect(10, dy + 8, kw, BTN_H - 16, 4);
+    keyT.setPosition(10 + kw / 2, BTN_H / 2 + dy);
+    labelT.setPosition(10 + kw + 10, BTN_H / 2 + dy);
+  };
+  draw('up');
+  const hit = scene.add.zone(0, 0, width, BTN_H + 6).setOrigin(0).setInteractive({ useHandCursor: true });
+  hit.on('pointerover', () => draw('hover'));
+  hit.on('pointerout', () => draw('up'));
+  hit.on('pointerdown', (_p, _x, _y, event) => { event.stopPropagation(); draw('down'); });
+  hit.on('pointerup', () => { draw('hover'); onClick(); });
+  c.add([g, keyT, labelT, hit]);
+  return { container: c, width };
+}
+
+// Fila de botones centrada en x (cx).
+export function buttonRow(scene, cx, y, items, gap = 14) {
+  const btns = items.map(it => button(scene, 0, y, it));
+  const total = btns.reduce((n, b) => n + b.width, 0) + gap * (btns.length - 1);
+  let x = cx - total / 2;
+  for (const b of btns) {
+    b.container.x = x;
+    x += b.width + gap;
+  }
+  return btns;
 }
 
 export function stars(scene, x, y, count, { gap = 30, scale = 3 } = {}) {

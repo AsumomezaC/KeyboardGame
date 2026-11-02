@@ -9,7 +9,7 @@ import { levelName } from '../data/chapters.js';
 import { goalLines } from './LevelMapScene.js';
 import { startLevel, storyFor } from './flow.js';
 import { Music } from '../audio/music.js';
-import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime, keyLegend } from './common.js';
+import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime, button, buttonRow } from './common.js';
 
 // Por qué no se superó el nivel, según el tipo de jefe.
 function failText(level, rules, reason) {
@@ -82,29 +82,35 @@ export class ResultsScene extends Phaser.Scene {
     ];
     if (reason) lines.push(failText(level, rules, reason));
     else if (starsWon > prev.stars) lines.push(`¡Nueva marca de estrellas en este nivel!`);
+    const secretNow = level.kind !== 'secret' && levelStatus(chapter, chapter.secret, Save).visible &&
+      !Save.level(chapter.secret.id).passed;
+    if (secretNow) lines.push('¡Apareció un nivel secreto en el mapa!');
     text(this, 590, 230, lines.join('\n'), 20, '#2b1d2e', { ox: 0.5, align: 'center', stroke: '#fff7e0', strokeThickness: 2, wrap: 560, lineSpacing: 10 });
 
     const next = nextLevel(chapter, level);
     this.next = next && levelStatus(chapter, next, Save).unlocked ? next : null;
-    const secretNow = level.kind !== 'secret' && levelStatus(chapter, chapter.secret, Save).visible &&
-      !Save.level(chapter.secret.id).passed;
-    // Si el nivel ya está superado puedes repetirlo sin diálogos (Enter) o viéndolos de nuevo (H).
+    // Si un nivel ya está superado se puede jugar con historia o sin ella: este y el siguiente.
     const replay = Save.level(level.id).passed && storyFor(chapter, level);
-    // Cada acción funciona con su tecla o con un clic en su botón de la barra inferior.
+    const nextReplay = this.next && Save.level(this.next.id).passed && storyFor(chapter, this.next);
+    // Cada acción funciona con su tecla o con un clic en su botón.
     const actions = {
       retry: () => this.scene.start('Run', { chapter, level, story: false }),
       retryStory: () => replay && startLevel(this, chapter, level, { story: true }),
-      next: () => this.next && startLevel(this, chapter, this.next),
+      next: () => this.next && startLevel(this, chapter, this.next, nextReplay ? { story: false } : undefined),
+      nextStory: () => nextReplay && startLevel(this, chapter, this.next, { story: true }),
       map: () => this.scene.start('LevelMap', { chapter, select: (result.passed && this.next ? this.next : level).id }),
     };
-    keyLegend(this, [
-      ['Enter', replay ? 'reintentar sin diálogos' : 'reintentar', actions.retry],
-      ...(replay ? [['H', 'con diálogos', actions.retryStory]] : []),
-      ...(this.next ? [['→', 'siguiente', actions.next]] : []),
-      ['Esc', 'mapa', actions.map],
-      ['M', 'música'],
+    const CX = 595;
+    buttonRow(this, CX, 432, [
+      { key: 'Enter', label: 'Reintentar', onClick: actions.retry, primary: !result.passed },
+      ...(replay ? [{ key: 'H', label: 'Reintentar con historia', onClick: actions.retryStory }] : []),
     ]);
-    if (secretNow) text(this, W / 2, 470, '¡Apareció un nivel secreto en el mapa!', 24, '#b388ff', { ox: 0.5 });
+    buttonRow(this, CX, 484, [
+      ...(this.next ? [{ key: '→', label: nextReplay ? 'Siguiente' : 'Siguiente nivel', onClick: actions.next, primary: result.passed }] : []),
+      ...(nextReplay ? [{ key: 'Mayús →', label: 'Siguiente con historia', onClick: actions.nextStory }] : []),
+      { key: 'Esc', label: 'Mapa', onClick: actions.map },
+    ]);
+    button(this, W - 132, 8, { key: 'M', label: 'Música', onClick: () => Music.toggleMute() });
 
     const weak = Object.entries(result.errByChar).sort((a, b) => b[1] - a[1]);
     const weakHtml = '<h3>Teclas a practicar</h3>' + (weak.length
@@ -119,7 +125,7 @@ export class ResultsScene extends Phaser.Scene {
       Enter: actions.retry,
       h: actions.retryStory,
       H: actions.retryStory,
-      ArrowRight: actions.next,
+      ArrowRight: e => (e.shiftKey ? actions.nextStory() : actions.next()),
       Escape: actions.map,
     });
   }

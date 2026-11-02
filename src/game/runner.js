@@ -20,7 +20,7 @@ export const OBSTACLE_TYPES = {
   fence: { w: 90, pre: 60, post: 24 },
   chair: { w: 48, pre: 80, post: 70 },
   table: { w: 138, pre: 50, post: 40 },  // 9-10: se desliza sobre una mesa larga
-  wall: { w: 48, pre: 70, post: 100 },   // 11-12: corre por la pared y la salta
+  wall: { w: 150, pre: 50, post: 60 },   // 11-12: corre a lo largo de la pared (el piso tiene cemento fresco)
   hole: { w: 150, pre: 80, post: 50 },   // 13-14: brinca un hoyo enorme
 };
 

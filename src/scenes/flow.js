@@ -1,7 +1,7 @@
-// Orden de escenas al jugar un nivel: diálogo previo → lección (si hay teclas nuevas) → carrera
+// Orden de escenas al jugar un nivel: diálogo previo → lección (teclas nuevas o calentamiento) → carrera
 // → diálogo final → resultados. Los diálogos se ven siempre la primera vez; al repetir un nivel
 // superado se omiten, salvo que la persona elija ver la historia (y entonces también se repite
-// el calentamiento de teclas nuevas).
+// la lección). Los niveles sin teclas nuevas hacen un calentamiento con teclas ya conocidas.
 import { Save } from '../core/save.js';
 
 export function storyFor(chapter, level) {
@@ -10,7 +10,8 @@ export function storyFor(chapter, level) {
 
 export function startLevel(scene, chapter, level, { story = !Save.level(level.id).passed } = {}) {
   const passed = Save.level(level.id).passed;
-  const lesson = level.newKeys.length > 0 && (!passed || story);
+  const hasLesson = level.newKeys.length > 0 || !!level.warmup;
+  const lesson = hasLesson && (!passed || story);
   const play = { key: lesson ? 'Lesson' : 'Run', data: { chapter, level, story } };
   if (story && storyFor(chapter, level)?.before) {
     scene.scene.start('Dialogue', { chapter, level, part: 'before', then: play, canSkip: passed });

@@ -9,7 +9,7 @@ import { RUNNERS } from '../art/index.js';
 import { CAST } from '../data/cast.js';
 import { addWeather } from './weather.js';
 import { storyFor } from './flow.js';
-import { W, SCALE, FEET_Y, GROUND_TOP, FONT, backdrop, keyLegend } from './common.js';
+import { W, SCALE, FEET_Y, GROUND_TOP, FONT, px, backdrop, keyLegend } from './common.js';
 
 const CAM_Y = 110;            // la cámara baja para que los personajes queden sobre la caja de texto
 const CHARS_PER_S = 45;
@@ -140,12 +140,12 @@ export class DialogueScene extends Phaser.Scene {
     g.fillStyle(0xf8f8f8, 1).fillRect(x + 4, y + 4, w - 8, h - 8);
     g.lineStyle(2, 0x8890a8, 1).strokeRect(x + 9, y + 9, w - 18, h - 18);
     this.nameG = fixed(this.add.graphics());
-    this.nameText = fixed(this.add.text(x + 26, y - 30, '', { fontFamily: FONT, fontSize: '20px', fontStyle: 'normal', color: '#f8f8f8' }));
+    this.nameText = fixed(this.add.text(x + 26, y - 30, '', { fontFamily: FONT, fontSize: px(20), fontStyle: 'normal', color: '#f8f8f8' }));
     this.body = fixed(this.add.text(x + 26, y + 20, '', {
-      fontFamily: FONT, fontSize: '23px', color: '#303030', lineSpacing: 8,
+      fontFamily: FONT, fontSize: px(23), color: '#303030', lineSpacing: 2,
       wordWrap: { width: w - 70, useAdvancedWrap: true },
     }));
-    this.arrow = fixed(this.add.text(x + w - 40, y + h - 38, '▼', { fontFamily: FONT, fontSize: '20px', color: '#303048' })).setVisible(false);
+    this.arrow = fixed(this.add.text(x + w - 40, y + h - 38, '▼', { fontFamily: FONT, fontSize: px(20), color: '#303048' })).setVisible(false);
     this.tweens.add({ targets: this.arrow, y: this.arrow.y + 5, duration: 350, yoyo: true, repeat: -1 });
   }
 

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import '@fontsource/tiny5/400.css';
+import '@fontsource/vt323/400.css';
 import './styles.css';
 import { TypeInput } from './core/input.js';
 import { Panel } from './ui/panel.js';

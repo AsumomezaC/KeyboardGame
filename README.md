@@ -47,13 +47,17 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
 - Cada capítulo tiene 10 niveles y un secreto. Se abre al superar el nivel 10 del anterior. En el
   menú, las tarjetas se deslizan: flechas, rueda del ratón, la barra, los puntos o un clic llevan a
   cualquier capítulo.
-- Hay niveles de práctica («solo d k», «solo p q») y niveles con todas las letras aprendidas. Cada
+- En el mapa, ← → recorren los niveles. El secreto queda arriba: se entra con ↑ desde el nivel
+  anterior o el siguiente, y se sale con ← o → (o ↓).
+- Hay niveles de práctica («solo d k», «solo p q») y niveles con todas las letras aprendidas.
+  Desde que se aprende el espacio, los niveles de práctica también lo usan («dk kd»). Cada
   nivel tiene un largo máximo de obstáculo; aun en los avanzados siguen saliendo obstáculos cortos.
   Las palabras salen de un banco de palabras reales sin acentos (`src/data/levelgen.js`); los
   niveles de cada capítulo se definen en `src/data/chapters.js`.
 - Obstáculos según su largo: 1-2 tramo plano, 3-4 charco (salto), 5-6 barrera (deslizarse por
-  debajo), 7-8 silla (salto con giro), 9-10 mesa larga (se desliza encima), 11-12 barda (corre por
-  la pared y la salta), 13-14 hoyo enorme (lo brinca como si volara).
+  debajo), 7-8 silla (salto con giro), 9-10 mesa larga (se desliza encima), 11-12 barda con cemento
+  fresco al pie (corre a lo largo de la pared, con estela, y se impulsa con una voltereta), 13-14
+  hoyo enorme (lo brinca como si volara).
 - Cada obstáculo tiene un temporizador. Si se acaba, Sofía tropieza, se levanta (el reloj sigue) y
   vuelves a escribirlo. Solo se escribe el obstáculo actual: al terminarlo aparece una frase de
   ánimo («¡Corre!» es la más común) hasta que Sofía lo supera.
@@ -62,7 +66,8 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
   que se podía escribir: no cuentan las caídas, ni correr de un obstáculo al siguiente.
 - Estrellas independientes: ★ terminar (a tiempo), ★ velocidad y ★ precisión. El total del
   capítulo es sobre 30 y pasa a 33 cuando aparece el secreto (con 30 ★).
-- Dificultad progresiva a lo largo de los 30 niveles: el primero pide el 75 % del ritmo y 90 % de
+- Dificultad progresiva a lo largo de los 30 niveles, en curva: sube despacio al principio y cada
+  vez más rápido (`DIFFICULTY_CURVE` en `chapters.js`). El primero pide el 75 % del ritmo y 90 % de
   precisión; el último, el ritmo completo y 97 %. Los niveles 1-3 del capítulo 1 no se pierden.
 - Jefes en los niveles 7 (requiere 10 ★) y 10 (requiere 20 ★). Se pierden por tiempo, por más de
   cierto número de traspiés o por más de cierto número de caídas; cada jefe es más estricto que el
@@ -78,7 +83,10 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
 - La primera vez los diálogos siempre se ven. Al repetir un nivel superado aparece un menú para
   jugar sin diálogos o verlos de nuevo (H es atajo para verlos); en resultados, Enter reintenta
   sin diálogos y H con diálogos. Dentro de un diálogo repetido, Esc lo omite.
-- Al repetir con diálogos también se repite el calentamiento de las teclas nuevas.
+- Antes de cada nivel hay una lección: las teclas nuevas o, si el nivel no tiene, un calentamiento
+  con dos pares de teclas ya aprendidas. Sale la primera vez y cada vez que se juega con historia.
+- En resultados hay botones (también con su tecla) para reintentar o pasar al siguiente nivel; si
+  ese nivel ya está superado, se puede elegir jugarlo con historia o sin ella.
 - Personajes: Sofía; su papá Ramiro, su mamá Leticia y su hermano Tomás (Tomasito); Dani, su mejor
   amigo y vecino; la Tata, abuela de Dani y dueña de Abarrotes La Esperanza; Los Gatos (Kevin, Yesi,
   Chuy, Brayan y Memo); el perro guardián y Don Chema, el panadero del mercado.
@@ -93,6 +101,10 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
   pulsación y sale corriendo al terminar.
 
 ### Controles y modo desarrollador
+
+- En pantallas normales el teclado de ayuda se parte en dos: una mitad a cada lado del texto (y el
+  juego se ajusta a la altura de la pantalla). En pantallas angostas vuelve a ser un teclado completo
+  debajo del texto.
 
 - Las teclas de la barra inferior de cada pantalla también son botones: se pueden pulsar con clic.
 - Modo desarrollador: presiona `|` (la tecla a la izquierda del 1 en la distribución latina) en
@@ -125,7 +137,7 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 | `src/ui/` | Panel HTML: teclado visual, manos, pistas y gráfica del historial |
 | `tests/` | Pruebas con `node --test` |
 
-Fuente: [Tiny5](https://fonts.google.com/specimen/Tiny5) (licencia OFL, libre de usar y distribuir).
+Fuente: [VT323](https://fonts.google.com/specimen/VT323) (licencia OFL, libre de usar y distribuir).
 
 ## Siguientes fases
 

@@ -87,11 +87,16 @@ export class LevelMapScene extends Phaser.Scene {
     text(this, 24, 18, `${ch.title} — ${ch.subtitle}`, 30, '#ffd23f');
     text(this, W - 24, 22, `★ ${total} / ${chapterMaxStars(ch, Save)}`, 26, '#ffffff', { ox: 1 });
 
-    // Orden de las flechas: el secreto va justo después del nivel tras el cual ocurre.
+    // Los niveles 1-10 se recorren con ← →. El secreto queda arriba: se entra con ↑ desde el nivel
+    // anterior o el siguiente, y se sale con ← o → hacia esos mismos niveles (o ↓ al anterior).
     this.entries = ch.levels.map((level, i) => ({ level, pos: NODES[i] }));
     const secretStatus = levelStatus(ch, ch.secret, Save);
     const secretPos = secretNode(ch.secret.after);
-    if (secretStatus.visible) this.entries.splice(ch.secret.after, 0, { level: ch.secret, pos: secretPos });
+    this.secretIndex = -1;
+    if (secretStatus.visible) {
+      this.entries.push({ level: ch.secret, pos: secretPos });
+      this.secretIndex = this.entries.length - 1;
+    }
 
     // camino de tierra entre nodos
     const path = this.add.graphics();
@@ -126,10 +131,10 @@ export class LevelMapScene extends Phaser.Scene {
     this.choice = null;
     // Mientras el menú «con o sin diálogos» está abierto, las flechas y Enter son suyos.
     onKeys(this, {
-      ArrowRight: () => !this.choice && this.select(Math.min(this.entries.length - 1, this.index + 1)),
-      ArrowLeft: () => !this.choice && this.select(Math.max(0, this.index - 1)),
-      ArrowUp: () => this.moveChoice(-1),
-      ArrowDown: () => this.moveChoice(1),
+      ArrowRight: () => !this.choice && this.step(1),
+      ArrowLeft: () => !this.choice && this.step(-1),
+      ArrowUp: () => (this.choice ? this.moveChoice(-1) : this.nearSecret() && this.select(this.secretIndex)),
+      ArrowDown: () => (this.choice ? this.moveChoice(1) : this.onSecret() && this.select(this.chapter.secret.after - 1)),
       Enter: e => (this.choice ? this.confirmChoice(e) : !e.repeat && this.play()),
       h: () => this.play({ story: true }),
       H: () => this.play({ story: true }),
@@ -160,6 +165,22 @@ export class LevelMapScene extends Phaser.Scene {
     stars(this, x, y + r + 16, best.stars, { gap: 20, scale: 2 });
     e.node = node;
     e.radius = r;
+  }
+
+  onSecret() {
+    return this.index === this.secretIndex && this.secretIndex >= 0;
+  }
+
+  // El secreto está entre el nivel «after» y el siguiente.
+  nearSecret() {
+    const after = this.chapter.secret.after;
+    return this.secretIndex >= 0 && (this.index === after - 1 || this.index === after);
+  }
+
+  step(d) {
+    const last = this.chapter.levels.length - 1;
+    if (this.onSecret()) this.select(this.chapter.secret.after - (d < 0 ? 1 : 0));
+    else this.select(Math.max(0, Math.min(last, this.index + d)));
   }
 
   select(i) {
@@ -241,6 +262,8 @@ export class LevelMapScene extends Phaser.Scene {
     const before = this.children.list.length;
     keyLegend(this, [
       ['← →', 'elegir nivel'],
+      ...(this.nearSecret() ? [['↑', 'secreto', () => this.select(this.secretIndex)]] : []),
+      ...(this.onSecret() ? [['↓', 'volver', () => this.select(this.chapter.secret.after - 1)]] : []),
       ['Enter', replay ? 'jugar (con o sin diálogos)' : 'jugar', () => (this.choice ? this.confirmChoice() : this.play())],
       ['Esc', 'capítulos', () => (this.choice ? this.closeChoice() : this.scene.start('Chapters', { select: this.chapter.index }))],
       ['M', 'música'],

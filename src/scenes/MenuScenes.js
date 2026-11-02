@@ -15,7 +15,7 @@ export class BootScene extends Phaser.Scene {
 
   async create() {
     try {
-      await document.fonts.load('20px "Tiny5"');
+      await document.fonts.load('20px "VT323"');
     } catch { /* si la fuente falla se usa la de respaldo */ }
     generateArt(this);
     this.scene.start('Title');

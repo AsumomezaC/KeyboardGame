@@ -12,6 +12,7 @@
 // hay que alcanzarlo, leaveAt = se va corriendo al llegar a esa fracción del recorrido.
 
 import { buildObstacles } from './levelgen.js';
+import { rng } from './rng.js';
 import { STORY1 } from './story1.js';
 import { STORY2 } from './story2.js';
 import { STORY3 } from './story3.js';
@@ -82,25 +83,43 @@ const SPECS = [
 const TOTAL = SPECS.length * 10 - 1;
 const round = (n, d = 0) => Math.round(n * 10 ** d) / 10 ** d;
 
+// Curva de dificultad: sube despacio al principio y cada vez más rápido (no en línea recta).
+// 0 en el primer nivel del juego, 1 en el último.
+export const DIFFICULTY_CURVE = 1.6;
+const curve = g => (Math.max(0, g) / TOTAL) ** DIFFICULTY_CURVE;
+
 // Ritmos y reacción según el avance global g (0 = primer nivel del juego).
 // Los niveles con teclas recién aprendidas piden un 15 % menos: todavía se buscan con la vista.
 // windowPpm y react: tiempo de la barra de cada obstáculo (reacción + caracteres a ese ritmo).
 function tuning(g, { canLose, boss, newKeys }) {
+  const c = curve(g);
   const ease = newKeys ? 0.85 : 1;
-  const pass = canLose ? round((10 + 0.5 * g) * ease, 1) : null;
-  const fast = pass ? round(pass + 4 + 0.1 * g, 1) : 9 + g;
+  const pass = canLose ? round((10 + 18 * c) * ease, 1) : null;
+  const fast = pass ? round(pass + 4 + 2 * c, 1) : 9 + g;
   return {
     ppm: { pass, fast },
     windowPpm: round((pass ?? fast) * 0.55, 1),
-    react: round(1.9 - 0.03 * g, 2),
-    count: 14 + Math.round(g * 0.25) + (boss ? 2 : 0),
+    react: round(1.9 - 0.95 * c, 2),
+    count: 14 + Math.round(8 * c) + (boss ? 2 : 0),
+    step: c,
   };
 }
 
+// Calentamiento de los niveles sin teclas nuevas: el último par aprendido y otro anterior.
+function warmupFor(groups, seed) {
+  if (!groups.length) return null;
+  const last = groups[groups.length - 1];
+  const older = groups.slice(0, -1);
+  const other = older.length ? older[Math.floor(rng(seed)() * older.length)] : null;
+  return other ? [last, other] : [last];
+}
+
 function buildChapter(spec, ci) {
-  const letters = buildChapter.letters;
+  const { letters, groups } = buildChapter;
   const levels = spec.levels.map((l, i) => {
+    const warmup = l.keys ? null : warmupFor(groups, `c${ci + 1}-${i + 1}`);
     if (l.keys) letters.push(...l.keys);
+    if (l.keys && l.keys.trim()) groups.push(Array.from(l.keys));
     const g = ci * 10 + i;
     const canLose = !(ci === 0 && i < 3);
     const t = tuning(g, { canLose, boss: l.boss, newKeys: !!l.keys });
@@ -110,10 +129,11 @@ function buildChapter(spec, ci) {
       kind: l.boss ? 'boss' : 'normal', theme: l.theme, boss: l.boss || null, crew: l.crew || [],
       hero: 'sofia', newKeys: l.keys ? Array.from(l.keys) : [], getupMs: l.getupMs,
       requiresStars: i === 6 ? 10 : i === 9 ? 20 : undefined,
-      maxLen: l.maxLen, letters: [...letters], only: l.only || null,
-      ppm: t.ppm, windowPpm: t.windowPpm, react: t.react, step: g / TOTAL,
+      maxLen: l.maxLen, letters: [...letters], only: l.only || null, warmup,
+      ppm: t.ppm, windowPpm: t.windowPpm, react: t.react, step: t.step,
+      // Desde que se aprende el espacio, los niveles de práctica también lo usan.
       obstacles: buildObstacles({
-        letters, only: l.only, maxLen: l.maxLen, count: t.count, seed: `c${ci + 1}-${i + 1}`,
+        letters, only: l.only && letters.includes(' ') ? `${l.only} ` : l.only, maxLen: l.maxLen, count: t.count, seed: `c${ci + 1}-${i + 1}`,
         focus: l.only ? '' : l.keys || prev,
       }),
     };
@@ -126,12 +146,14 @@ function buildChapter(spec, ci) {
     id: `c${ci + 1}-s`, label: '★', chapterIndex: ci, kind: 'secret', theme: s.theme, boss: null, crew: [],
     hero: s.hero || 'sofia', newKeys: s.keys ? Array.from(s.keys) : [], requiresStars: 30, allowCaps: true,
     after: s.after, maxLen: s.maxLen, letters: secretLetters, only: null,
-    ppm: t.ppm, windowPpm: t.windowPpm, react: t.react, step: g / TOTAL,
-    obstacles: buildObstacles({ letters: secretLetters, maxLen: s.maxLen, count: t.count, seed: `c${ci + 1}-s`, caps: true }),
+    warmup: s.keys ? null : warmupFor(groups, `c${ci + 1}-s`),
+    ppm: t.ppm, windowPpm: t.windowPpm, react: t.react, step: curve(g),
+    obstacles: buildObstacles({ letters: secretLetters, maxLen: s.maxLen, count: t.count, seed: `c${ci + 1}-s`, caps: true, focus: s.keys || '' }),
   };
   return { id: spec.id, title: spec.title, subtitle: spec.subtitle, age: spec.age, map: spec.map, index: ci, story: spec.story, levels, secret };
 }
 buildChapter.letters = [];
+buildChapter.groups = []; // pares de teclas en el orden en que se aprenden
 
 export const PLAYABLE = SPECS.map(buildChapter);
 export const [CHAPTER1, CHAPTER2, CHAPTER3] = PLAYABLE;

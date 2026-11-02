@@ -62,11 +62,17 @@ export function wordsFor(letters, maxLen) {
   return WORDS.filter(w => fits(w, set, maxLen));
 }
 
-// Combinación de teclas sin tres iguales seguidas (alterna las manos y los dedos).
+// Combinación de teclas sin tres iguales seguidas (alterna las manos y los dedos). Si el espacio
+// está permitido, a veces separa grupos («dk kd»), nunca al principio, al final ni doble.
 function drill(letters, len, rand) {
   const keys = letters.filter(ch => ch !== ' ');
+  const space = letters.includes(' ');
   let s = '';
   for (let i = 0; i < len; i++) {
+    if (space && i > 0 && i < len - 1 && s[i - 1] !== ' ' && rand() < 0.18) {
+      s += ' ';
+      continue;
+    }
     let ch = keys[Math.floor(rand() * keys.length)];
     if (keys.length > 1 && i >= 2 && s[i - 1] === ch && s[i - 2] === ch) ch = keys.find(k => k !== ch);
     s += ch;

@@ -11,14 +11,21 @@ let capsOn = false;
 const root = $('panel');
 root.innerHTML = `
   <section class="pv" data-view="play" hidden>
-    <div class="box play-box">
-      <div id="target-line" class="target"></div>
-      <div id="hint" class="hint"></div>
-      <div id="hint-alt" class="hint alt"></div>
-      <div id="tip" class="tip"></div>
+    <div class="play-grid">
+      <div id="kb-left"></div>
+      <div class="play-center">
+        <div class="box play-box">
+          <div id="target-line" class="target"></div>
+          <div id="hint" class="hint"></div>
+          <div id="hint-alt" class="hint alt"></div>
+          <div id="tip" class="tip"></div>
+        </div>
+        <div id="hands-wrap" class="hands-wrap" hidden></div>
+      </div>
+      <div id="kb-right"></div>
     </div>
-    <div id="hands-wrap" class="hands-wrap" hidden></div>
     <div id="kb-wrap"></div>
+    <div id="kb-info"></div>
   </section>
   <section class="pv" data-view="info" hidden>
     <div class="box" id="info-box"></div>
@@ -29,7 +36,7 @@ root.innerHTML = `
     <div class="box" id="res-weak"></div>
   </section>`;
 
-const keyboard = createKeyboard($('kb-wrap'));
+const keyboard = createKeyboard({ full: $('kb-wrap'), left: $('kb-left'), right: $('kb-right'), info: $('kb-info') });
 const hands = createHands($('hands-wrap'));
 
 function updateCaps() {

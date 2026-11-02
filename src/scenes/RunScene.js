@@ -12,7 +12,7 @@ import { Panel } from '../ui/panel.js';
 import { levelName } from '../data/chapters.js';
 import { CORRE, CAST } from '../data/cast.js';
 import { rng } from '../data/rng.js';
-import { W, SCALE, FEET_Y, FONT, INK, text, backdrop, formatTime } from './common.js';
+import { W, SCALE, FEET_Y, FONT, INK, px, text, backdrop, formatTime } from './common.js';
 import { addWeather } from './weather.js';
 import { storyFor, finishLevel } from './flow.js';
 import { Music } from '../audio/music.js';
@@ -33,11 +33,14 @@ const PROPS = {
   fence: { key: 'fence', y: 2, h: 81 },
   chair: { key: 'chair', y: 2, h: 66 },
   table: { key: 'table', y: 2, h: 60 },
-  wall: { key: 'wall', y: 2, h: 126 },
+  wall: { key: 'wall', y: 8, h: 130 },
   hole: { key: 'hole', y: 30, h: 0 },
 };
-const LABEL_STYLE = size => ({ fontFamily: FONT, fontSize: `${size}px`, fontStyle: 'normal', stroke: INK, strokeThickness: 5 });
+const LABEL_STYLE = size => ({ fontFamily: FONT, fontSize: px(size), fontStyle: 'normal', stroke: INK, strokeThickness: 5 });
 const DOT_COLORS = [0x4cc9f0, 0x80ed99, 0xb388ff, 0xf4a261];
+const WALL_RUN_HEIGHT = 78;   // a qué altura de la barda corre
+const WALL_TILT = 16;         // inclinación hacia la pared mientras corre en ella
+const TRAIL_EVERY_MS = 55;    // cada cuánto deja una silueta en la estela
 
 // Cómo se ve alguien mientras pasa un obstáculo (prog de 0 a 1).
 // frame: cuadro fijo; run: sigue con la animación de correr; dy: altura; angle: giro.
@@ -54,10 +57,19 @@ function obstaclePose(type, prog) {
       return { frame: 'slide', dy: -top, dust: true };
     }
     case 'wall': {
-      const top = PROPS.wall.h;
-      if (prog < 0.45) return { run: true, dy: -top * (prog / 0.45), angle: -70 };
-      const q = (prog - 0.45) / 0.55;
-      return { frame: q < 0.8 ? 'tuck' : 'hop', dy: -top * (1 - q) - Math.sin(Math.PI * q) * 40, angle: 360 * Math.min(1, q / 0.8) };
+      // Carrera por la pared, como en los juegos de parkour: brinca a la barda, corre a lo largo
+      // de ella inclinada (con estela) sobre el cemento fresco y se impulsa con una voltereta.
+      const H = WALL_RUN_HEIGHT;
+      if (prog < 0.2) {
+        const q = prog / 0.2;
+        return { frame: 'hop', dy: -H * q - Math.sin(Math.PI * q) * 18, angle: -WALL_TILT * q };
+      }
+      if (prog < 0.76) {
+        const q = (prog - 0.2) / 0.56;
+        return { run: true, dy: -H - Math.sin(Math.PI * q) * 12, angle: -WALL_TILT, trail: true, spark: true };
+      }
+      const q = (prog - 0.76) / 0.24;
+      return { frame: q < 0.75 ? 'tuck' : 'hop', dy: -H * (1 - q) - Math.sin(Math.PI * q) * 45, angle: 360 * Math.min(1, q / 0.75) };
     }
     case 'hole': return { frame: 'fly', dy: -arc * 150 };
     default: return null;
@@ -398,7 +410,21 @@ export class RunScene extends Phaser.Scene {
     sprite.y = baseY + pose.dy;
     sprite.angle = pose.angle || 0;
     if (pose.dust && dustX != null && Math.random() < 0.3) this.dust.explode(1, dustX, FEET_Y);
+    // Solo Sofía (dustX) deja estela y chispas de polvo al correr por la pared.
+    if (dustX != null && pose.trail) this.wallTrail(sprite);
+    if (dustX != null && pose.spark && Math.random() < 0.5) this.dust.explode(1, sprite.x - 6, sprite.y - 4);
     return true;
+  }
+
+  // Siluetas que se desvanecen detrás de Sofía mientras corre por la pared.
+  wallTrail(sprite) {
+    const now = this.time.now;
+    if (now - (this.lastTrailAt || 0) < TRAIL_EVERY_MS) return;
+    this.lastTrailAt = now;
+    const ghost = this.add.image(sprite.x, sprite.y, sprite.texture.key, sprite.frame.name)
+      .setOrigin(0.5, 1).setScale(sprite.scaleX, sprite.scaleY).setAngle(sprite.angle)
+      .setTint(0x9ad1ff).setAlpha(0.45).setDepth(sprite.depth - 1);
+    this.tweens.add({ targets: ghost, alpha: 0, x: ghost.x - 30, duration: 260, onComplete: () => ghost.destroy() });
   }
 
   drawPlayer() {

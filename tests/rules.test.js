@@ -26,12 +26,13 @@ test('cada nivel usa solo las teclas y el largo que le tocan', () => {
     ch.levels.forEach((level, i) => {
       const [only, maxLen] = SPEC[ch.id][i];
       assert.equal(level.maxLen, maxLen, `${level.id}: largo máximo`);
-      const allowed = new Set(only || level.letters);
+      const allowed = new Set(only ? [...only, ...(level.letters.includes(' ') ? ' ' : '')] : level.letters);
       for (const t of level.obstacles) {
         assert.ok(len(t) <= maxLen, `${level.id}: «${t}» mide más de ${maxLen}`);
         for (const c of t) assert.ok(allowed.has(c), `${level.id}: «${c}» en «${t}» no está permitida`);
       }
-      if (only) assert.deepEqual(new Set(level.obstacles.join('')), new Set(only), `${level.id}: deben salir todas las teclas de práctica`);
+      if (only) for (const k of only) assert.ok(level.obstacles.join('').includes(k), `${level.id}: debe salir la tecla ${k}`);
+      if (only && level.letters.includes(' ')) assert.ok(level.obstacles.some(t => t.includes(' ')), `${level.id}: después de aprender el espacio también se usa`);
       assert.ok(Math.max(...level.obstacles.map(len)) >= maxLen - 2, `${level.id}: faltan obstáculos largos`);
     });
     const s = ch.secret;
@@ -176,6 +177,22 @@ test('la dificultad sube poco a poco en los tres capítulos', () => {
   for (const level of PLAYABLE.flatMap(c => c.levels)) {
     assert.ok(accuracyTarget(level) >= prev, `${level.id}: la precisión no debe bajar`);
     prev = accuracyTarget(level);
+  }
+});
+
+test('la dificultad sube en curva: más rápido al final que al principio', () => {
+  const step = ch => PLAYABLE[ch].levels.at(-1).step - PLAYABLE[ch].levels[0].step;
+  assert.ok(step(1) > step(0) && step(2) > step(1), 'cada capítulo sube más que el anterior');
+});
+
+test('los niveles sin teclas nuevas calientan con dos pares de teclas ya aprendidas', () => {
+  for (const level of PLAYABLE.flatMap(allLevels)) {
+    if (level.newKeys.length) {
+      assert.equal(level.warmup ?? null, null, `${level.id}: con teclas nuevas no hay calentamiento`);
+      continue;
+    }
+    assert.equal(level.warmup.length, 2, `${level.id}: deben ser dos pares`);
+    for (const k of level.warmup.flat()) assert.ok(level.letters.includes(k), `${level.id}: «${k}» aún no se aprende`);
   }
 });
 

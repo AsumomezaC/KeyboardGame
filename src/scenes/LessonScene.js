@@ -1,4 +1,5 @@
 // Antes de un nivel con teclas nuevas: qué dedo usar y una mini práctica de 5 pulsaciones por tecla.
+// En niveles sin teclas nuevas es un calentamiento: dos pares de teclas ya conocidas, 3 veces cada una.
 // Mientras practicas, Sofía calienta (estira, hace zancadas y se pone en posición de salida);
 // al terminar sale corriendo y arranca la carrera sola, con su cuenta regresiva.
 import Phaser from 'phaser';
@@ -8,11 +9,12 @@ import * as Layout from '../core/layout.js';
 import { Panel } from '../ui/panel.js';
 import { levelName } from '../data/chapters.js';
 import { fingersFor } from './RunScene.js';
-import { W, SCALE, FEET_Y, text, box, backdrop, keyLegend } from './common.js';
+import { W, SCALE, FEET_Y, text, box, backdrop, keyLegend, px } from './common.js';
 import { addWeather } from './weather.js';
 import { storyFor } from './flow.js';
 
 const REPS = 5;
+const WARMUP_REPS = 3;
 const START_DELAY_MS = 700;
 // Poses de calentamiento según el avance de la práctica.
 const WARMUP = ['idle0', 'stretch0', 'stretch1', 'stretch0', 'lunge0', 'lunge1', 'set'];
@@ -30,6 +32,9 @@ export class LessonScene extends Phaser.Scene {
     this.finished = false;
     this.story = data.story;
     this.presses = 0;
+    this.isWarmup = this.level.newKeys.length === 0;
+    this.keys = this.isWarmup ? (this.level.warmup || []).flat() : this.level.newKeys;
+    this.reps = this.isWarmup ? WARMUP_REPS : REPS;
   }
 
   create() {
@@ -38,10 +43,10 @@ export class LessonScene extends Phaser.Scene {
     this.hero = this.level.hero || 'sofia';
     this.kid = this.add.sprite(170, FEET_Y, this.hero, 'idle0').setOrigin(0.5, 1).setScale(SCALE).setDepth(10);
     box(this, 300, 70, 600, 300);
-    text(this, 600, 96, `${levelName(this.level)} · Teclas nuevas`, 24, '#2b1d2e', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
+    text(this, 600, 96, `${levelName(this.level)} · ${this.isWarmup ? 'Calentamiento' : 'Teclas nuevas'}`, 24, '#2b1d2e', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
     this.keyText = text(this, 600, 190, '', 110, '#ff9f1c', { ox: 0.5, oy: 0.5, strokeThickness: 10 });
     this.fingerText = text(this, 600, 268, '', 24, '#2b1d2e', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
-    this.pips = Array.from({ length: REPS }, (_, i) => this.add.circle(600 + (i - 2) * 34, 320, 11, 0xd8c3a5).setStrokeStyle(3, 0x2b1d2e));
+    this.pips = Array.from({ length: this.reps }, (_, i) => this.add.circle(600 + (i - (this.reps - 1) / 2) * 34, 320, 11, 0xd8c3a5).setStrokeStyle(3, 0x2b1d2e));
     keyLegend(this, [['Esc', 'volver al mapa', () => this.scene.start('LevelMap', { chapter: this.chapter, select: this.level.id })]]);
 
     Panel.show('play');
@@ -65,7 +70,7 @@ export class LessonScene extends Phaser.Scene {
 
   warmUp() {
     this.presses++;
-    const total = REPS * this.level.newKeys.length;
+    const total = this.reps * this.keys.length;
     const i = Math.min(WARMUP.length - 1, Math.floor((this.presses / total) * WARMUP.length));
     this.kid.setFrame(WARMUP[i]);
     this.tweens.killTweensOf(this.kid);
@@ -78,7 +83,7 @@ export class LessonScene extends Phaser.Scene {
   }
 
   get key() {
-    return this.level.newKeys[this.keyIndex];
+    return this.keys[this.keyIndex];
   }
 
   showKey() {
@@ -86,13 +91,14 @@ export class LessonScene extends Phaser.Scene {
     const combo = Layout.comboFor(ch);
     const code = ch === ' ' ? 'Space' : combo.steps[0].code;
     const finger = fingerOf(code);
-    this.keyText.setText(ch === ' ' ? 'ESPACIO' : ch.toUpperCase()).setFontSize(ch === ' ' ? 64 : 110);
+    this.keyText.setText(ch === ' ' ? 'ESPACIO' : ch.toUpperCase()).setFontSize(px(ch === ' ' ? 64 : 110));
     this.fingerText.setText(`Usa el ${fingerLabel(code)}`);
     this.pips.forEach(p => p.setFillStyle(0xd8c3a5));
-    Panel.setTarget(Array(REPS).fill(ch), 0);
+    Panel.setTarget(Array(this.reps).fill(ch), 0);
     const where = ch === ' ' ? 'la barra espaciadora' : `la tecla ${Layout.usLegend(code)}`;
     const home = finger && finger.finger !== 'thumb' && ['KeyF', 'KeyJ'].includes(code) ? ' Tiene un relieve para encontrarla sin mirar.' : '';
-    Panel.setHints(`Presiona ${where} ${REPS} veces con el ${fingerLabel(code)}.${home}`,
+    const intro = this.isWarmup ? 'Calienta con teclas que ya conoces. ' : '';
+    Panel.setHints(`${intro}Presiona ${where} ${this.reps} veces con el ${fingerLabel(code)}.${home}`,
       'Deja los demás dedos descansando sobre la fila central: A S D F · J K L Ñ.');
     Panel.showHands(true, fingersFor(ch));
     Panel.keyboard.showFingers(true);
@@ -110,18 +116,18 @@ export class LessonScene extends Phaser.Scene {
     this.warmUp();
     this.tweens.add({ targets: this.pips[this.count], scale: 1.4, duration: 90, yoyo: true });
     this.count++;
-    Panel.setTarget(Array(REPS).fill(this.key), this.count);
-    if (this.count < REPS) return;
+    Panel.setTarget(Array(this.reps).fill(this.key), this.count);
+    if (this.count < this.reps) return;
     this.keyIndex++;
     this.count = 0;
-    if (this.keyIndex < this.level.newKeys.length) {
+    if (this.keyIndex < this.keys.length) {
       this.time.delayedCall(350, () => this.showKey());
       return;
     }
     this.finished = true;
     Panel.keyboard.clear();
     Panel.showHands(false);
-    this.keyText.setText('¡LISTA!').setFontSize(80).setColor('#7bd389');
+    this.keyText.setText('¡LISTA!').setFontSize(px(80)).setColor('#7bd389');
     this.fingerText.setText('¡A correr!');
     Panel.setTarget(null, 0, '¡Lista!');
     Panel.setHints('');

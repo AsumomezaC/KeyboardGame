@@ -14,14 +14,17 @@
   --key-special: #ddd0b3;
   --cap: #8a7d6a;
   --altgr: #2f7fb5;
-  --font: 'Tiny5', ui-monospace, monospace;
+  --font: 'VT323', ui-monospace, monospace;
 }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 
+/* VT323 es angosta: todo el panel crece un 25 % (las medidas en rem siguen este tamaño). */
+html { font-size: 20px; }
+
 body {
-  font-synthesis: none; /* Tiny5 tiene un solo grosor: sin negritas inventadas */
+  font-synthesis: none; /* VT323 tiene un solo grosor: sin negritas inventadas */
   margin: 0;
   background: var(--bg);
   color: var(--text);
@@ -178,6 +181,27 @@ body {
 .f-thumb { --fc: #adb5bd; }
 .keyboard.fingers .kb-key[class*="f-"]:not(.hl) {
   background: color-mix(in srgb, var(--fc) 45%, var(--key));
+}
+
+/* Teclado partido: en pantallas angostas solo se ve el completo (debajo del texto). */
+.kb-side { display: none; }
+.kb-side .kb-key { flex: none; width: calc(var(--w) * var(--u) + (var(--w) - 1) * 5px); }
+.kb-side.right .kb-row { justify-content: flex-end; }
+.play-center { min-width: 0; }
+
+/* Pantallas normales: una mitad del teclado a cada lado del texto, y el juego un poco más bajo
+   si hace falta, para que todo quepa sin desplazarse. */
+@media (min-width: 1100px) {
+  #app { max-width: 1260px; }
+  #game, #caps-row {
+    max-width: min(960px, calc((100vh - 330px) * 16 / 9));
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .pv[data-view="info"], .pv[data-view="results"] { max-width: 960px; margin: 0 auto; }
+  .play-grid { display: grid; grid-template-columns: auto minmax(280px, 1fr) auto; gap: 12px; align-items: start; }
+  .kb-side { display: flex; --u: 38px; padding: 8px; }
+  .kb-full { display: none; }
 }
 
 .kb-note { text-align: center; color: var(--hint); min-height: 1.2em; font-weight: 700; }

@@ -52,16 +52,29 @@ function table() {
   return c;
 }
 
-// Barda de ladrillo alta: Sofía corre por la pared y la salta.
+// Barda larga de ladrillo con un tramo de cemento fresco al pie (con conos): por eso Sofía no
+// puede pasar por el piso y corre a lo largo de la pared.
 function wall() {
-  const { c, p } = makeCanvas(16, 42);
-  p.rect(1, 1, 14, 41, '#b5523b');
-  for (let y = 1; y < 42; y += 4) {
-    p.rect(1, y, 14, 1, '#8c3d2b');
+  const W = 50, H = 46, BASE = 36;
+  const { c, p } = makeCanvas(W, H);
+  p.rect(1, 2, W - 2, BASE - 2, '#b5523b');
+  for (let y = 2; y < BASE; y += 4) {
+    p.rect(1, y, W - 2, 1, '#8c3d2b');
     const off = (y / 4) % 2 ? 0 : 4;
-    for (let x = 1 + off; x < 15; x += 8) p.rect(x, y + 1, 1, 3, '#8c3d2b');
+    for (let x = 1 + off; x < W - 1; x += 8) p.rect(x, y + 1, 1, 3, '#8c3d2b');
   }
-  p.rect(0, 0, 16, 2, '#9e9e9e');
+  p.rect(0, 0, W, 3, '#9e9e9e');
+  // grafiti de un gato (Los Gatos dejan su firma en todos lados)
+  p.rect(18, 12, 12, 7, '#2a9d8f'); p.rect(18, 9, 2, 3, '#2a9d8f'); p.rect(28, 9, 2, 3, '#2a9d8f');
+  p.px(21, 14, '#fff3b0'); p.px(26, 14, '#fff3b0'); p.rect(30, 16, 5, 1, '#2a9d8f');
+  // cemento fresco: losa gris brillante con huellas y dos conos
+  p.rect(0, BASE, W, H - BASE, '#9aa0a6');
+  p.rect(0, BASE, W, 1, '#c9ced6');
+  for (const x of [12, 20, 31]) { p.rect(x, BASE + 4, 2, 2, '#7d838b'); p.px(x + 1, BASE + 7, '#7d838b'); }
+  for (const x of [2, W - 7]) {
+    p.rect(x + 2, BASE - 6, 1, 2, '#f77f00'); p.rect(x + 1, BASE - 4, 3, 2, '#f77f00');
+    p.rect(x + 1, BASE - 2, 3, 1, '#ffffff'); p.rect(x, BASE - 1, 5, 2, '#f77f00');
+  }
   outline(c, INK);
   return c;
 }
