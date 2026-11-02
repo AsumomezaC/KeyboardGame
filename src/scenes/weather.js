@@ -3,7 +3,7 @@
 // igual con lluvia, niebla o atardecer, también para quien ve poco.
 import Phaser from 'phaser';
 import { makeCanvas } from '../art/pixel.js';
-import { W, GROUND_TOP } from './common.js';
+import { W, GROUND_TOP, CELESTIAL_DEPTH } from './common.js';
 
 export { WEATHER_NAMES } from '../data/weathers.js';
 
@@ -81,9 +81,8 @@ export function addWeather(scene, kind) {
   switch (kind) {
     case 'sol': {
       parts.push(tint(scene, 0xfff1c1, 0.18, 0xffe0a0, 0.05));
-      const sun = scene.add.image(W - 120, 90, 'wx-sun').setScale(4);
-      scene.tweens.add({ targets: sun, angle: 360, duration: 40000, repeat: -1 });
-      parts.push(sun);
+      // El sol queda fijo y detrás de las casas.
+      parts.push(scene.add.image(W - 120, 90, 'wx-sun').setScale(4).setDepth(CELESTIAL_DEPTH));
       break;
     }
     case 'jacaranda':
@@ -104,7 +103,8 @@ export function addWeather(scene, kind) {
       break;
     case 'atardecer':
       parts.push(tint(scene, 0x5a2a6e, 0.3, 0xff8c42, 0.28));
-      parts.push(scene.add.circle(W - 200, 300, 46, 0xffb347, 0.9));
+      // Sol poniéndose: medio escondido detrás de los cerros y las casas.
+      parts.push(scene.add.circle(W - 200, 205, 46, 0xffb347, 1).setDepth(CELESTIAL_DEPTH));
       break;
     case 'viento':
       parts.push(tint(scene, 0xd9c7a0, 0.15, 0xd9c7a0, 0.05));

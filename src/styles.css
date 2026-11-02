@@ -14,13 +14,14 @@
   --key-special: #ddd0b3;
   --cap: #8a7d6a;
   --altgr: #2f7fb5;
-  --font: 'Pixelify Sans', ui-monospace, monospace;
+  --font: 'Tiny5', ui-monospace, monospace;
 }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 
 body {
+  font-synthesis: none; /* Tiny5 tiene un solo grosor: sin negritas inventadas */
   margin: 0;
   background: var(--bg);
   color: var(--text);

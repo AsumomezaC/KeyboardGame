@@ -79,6 +79,7 @@ export class Runner {
     this.target = 0;    // obstáculo que se está escribiendo
     this.timed = 0;     // primer obstáculo aún no superado (el que tiene temporizador)
     this.falls = 0;
+    this.typingMs = 0;  // tiempo en que se podía escribir (sin contar caídas ni carreras entre obstáculos)
     this.correct = 0;
     this.errors = 0;
     this.errByChar = {};
@@ -122,6 +123,7 @@ export class Runner {
   update(dt) {
     if (this.phase === 'done' || this.phase === 'failed') return;
     this.clock += dt;
+    if (this.canType && this.targetObstacle) this.typingMs += dt;
     if (this.limitMs != null && this.clock > this.limitMs) {
       this.fail('time');
       return;
@@ -210,9 +212,12 @@ export class Runner {
 
   result() {
     const total = this.correct + this.errors;
-    const minutes = this.clock / 60000;
+    // PPM solo sobre el tiempo en que se podía escribir: no cuentan las caídas, ni correr hacia
+    // el siguiente obstáculo después de terminar uno, ni el tramo final a la meta.
+    const minutes = this.typingMs / 60000;
     return {
       timeMs: Math.round(this.clock),
+      typingMs: Math.round(this.typingMs),
       wpm: minutes > 0 ? this.correct / 5 / minutes : 0,
       accuracy: total ? this.correct / total : 1,
       falls: this.falls,
@@ -224,20 +229,28 @@ export class Runner {
   }
 }
 
-// Mecanógrafo ideal a ritmo constante: sirve para convertir PPM en tiempos objetivo.
-const READ_MS = 300;
+// Persona que escribe a ritmo constante, sin errores, para convertir PPM en tiempos objetivo.
+// Como una persona real, cuando aparece un obstáculo nuevo tarda en verlo y empezar a escribir.
+export const HUMAN_REACT_MS = 750;
 
 export function simulate(level, ppm, { getupMs } = {}) {
   const r = new Runner(level, { getupMs });
   const interval = 1000 / cps(ppm);
-  let nextKeyAt = READ_MS;
+  let current = null;
+  let nextKeyAt = 0;
   const DT = 10;
   for (let i = 0; i < 100000 && r.phase !== 'done'; i++) {
     r.update(DT);
     const o = r.targetObstacle;
-    if (o && r.canType && r.clock >= nextKeyAt) {
+    if (!o || !r.canType) continue;
+    if (o !== current) {
+      // obstáculo nuevo (o se acaba de levantar): primero lo lee
+      current = o;
+      nextKeyAt = r.clock + HUMAN_REACT_MS;
+    }
+    if (r.clock >= nextKeyAt) {
       r.type(o.chars[o.typed]);
-      nextKeyAt = r.clock + interval + (r.targetObstacle !== o ? READ_MS : 0);
+      nextKeyAt = r.clock + interval;
     }
   }
   return { timeMs: r.clock, falls: r.falls };

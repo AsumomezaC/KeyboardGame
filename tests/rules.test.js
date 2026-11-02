@@ -116,6 +116,18 @@ test('solo se escribe el obstáculo actual; el siguiente espera a que lo superes
   assert.equal(r.type(second.chars[0]).ok, true);
 });
 
+test('las PPM solo cuentan el tiempo en que se puede escribir', () => {
+  const r = new Runner(CHAPTER1.levels[8]);
+  for (let i = 0; i < 200000 && r.phase !== 'done'; i++) {
+    r.update(10);
+    const o = r.targetObstacle;
+    if (o && r.canType && i % 30 === 0) r.type(o.chars[o.typed]);
+  }
+  const res = r.result();
+  assert.ok(res.typingMs < res.timeMs * 0.9, 'correr entre obstáculos no cuenta');
+  assert.ok(Math.abs(res.wpm - r.correct / 5 / (res.typingMs / 60000)) < 1e-9);
+});
+
 test('un jefe se pierde con una caída o un traspié de más', () => {
   const level = CHAPTER1.levels[6];
   const byFalls = new Runner(level, { getupMs: 300, maxFalls: 2 });

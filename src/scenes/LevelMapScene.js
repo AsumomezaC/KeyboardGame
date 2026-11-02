@@ -241,8 +241,8 @@ export class LevelMapScene extends Phaser.Scene {
     const before = this.children.list.length;
     keyLegend(this, [
       ['← →', 'elegir nivel'],
-      ['Enter', replay ? 'jugar (con o sin diálogos)' : 'jugar'],
-      ['Esc', 'capítulos'],
+      ['Enter', replay ? 'jugar (con o sin diálogos)' : 'jugar', () => (this.choice ? this.confirmChoice() : this.play())],
+      ['Esc', 'capítulos', () => (this.choice ? this.closeChoice() : this.scene.start('Chapters', { select: this.chapter.index }))],
       ['M', 'música'],
     ]);
     this.legend.add(this.children.list.slice(before));

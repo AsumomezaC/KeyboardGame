@@ -15,7 +15,7 @@ export class BootScene extends Phaser.Scene {
 
   async create() {
     try {
-      await Promise.all([document.fonts.load('bold 20px "Pixelify Sans"'), document.fonts.load('20px "Pixelify Sans"')]);
+      await document.fonts.load('20px "Tiny5"');
     } catch { /* si la fuente falla se usa la de respaldo */ }
     generateArt(this);
     this.scene.start('Title');
@@ -38,8 +38,8 @@ export class TitleScene extends Phaser.Scene {
     this.tweens.add({ targets: press, alpha: 0.2, duration: 600, yoyo: true, repeat: -1 });
     Panel.show('none');
     Music.play('titulo');
-    keyLegend(this, [['Enter', 'empezar'], ['M', 'música']]);
     const go = () => this.scene.start('Chapters');
+    keyLegend(this, [['Enter', 'empezar', go], ['M', 'música']]);
     onKeys(this, { Enter: go, ' ': go });
     this.input.on('pointerdown', go);
   }
@@ -81,7 +81,7 @@ export class ChaptersScene extends Phaser.Scene {
     this.cards = CHAPTERS.map((chap, i) => this.drawCard(chap, i));
     this.drawArrows();
     this.drawSlider();
-    keyLegend(this, [['← →', 'elegir'], ['Enter', 'entrar'], ['Esc', 'título'], ['M', 'música']]);
+    keyLegend(this, [['← →', 'elegir'], ['Enter', 'entrar', () => this.enter()], ['Esc', 'título', () => this.scene.start('Title')], ['M', 'música']]);
     Music.play('mapa');
     this.select(Math.min(this.startIndex, this.cards.length - 1), false);
     onKeys(this, {

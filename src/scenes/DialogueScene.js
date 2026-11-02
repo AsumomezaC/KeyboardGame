@@ -53,9 +53,10 @@ export class DialogueScene extends Phaser.Scene {
     for (const [id, x, face = 'right', mood = 'idle'] of this.sc.cast) this.spawn(id, x, face, mood);
 
     this.drawBox();
+    const esc = () => this.onKey({ key: 'Escape' });
     keyLegend(this, [
-      ['Enter', 'continuar'],
-      this.canSkip ? ['Esc', 'omitir historia'] : this.part === 'before' ? ['Esc', 'volver al mapa'] : null,
+      ['Enter', 'continuar', () => this.advance()],
+      this.canSkip ? ['Esc', 'omitir historia', esc] : this.part === 'before' ? ['Esc', 'volver al mapa', esc] : null,
       ['M', 'música'],
     ].filter(Boolean));
 
@@ -139,7 +140,7 @@ export class DialogueScene extends Phaser.Scene {
     g.fillStyle(0xf8f8f8, 1).fillRect(x + 4, y + 4, w - 8, h - 8);
     g.lineStyle(2, 0x8890a8, 1).strokeRect(x + 9, y + 9, w - 18, h - 18);
     this.nameG = fixed(this.add.graphics());
-    this.nameText = fixed(this.add.text(x + 26, y - 30, '', { fontFamily: FONT, fontSize: '20px', fontStyle: 'bold', color: '#f8f8f8' }));
+    this.nameText = fixed(this.add.text(x + 26, y - 30, '', { fontFamily: FONT, fontSize: '20px', fontStyle: 'normal', color: '#f8f8f8' }));
     this.body = fixed(this.add.text(x + 26, y + 20, '', {
       fontFamily: FONT, fontSize: '23px', color: '#303030', lineSpacing: 8,
       wordWrap: { width: w - 70, useAdvancedWrap: true },

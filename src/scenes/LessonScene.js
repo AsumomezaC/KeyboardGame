@@ -42,7 +42,7 @@ export class LessonScene extends Phaser.Scene {
     this.keyText = text(this, 600, 190, '', 110, '#ff9f1c', { ox: 0.5, oy: 0.5, strokeThickness: 10 });
     this.fingerText = text(this, 600, 268, '', 24, '#2b1d2e', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
     this.pips = Array.from({ length: REPS }, (_, i) => this.add.circle(600 + (i - 2) * 34, 320, 11, 0xd8c3a5).setStrokeStyle(3, 0x2b1d2e));
-    keyLegend(this, [['Esc', 'volver al mapa']]);
+    keyLegend(this, [['Esc', 'volver al mapa', () => this.scene.start('LevelMap', { chapter: this.chapter, select: this.level.id })]]);
 
     Panel.show('play');
     Panel.setCapsContext(true);

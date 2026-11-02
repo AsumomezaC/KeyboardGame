@@ -83,13 +83,16 @@ const TOTAL = SPECS.length * 10 - 1;
 const round = (n, d = 0) => Math.round(n * 10 ** d) / 10 ** d;
 
 // Ritmos y reacción según el avance global g (0 = primer nivel del juego).
-function tuning(g, { canLose, boss }) {
-  const pass = canLose ? Math.round(11 + 0.55 * g) : null;
-  const fast = pass ? Math.round(pass + 4 + 0.12 * g) : 10 + Math.round(g);
+// Los niveles con teclas recién aprendidas piden un 15 % menos: todavía se buscan con la vista.
+// windowPpm y react: tiempo de la barra de cada obstáculo (reacción + caracteres a ese ritmo).
+function tuning(g, { canLose, boss, newKeys }) {
+  const ease = newKeys ? 0.85 : 1;
+  const pass = canLose ? round((10 + 0.5 * g) * ease, 1) : null;
+  const fast = pass ? round(pass + 4 + 0.1 * g, 1) : 9 + g;
   return {
     ppm: { pass, fast },
-    windowPpm: round((pass ?? fast) * 0.62, 1),
-    react: round(1.5 - 0.022 * g, 2),
+    windowPpm: round((pass ?? fast) * 0.55, 1),
+    react: round(1.9 - 0.03 * g, 2),
     count: 14 + Math.round(g * 0.25) + (boss ? 2 : 0),
   };
 }
@@ -100,7 +103,7 @@ function buildChapter(spec, ci) {
     if (l.keys) letters.push(...l.keys);
     const g = ci * 10 + i;
     const canLose = !(ci === 0 && i < 3);
-    const t = tuning(g, { canLose, boss: l.boss });
+    const t = tuning(g, { canLose, boss: l.boss, newKeys: !!l.keys });
     const prev = spec.levels.slice(0, i).reverse().find(p => p.keys)?.keys || '';
     return {
       id: `c${ci + 1}-${i + 1}`, label: String(i + 1), chapterIndex: ci,
@@ -117,7 +120,7 @@ function buildChapter(spec, ci) {
   });
   const s = spec.secret;
   const g = ci * 10 + s.after - 0.5;
-  const t = tuning(g + 1, { canLose: true });
+  const t = tuning(g + 1, { canLose: true, newKeys: !!s.keys });
   const secretLetters = [...letters, ...(s.keys ? Array.from(s.keys) : [])];
   const secret = {
     id: `c${ci + 1}-s`, label: '★', chapterIndex: ci, kind: 'secret', theme: s.theme, boss: null, crew: [],

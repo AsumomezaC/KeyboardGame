@@ -36,7 +36,7 @@ const PROPS = {
   wall: { key: 'wall', y: 2, h: 126 },
   hole: { key: 'hole', y: 30, h: 0 },
 };
-const LABEL_STYLE = size => ({ fontFamily: FONT, fontSize: `${size}px`, fontStyle: 'bold', stroke: INK, strokeThickness: 5 });
+const LABEL_STYLE = size => ({ fontFamily: FONT, fontSize: `${size}px`, fontStyle: 'normal', stroke: INK, strokeThickness: 5 });
 const DOT_COLORS = [0x4cc9f0, 0x80ed99, 0xb388ff, 0xf4a261];
 
 // Cómo se ve alguien mientras pasa un obstáculo (prog de 0 a 1).

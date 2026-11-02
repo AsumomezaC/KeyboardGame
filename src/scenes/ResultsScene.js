@@ -90,11 +90,18 @@ export class ResultsScene extends Phaser.Scene {
       !Save.level(chapter.secret.id).passed;
     // Si el nivel ya está superado puedes repetirlo sin diálogos (Enter) o viéndolos de nuevo (H).
     const replay = Save.level(level.id).passed && storyFor(chapter, level);
+    // Cada acción funciona con su tecla o con un clic en su botón de la barra inferior.
+    const actions = {
+      retry: () => this.scene.start('Run', { chapter, level, story: false }),
+      retryStory: () => replay && startLevel(this, chapter, level, { story: true }),
+      next: () => this.next && startLevel(this, chapter, this.next),
+      map: () => this.scene.start('LevelMap', { chapter, select: (result.passed && this.next ? this.next : level).id }),
+    };
     keyLegend(this, [
-      ['Enter', replay ? 'reintentar sin diálogos' : 'reintentar'],
-      ...(replay ? [['H', 'con diálogos']] : []),
-      ...(this.next ? [['→', 'siguiente']] : []),
-      ['Esc', 'mapa'],
+      ['Enter', replay ? 'reintentar sin diálogos' : 'reintentar', actions.retry],
+      ...(replay ? [['H', 'con diálogos', actions.retryStory]] : []),
+      ...(this.next ? [['→', 'siguiente', actions.next]] : []),
+      ['Esc', 'mapa', actions.map],
       ['M', 'música'],
     ]);
     if (secretNow) text(this, W / 2, 470, '¡Apareció un nivel secreto en el mapa!', 24, '#b388ff', { ox: 0.5 });
@@ -109,11 +116,11 @@ export class ResultsScene extends Phaser.Scene {
     Panel.setResults(Save.history(level.id), goalLines(level), `Historial · ${levelName(level)}`, weakHtml);
 
     onKeys(this, {
-      Enter: () => this.scene.start('Run', { chapter, level, story: false }),
-      h: () => replay && startLevel(this, chapter, level, { story: true }),
-      H: () => replay && startLevel(this, chapter, level, { story: true }),
-      ArrowRight: () => this.next && startLevel(this, chapter, this.next),
-      Escape: () => this.scene.start('LevelMap', { chapter, select: (result.passed && this.next ? this.next : level).id }),
+      Enter: actions.retry,
+      h: actions.retryStory,
+      H: actions.retryStory,
+      ArrowRight: actions.next,
+      Escape: actions.map,
     });
   }
 }

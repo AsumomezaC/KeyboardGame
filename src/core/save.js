@@ -29,6 +29,12 @@ export const Save = {
     return data.history[id] || [];
   },
 
+  // Modo desarrollador: todos los niveles superados con 3 estrellas (conserva récords e historial).
+  unlockAll(ids) {
+    for (const id of ids) data.levels[id] = { ...this.level(id), stars: 3, passed: true };
+    persist();
+  },
+
   record(id, run) {
     const prev = this.level(id);
     const next = {

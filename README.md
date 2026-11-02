@@ -57,6 +57,9 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
 - Cada obstáculo tiene un temporizador. Si se acaba, Sofía tropieza, se levanta (el reloj sigue) y
   vuelves a escribirlo. Solo se escribe el obstáculo actual: al terminarlo aparece una frase de
   ánimo («¡Corre!» es la más común) hasta que Sofía lo supera.
+- Los tiempos de cada nivel se calculan con una persona simulada que tarda en ver cada obstáculo
+  antes de escribirlo (como pasa de verdad). Las PPM de los resultados solo cuentan el tiempo en
+  que se podía escribir: no cuentan las caídas, ni correr de un obstáculo al siguiente.
 - Estrellas independientes: ★ terminar (a tiempo), ★ velocidad y ★ precisión. El total del
   capítulo es sobre 30 y pasa a 33 cuando aparece el secreto (con 30 ★).
 - Dificultad progresiva a lo largo de los 30 niveles: el primero pide el 75 % del ritmo y 90 % de
@@ -89,6 +92,14 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
 - En la lección de teclas nuevas, Sofía calienta (estira, zancadas, posición de salida) con cada
   pulsación y sale corriendo al terminar.
 
+### Controles y modo desarrollador
+
+- Las teclas de la barra inferior de cada pantalla también son botones: se pueden pulsar con clic.
+- Modo desarrollador: presiona `|` (la tecla a la izquierda del 1 en la distribución latina) en
+  cualquier menú, fuera de los niveles. Marca todos los niveles, incluso los secretos, como
+  superados con ★★★ y abre todos los capítulos. Para volver a empezar, borra los datos del sitio
+  en el navegador.
+
 ### Música
 
 Música de 8 bits generada en el navegador (WebAudio, sin archivos de audio): pulsos para la
@@ -114,7 +125,7 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 | `src/ui/` | Panel HTML: teclado visual, manos, pistas y gráfica del historial |
 | `tests/` | Pruebas con `node --test` |
 
-Fuente: [Pixelify Sans](https://fonts.google.com/specimen/Pixelify+Sans) (licencia OFL).
+Fuente: [Tiny5](https://fonts.google.com/specimen/Tiny5) (licencia OFL, libre de usar y distribuir).
 
 ## Siguientes fases
 
