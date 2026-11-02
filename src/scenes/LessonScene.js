@@ -6,7 +6,7 @@ import { TypeInput } from '../core/input.js';
 import { fingerOf, fingerLabel } from '../core/fingers.js';
 import * as Layout from '../core/layout.js';
 import { Panel } from '../ui/panel.js';
-import { levelName } from '../data/chapter1.js';
+import { levelName } from '../data/chapters.js';
 import { fingersFor } from './RunScene.js';
 import { W, SCALE, FEET_Y, text, box, backdrop, keyLegend } from './common.js';
 import { addWeather } from './weather.js';
@@ -35,7 +35,8 @@ export class LessonScene extends Phaser.Scene {
   create() {
     backdrop(this, this.level.theme).scroll(0);
     this.weather = addWeather(this, storyFor(this.chapter, this.level)?.weather);
-    this.kid = this.add.sprite(170, FEET_Y, 'sofia', 'idle0').setOrigin(0.5, 1).setScale(SCALE).setDepth(10);
+    this.hero = this.level.hero || 'sofia';
+    this.kid = this.add.sprite(170, FEET_Y, this.hero, 'idle0').setOrigin(0.5, 1).setScale(SCALE).setDepth(10);
     box(this, 300, 70, 600, 300);
     text(this, 600, 96, `${levelName(this.level)} · Teclas nuevas`, 24, '#2b1d2e', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
     this.keyText = text(this, 600, 190, '', 110, '#ff9f1c', { ox: 0.5, oy: 0.5, strokeThickness: 10 });
@@ -125,7 +126,7 @@ export class LessonScene extends Phaser.Scene {
     Panel.setTarget(null, 0, '¡Lista!');
     Panel.setHints('');
     this.time.delayedCall(START_DELAY_MS, () => {
-      this.kid.play('sofia-run');
+      this.kid.play(`${this.hero}-run`);
       this.tweens.add({
         targets: this.kid, x: W + 60, duration: 900, ease: 'Quad.in',
         onComplete: () => this.scene.start('Run', { chapter: this.chapter, level: this.level, story: this.story }),

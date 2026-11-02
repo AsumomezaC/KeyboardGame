@@ -3,8 +3,8 @@ import { simulate } from './runner.js';
 
 const DEFAULT_GETUP_MS = 1200;
 // Dificultad progresiva: al principio se piden ritmos más lentos (más tiempo para el límite y
-// para la estrella de velocidad) y menos precisión; ambos suben hasta su valor original en el
-// último nivel. level.step va de 0 (nivel 1) a 1 (nivel 10).
+// para la estrella de velocidad) y menos precisión; ambos suben poco a poco hasta su valor
+// completo en el último nivel del capítulo 3. level.step va de 0 (primer nivel) a 1 (último).
 const EASY_PPM = 0.75;
 const ACCURACY_FROM = 0.9;
 const ACCURACY_TO = 0.97;
@@ -19,7 +19,6 @@ export function effectivePpm(level, ppm) {
 export function accuracyTarget(level) {
   return Math.round((ACCURACY_FROM + (ACCURACY_TO - ACCURACY_FROM) * progress(level)) * 100) / 100;
 }
-const RIVAL_FACTORS = [1, 1.07, 1.16];
 const cache = new Map();
 
 // Los tiempos salen de simular a alguien que escribe al ritmo indicado, sin errores.
@@ -29,20 +28,22 @@ export function levelRules(level) {
   const timeAt = ppm => Math.round(simulate(level, effectivePpm(level, ppm), { getupMs }).timeMs);
   const rules = {
     getupMs,
-    maxFalls: level.maxFalls ?? null,
+    maxFalls: level.boss?.maxFalls ?? null,
+    maxErrors: level.boss?.maxErrors ?? null,
     limitMs: level.ppm.pass ? timeAt(level.ppm.pass) : null,
     fastMs: timeAt(level.ppm.fast),
-    rivals: null,
   };
-  if (level.kind === 'race') {
-    rules.rivals = RIVAL_FACTORS.map((f, i) => ({ name: `Rival ${'ABC'[i]}`, timeMs: Math.round(rules.limitMs * f) }));
-  }
   cache.set(level.id, rules);
   return rules;
 }
 
+// Quien compite o va adelante termina el recorrido en un tiempo fijo (fracción del límite).
+export function scheduledMs(level, member) {
+  return Math.round(levelRules(level).limitMs * (member.factor ?? 1));
+}
+
 export function canFail(level) {
-  return level.ppm.pass != null || level.maxFalls != null;
+  return level.ppm.pass != null || !!level.boss;
 }
 
 // Tres estrellas independientes: terminar (a tiempo), velocidad y precisión.
@@ -70,6 +71,13 @@ export function chapterStars(chapter, save, { includeSecret = false } = {}) {
 export function chapterMaxStars(chapter, save) {
   const base = chapter.levels.length * 3;
   return levelStatus(chapter, chapter.secret, save).visible ? base + 3 : base;
+}
+
+// Un capítulo se abre al superar el nivel 10 del anterior.
+export function chapterUnlocked(chapters, index, save) {
+  if (index === 0) return true;
+  const prev = chapters[index - 1];
+  return !!prev && save.level(prev.levels.at(-1).id).passed;
 }
 
 // { visible, unlocked, reason }: reason explica por qué está bloqueado.

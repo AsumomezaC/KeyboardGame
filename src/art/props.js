@@ -40,6 +40,43 @@ function chair() {
   return c;
 }
 
+// Mesa larga de fiesta con mantel de cuadros: Sofía se desliza por encima.
+function table() {
+  const { c, p } = makeCanvas(46, 20);
+  p.rect(1, 4, 44, 3, '#c1121f');
+  for (let x = 1; x < 45; x += 4) { p.rect(x, 4, 2, 3, '#f4f1e8'); p.rect(x + 2, 7, 2, 3, '#c1121f'); p.rect(x, 7, 2, 3, '#f4f1e8'); }
+  p.rect(4, 10, 2, 10, '#6d4c41'); p.rect(40, 10, 2, 10, '#6d4c41');
+  p.line(5, 14, 41, 14, '#5a3d32');
+  p.rect(10, 1, 3, 3, '#ffd23f'); p.rect(30, 2, 4, 2, '#80ed99'); // cosas sobre la mesa
+  outline(c, INK);
+  return c;
+}
+
+// Barda de ladrillo alta: Sofía corre por la pared y la salta.
+function wall() {
+  const { c, p } = makeCanvas(16, 42);
+  p.rect(1, 1, 14, 41, '#b5523b');
+  for (let y = 1; y < 42; y += 4) {
+    p.rect(1, y, 14, 1, '#8c3d2b');
+    const off = (y / 4) % 2 ? 0 : 4;
+    for (let x = 1 + off; x < 15; x += 8) p.rect(x, y + 1, 1, 3, '#8c3d2b');
+  }
+  p.rect(0, 0, 16, 2, '#9e9e9e');
+  outline(c, INK);
+  return c;
+}
+
+// Hoyo enorme en la banqueta: se brinca de un lado a otro como si volara.
+function hole() {
+  const { c, p } = makeCanvas(50, 14);
+  p.ellipse(25, 6, 24, 6, '#3b2a20');
+  p.ellipse(25, 7, 21, 5, '#1d1410');
+  p.ellipse(25, 8, 16, 3, '#0d0907');
+  for (const x of [4, 12, 38, 45]) p.rect(x, 1, 3, 2, '#9c8b75'); // piedritas del borde
+  p.rect(2, 12, 46, 2, '#7a6a55');
+  return c;
+}
+
 function chalk() {
   const { c, p } = makeCanvas(14, 5);
   p.rect(0, 2, 9, 1, '#f4f1e8');
@@ -132,6 +169,9 @@ export function buildProps(scene) {
   addImage(scene, 'fence', fence());
   addImage(scene, 'chair', chair());
   addImage(scene, 'chalk', chalk());
+  addImage(scene, 'table', table());
+  addImage(scene, 'wall', wall());
+  addImage(scene, 'hole', hole());
   addImage(scene, 'finish', finish());
   addImage(scene, 'star-on', star('#ffd23f', '#e8a400'));
   addImage(scene, 'star-off', star('#5a5878', '#4a4866'));

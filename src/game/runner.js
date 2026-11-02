@@ -19,13 +19,19 @@ export const OBSTACLE_TYPES = {
   puddle: { w: 84, pre: 45, post: 30 },
   fence: { w: 90, pre: 60, post: 24 },
   chair: { w: 48, pre: 80, post: 70 },
+  table: { w: 138, pre: 50, post: 40 },  // 9-10: se desliza sobre una mesa larga
+  wall: { w: 48, pre: 70, post: 100 },   // 11-12: corre por la pared y la salta
+  hole: { w: 150, pre: 80, post: 50 },   // 13-14: brinca un hoyo enorme
 };
 
 export function obstacleType(len) {
   if (len <= 2) return 'flat';
   if (len <= 4) return 'puddle';
   if (len <= 6) return 'fence';
-  return 'chair';
+  if (len <= 8) return 'chair';
+  if (len <= 10) return 'table';
+  if (len <= 12) return 'wall';
+  return 'hole';
 }
 
 export const cps = ppm => ppm * 5 / 60;
@@ -56,7 +62,8 @@ export function buildCourse(level) {
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 export class Runner {
-  constructor(level, { getupMs = 1200, limitMs = null, maxFalls = null } = {}) {
+  // maxFalls / maxErrors: cuántas caídas o traspiés se permiten (null = sin límite); uno más y pierdes.
+  constructor(level, { getupMs = 1200, limitMs = null, maxFalls = null, maxErrors = null } = {}) {
     const { obstacles, finishX } = buildCourse(level);
     this.level = level;
     this.obstacles = obstacles;
@@ -64,6 +71,7 @@ export class Runner {
     this.getupMs = getupMs;
     this.limitMs = limitMs;
     this.maxFalls = maxFalls;
+    this.maxErrors = maxErrors;
     this.x = 0;
     this.v = 0;
     this.clock = 0;
@@ -179,6 +187,7 @@ export class Runner {
     this.errByChar[expected] = (this.errByChar[expected] || 0) + 1;
     this.stumbleUntil = this.clock + STUMBLE_MS;
     this.events.push({ type: 'stumble', expected, got: ch });
+    if (this.maxErrors != null && this.errors > this.maxErrors) this.fail('errors');
     return { ok: false, expected };
   }
 
@@ -190,7 +199,7 @@ export class Runner {
     this.trippedAt = this.clock;
     this.v = 0;
     this.events.push({ type: 'trip', obstacle: o });
-    if (this.maxFalls != null && this.falls >= this.maxFalls) this.fail('caught');
+    if (this.maxFalls != null && this.falls > this.maxFalls) this.fail('falls');
   }
 
   fail(reason) {

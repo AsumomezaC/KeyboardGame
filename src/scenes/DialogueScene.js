@@ -5,8 +5,8 @@ import Phaser from 'phaser';
 import { Music } from '../audio/music.js';
 import { Panel } from '../ui/panel.js';
 import { ROOM } from '../art/backgrounds.js';
-import { KIDS } from '../art/index.js';
-import { CAST } from '../data/story1.js';
+import { RUNNERS } from '../art/index.js';
+import { CAST } from '../data/cast.js';
 import { addWeather } from './weather.js';
 import { storyFor } from './flow.js';
 import { W, SCALE, FEET_Y, GROUND_TOP, FONT, backdrop, keyLegend } from './common.js';
@@ -14,7 +14,8 @@ import { W, SCALE, FEET_Y, GROUND_TOP, FONT, backdrop, keyLegend } from './commo
 const CAM_Y = 110;            // la cámara baja para que los personajes queden sobre la caja de texto
 const CHARS_PER_S = 45;
 const BOX = { x: 16, y: 372, w: W - 32, h: 120 };
-const AGE_SCALE = { 8: 3.6, 10: 4, 12: 4.3 };
+const AGE_SCALE = { 8: 3.6, 9: 3.7, 10: 4, 11: 4.15, 12: 4.3 };
+const ROOMS = { casa: 'room-casa', tienda: 'room-tienda' };
 const MOOD_FRAME = { idle: null, talk: 'talk', sad: 'sad', angry: 'angry', cry: 'cry', shock: 'shock', happy: 'cheer0', cheer: null };
 
 export class DialogueScene extends Phaser.Scene {
@@ -41,9 +42,9 @@ export class DialogueScene extends Phaser.Scene {
     this.sc = story[this.part];
     this.cameras.main.setScroll(0, CAM_Y);
 
-    if (this.sc.place === 'casa') {
+    if (ROOMS[this.sc.place]) {
       this.add.rectangle(0, 0, W, GROUND_TOP, 0x2b1d2e).setOrigin(0);
-      this.add.image(0, GROUND_TOP - ROOM.floor * SCALE, 'room-casa').setOrigin(0).setScale(SCALE);
+      this.add.image(0, GROUND_TOP - ROOM.floor * SCALE, ROOMS[this.sc.place]).setOrigin(0).setScale(SCALE);
       this.weather = null;
     } else {
       backdrop(this, this.sc.place).scroll(this.sc.scroll ?? 0);
@@ -71,7 +72,7 @@ export class DialogueScene extends Phaser.Scene {
     const info = CAST[id];
     const key = info.sprite || id;
     let scale = 4;
-    if (id === 'sofia' || id === 'dani') scale = AGE_SCALE[this.story.age] || 4;
+    if (id === 'sofia' || id === 'dani') scale = AGE_SCALE[this.story.age ?? this.chapter.age] || 4;
     if (id === 'perro') scale = SCALE + 1;
     const sprite = this.add.sprite(x, FEET_Y, key, info.frame || 'idle0').setOrigin(0.5, 1).setScale(scale);
     sprite.setFlipX(face === 'left');
@@ -98,7 +99,7 @@ export class DialogueScene extends Phaser.Scene {
     const fromX = x > W / 2 ? W + 80 : -80;
     this.busy = true;
     const actor = this.spawn(id, fromX, face, 'idle');
-    if (KIDS.includes(id)) actor.sprite.play(`${id}-run`);
+    if (RUNNERS.includes(id)) actor.sprite.play(`${id}-run`);
     if (id === 'perro') actor.sprite.play('dog-run');
     this.tweens.add({
       targets: actor.sprite, x, duration: 650, ease: 'Quad.out',
@@ -117,7 +118,7 @@ export class DialogueScene extends Phaser.Scene {
     const s = actor.sprite;
     const toX = s.x > W / 2 ? W + 100 : -100;
     s.setFlipX(toX < s.x);
-    if (KIDS.includes(id)) s.play(`${id}-run`);
+    if (RUNNERS.includes(id)) s.play(`${id}-run`);
     this.tweens.add({ targets: s, x: toX, duration: 450, ease: 'Quad.in', onComplete: () => s.destroy() });
     delete this.actors[id];
     this.busy = true;

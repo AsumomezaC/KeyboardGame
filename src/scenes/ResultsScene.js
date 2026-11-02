@@ -5,17 +5,26 @@ import * as Layout from '../core/layout.js';
 import { starsFor, starBreakdown, levelRules, levelStatus, nextLevel, canFail, accuracyTarget } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
 import { escapeHTML } from '../ui/keyboard-view.js';
-import { levelName } from '../data/chapter1.js';
+import { levelName } from '../data/chapters.js';
 import { goalLines } from './LevelMapScene.js';
 import { startLevel, storyFor } from './flow.js';
 import { Music } from '../audio/music.js';
 import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime, keyLegend } from './common.js';
 
-const FAIL_TEXT = {
-  time: 'Se acabó el tiempo. Necesitas ser más rápida para avanzar.',
-  caught: 'El perro te alcanzó. Evita caerte: cada caída lo acerca.',
-  race: 'Otro corredor llegó primero. Solo el 1.er lugar avanza.',
-};
+// Por qué no se superó el nivel, según el tipo de jefe.
+function failText(level, rules, reason) {
+  const type = level.boss?.type;
+  if (reason === 'errors') return `Más de ${rules.maxErrors} traspiés. Escribe con calma: en los jefes cada error cuenta.`;
+  if (reason === 'falls') {
+    return type === 'chase'
+      ? `Te caíste más de ${rules.maxFalls} veces y te alcanzaron. Cada caída los acerca.`
+      : `Te caíste más de ${rules.maxFalls} veces. Termina cada obstáculo antes de que se acabe su barra.`;
+  }
+  if (type === 'race') return 'Otro corredor llegó primero. Solo el 1.er lugar avanza.';
+  if (type === 'chase') return 'Te alcanzaron. Necesitas ser más rápida para escapar.';
+  if (type === 'catch') return 'No lo alcanzaste a tiempo. Necesitas ser más rápida.';
+  return 'Se acabó el tiempo. Necesitas ser más rápida para avanzar.';
+}
 
 export class ResultsScene extends Phaser.Scene {
   constructor() {
@@ -35,8 +44,9 @@ export class ResultsScene extends Phaser.Scene {
     const { prev } = Save.record(level.id, { ...result, stars: starsWon, breakdown });
 
     backdrop(this, level.theme).scroll(0);
-    const kid = this.add.sprite(160, FEET_Y, 'sofia', 'sad').setOrigin(0.5, 1).setScale(SCALE);
-    if (result.passed) kid.play('sofia-cheer');
+    const hero = level.hero || 'sofia';
+    const kid = this.add.sprite(160, FEET_Y, hero, 'sad').setOrigin(0.5, 1).setScale(SCALE);
+    if (result.passed) kid.play(`${hero}-cheer`);
 
     box(this, 280, 40, 620, 380);
     const title = result.passed ? '¡Nivel superado!' : 'No lo lograste';
@@ -64,13 +74,13 @@ export class ResultsScene extends Phaser.Scene {
       }
     });
 
-    const reason = result.passed ? null : (level.kind === 'race' && result.failReason === 'time' ? 'race' : result.failReason);
+    const reason = result.passed ? null : result.failReason;
     const lines = [
       `Tiempo: ${formatTime(result.timeMs)}${prev.bestTimeMs && result.passed && result.timeMs < prev.bestTimeMs ? '  ¡récord!' : ''}`,
       `PPM: ${Math.round(result.wpm)}   ·   Precisión: ${(result.accuracy * 100).toFixed(1)} %`,
       `Caídas: ${result.falls}   ·   Traspiés: ${result.errors}${result.place ? `   ·   Lugar: ${result.place}°` : ''}`,
     ];
-    if (reason) lines.push(FAIL_TEXT[reason]);
+    if (reason) lines.push(failText(level, rules, reason));
     else if (starsWon > prev.stars) lines.push(`¡Nueva marca de estrellas en este nivel!`);
     text(this, 590, 230, lines.join('\n'), 20, '#2b1d2e', { ox: 0.5, align: 'center', stroke: '#fff7e0', strokeThickness: 2, wrap: 560, lineSpacing: 10 });
 

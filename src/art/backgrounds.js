@@ -27,6 +27,10 @@ export const THEMES = {
     sky: ['#5ec2ff', '#e0f7ff'], far: '#9fd3c7', farDark: '#7fbfb0',
     walk: '#c8553d', walkLine: '#f4f1e8', curb: '#a8442f', street: '#c8553d', streetLine: '#f4f1e8',
   },
+  parque: {
+    sky: ['#8ad1f5', '#eaf7d8'], far: '#8fbf8a', farDark: '#76a872',
+    walk: '#c9a36b', walkLine: '#b08d58', curb: '#5f8f4a', street: '#6fa35a', streetLine: null,
+  },
   mercado: {
     sky: ['#ffb38a', '#ffe8c2'], far: '#d9a07b', farDark: '#c48a66',
     walk: '#a39182', walkLine: '#8c7b6d', curb: '#7d6d60', street: '#8c7b6d', streetLine: null,
@@ -195,6 +199,21 @@ function stalls(p) {
   });
 }
 
+// Parque: árboles redondos, una banca y un farol.
+function trees(p, r) {
+  for (let x = 6; x < MID.w; x += 48) {
+    const h = 30 + Math.floor(r() * 12);
+    p.rect(x + 14, MID.h - h, 5, h, '#6d4c41');
+    p.disc(x + 16, MID.h - h - 10, 15, '#3f7d3a');
+    p.disc(x + 10, MID.h - h - 4, 10, '#4f9a45');
+    p.disc(x + 23, MID.h - h - 6, 9, '#5aa84f');
+    p.px(x + 12, MID.h - h - 14, '#e9c46a');
+  }
+  p.rect(120, MID.h - 9, 26, 3, '#a0522d'); p.rect(122, MID.h - 6, 2, 6, '#5a3d32'); p.rect(142, MID.h - 6, 2, 6, '#5a3d32');
+  p.rect(120, MID.h - 14, 26, 2, '#a0522d');
+  p.rect(176, 30, 2, MID.h - 30, '#3d3d46'); p.rect(173, 28, 8, 3, '#3d3d46'); p.rect(174, 31, 6, 2, '#fff3b0');
+}
+
 function mid(theme) {
   const t = THEMES[theme];
   const { c, p } = makeCanvas(MID.w, MID.h);
@@ -202,6 +221,7 @@ function mid(theme) {
   if (theme === 'prohibida') chainFence(p);
   else if (theme === 'carrera') bleachers(p, r);
   else if (theme === 'mercado') stalls(p);
+  else if (theme === 'parque') trees(p, r);
   else {
     houseRow(p, t, r, theme === 'noche');
     poles(p, theme === 'noche');
@@ -217,6 +237,14 @@ function ground(theme) {
     p.rect(0, 0, GROUND.w, GROUND.h, t.walk);
     p.rect(0, 9, GROUND.w, 1, t.walkLine);
     p.rect(0, 21, GROUND.w, 1, t.walkLine);
+    return c;
+  }
+  if (theme === 'parque') {
+    p.rect(0, 0, GROUND.w, GROUND.h, t.street);
+    p.rect(0, 0, GROUND.w, 10, t.walk);
+    for (let x = 3; x < GROUND.w; x += 9) p.px(x, 4, t.walkLine);
+    p.rect(0, 10, GROUND.w, 2, t.curb);
+    for (let x = 2; x < GROUND.w; x += 7) { p.px(x, 16, '#4f8a3a'); p.px(x + 3, 23, '#4f8a3a'); p.px(x + 1, 28, '#5f9a4a'); }
     return c;
   }
   if (theme === 'mercado' || theme === 'prohibida') {
@@ -283,6 +311,38 @@ function room() {
   return c;
 }
 
+// Abarrotes La Esperanza por dentro: estantes, mostrador con báscula y el cuaderno del fiado.
+function store() {
+  const { c, p } = makeCanvas(ROOM.w, ROOM.h);
+  const F = ROOM.floor;
+  p.rect(0, 0, ROOM.w, F, '#cfe3c2');
+  p.rect(0, F - 8, ROOM.w, 8, '#7a9a6a');
+  // estantes con latas, botellas y bolsas
+  const goods = ['#e94f64', '#ffd23f', '#3d5aa8', '#f4a261', '#2a9d8f', '#f4f1e8', '#c1121f'];
+  for (const [x0, w] of [[8, 96], [216, 96]]) {
+    for (let y = 18; y < F - 12; y += 22) {
+      p.rect(x0, y + 16, w, 3, '#8d6e63');
+      for (let x = x0 + 2; x < x0 + w - 6; x += 7) {
+        const g = goods[(x + y) % goods.length];
+        if ((x + y) % 3) p.rect(x, y + 6, 5, 10, g); else p.rect(x, y + 10, 6, 6, g);
+      }
+    }
+    p.rect(x0, 14, 2, F - 22, '#6d4c41'); p.rect(x0 + w - 2, 14, 2, F - 22, '#6d4c41');
+  }
+  // letrero de la tienda y el de «hoy no se fía» (sin texto: rayas)
+  p.rect(120, 8, 80, 16, '#c1121f'); p.rect(124, 12, 72, 3, '#ffd23f'); p.rect(132, 17, 56, 2, '#ffd23f');
+  p.rect(140, 32, 40, 14, '#fff3b0'); p.rect(144, 36, 32, 1, '#2b1d2e'); p.rect(144, 40, 24, 1, '#2b1d2e');
+  // mostrador
+  p.rect(108, F - 36, 104, 36, '#a1887f'); p.rect(106, F - 38, 108, 4, '#6d4c41');
+  p.rect(116, F - 48, 16, 10, '#9aa0a6'); p.rect(118, F - 52, 12, 4, '#dfe7ec'); // báscula
+  p.rect(176, F - 42, 18, 4, '#f4f1e8'); p.rect(178, F - 41, 14, 1, '#3d5aa8'); // cuaderno del fiado
+  p.rect(150, F - 46, 10, 8, '#e9c46a'); // frasco de dulces
+  for (let y = F; y < ROOM.h; y += 8) {
+    for (let x = 0; x < ROOM.w; x += 8) p.rect(x, y, 8, 8, ((x + y) / 8) % 2 ? '#d8cfc0' : '#c4baa9');
+  }
+  return c;
+}
+
 export function buildBackgrounds(scene) {
   for (const theme of Object.keys(THEMES)) {
     scene.textures.addCanvas(`far-${theme}`, far(theme));
@@ -290,4 +350,5 @@ export function buildBackgrounds(scene) {
     scene.textures.addCanvas(`ground-${theme}`, ground(theme));
   }
   scene.textures.addCanvas('room-casa', room());
+  scene.textures.addCanvas('room-tienda', store());
 }

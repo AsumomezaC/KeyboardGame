@@ -1,5 +1,6 @@
 // Progreso guardado en el navegador: estrellas por nivel y las últimas 10 carreras de cada uno.
-const KEY = 'parkourTecla.save.v1';
+// v2: los niveles cambiaron al dividir la historia en tres capítulos.
+const KEY = 'parkourTecla.save.v2';
 const HISTORY_SIZE = 10;
 
 let data = load();

@@ -50,7 +50,21 @@ export const PALETTES = {
     shoe: '#e94f64', shoeAccent: '#ffffff', accent: '#3d7a28', eye: '#2b1d2e', blush: '#f08a8a',
     outline: '#2b1d2e', hairStyle: 'messy', dino: true,
   },
+  // Tomás a los 8 años (capítulo 3).
+  tomas: {
+    skin: '#f0c09a', skinDark: '#d39a72', hair: '#5a3424', hairLight: '#7d4a33',
+    shirt: '#7cc65a', shirtDark: '#57a03a', shorts: '#3d5aa8', shortsDark: '#2c4280',
+    shoe: '#e94f64', shoeAccent: '#ffffff', accent: '#3d7a28', eye: '#2b1d2e', blush: '#f08a8a',
+    outline: '#2b1d2e', hairStyle: 'messy', dino: true,
+  },
   // ---- Vecindario ----
+  // Tata: la abuela de Dani, dueña de Abarrotes La Esperanza.
+  tata: {
+    skin: '#d7a985', skinDark: '#b88a66', hair: '#d9d9d9', hairLight: '#ffffff',
+    shirt: '#a05195', shirtDark: '#7a3a72', shorts: '#3d405b', shortsDark: '#2c2e42',
+    shoe: '#3a2a20', shoeAccent: '#3a2a20', accent: '#f4f1e8', eye: '#2b1d2e', blush: '#e0907a',
+    outline: '#2b1d2e', hairStyle: 'bun', longPants: true, glasses: '#6d4c41', apron: '#f4f1e8',
+  },
   dani: {
     skin: '#d6a07a', skinDark: '#b5805a', hair: '#2a1d1a', hairLight: '#4e3a33',
     shirt: '#f4a261', shirtDark: '#d0803f', shorts: '#4a6fa5', shortsDark: '#36557f',
@@ -214,6 +228,10 @@ function drawKid(p, j, pal, build = BUILDS.kid) {
   p.line(j.shoulder.x, j.shoulder.y, j.hip.x, j.hip.y, pal.shirt, body);
   const band = lerp(j.hip, j.shoulder, 0.2);
   p.line(j.hip.x, j.hip.y, band.x, band.y, pal.shorts, body);
+  if (pal.apron) {
+    const a = lerp(j.shoulder, j.hip, 0.45);
+    p.line(a.x + 1, a.y, j.hip.x + 1, j.hip.y + 3, pal.apron, body - 2);
+  }
   if (pal.dino) {
     // dinosaurio en la playera
     p.rect(j.shoulder.x - 1, j.shoulder.y + 2, 3, 2, pal.accent);
@@ -275,6 +293,7 @@ const POSES = {
   angry: { hip: P(12, 20), shoulder: P(12, 13), head: P(13, 8), kneeF: P(14, 25), footF: P(15, 30), kneeB: P(10, 25), footB: P(9, 30), elbowF: P(15, 16), handF: P(13, 19), elbowB: P(9, 16), handB: P(11, 19), face: 'angry' },
   cry: { hip: P(12, 20), shoulder: P(12, 14), head: P(13, 9), kneeF: P(13, 25), footF: P(13, 30), kneeB: P(11, 25), footB: P(10, 30), elbowF: P(15, 16), handF: P(16, 11), elbowB: P(14, 17), handB: P(15, 12), face: 'cry', swing: 1 },
   shock: { hip: P(12, 20), shoulder: P(12, 13), head: P(13, 8), kneeF: P(14, 25), footF: P(15, 30), kneeB: P(10, 25), footB: P(9, 30), elbowF: P(15, 15), handF: P(18, 13), elbowB: P(9, 15), handB: P(6, 13), face: 'shock', swing: -1 },
+  fly: { hip: P(10, 19), shoulder: P(15, 15), head: P(19, 12), kneeF: P(6, 18), footF: P(2, 19), kneeB: P(6, 22), footB: P(2, 23), elbowF: P(19, 11), handF: P(23, 9), elbowB: P(12, 11), handB: P(10, 7), face: 'happy', swing: -1 },
   talk: { hip: P(12, 20), shoulder: P(12, 13), head: P(13, 8), kneeF: P(13, 25), footF: P(13, 30), kneeB: P(11, 25), footB: P(10, 30), elbowF: P(14, 16), handF: P(17, 15), elbowB: P(11, 17), handB: P(10, 20), face: 'open' },
 };
 
@@ -310,10 +329,15 @@ export function buildKidSheet(scene, key, pal) {
   addSheet(scene, key, frames, FRAME_W, FRAME_H);
 }
 
-// Personajes que solo aparecen en diálogos: únicamente poses de pie.
-export function buildStandingSheet(scene, key, pal, buildName) {
+// Adolescentes, adultos y niños pequeños: misma hoja que los niños (correr, saltar, poses de
+// diálogo), estirada a su complexión. Las poses de acción quedan aproximadas, pero se ven bien
+// de lejos, que es como aparecen en la carrera.
+export function buildBuildSheet(scene, key, pal, buildName) {
   const build = BUILDS[buildName];
-  const frames = STANDING.map(name => frame(name, POSES[name], pal, build));
+  if (build === BUILDS.kid) return buildKidSheet(scene, key, pal);
+  const frames = [];
+  for (let i = 0; i < RUN_FRAMES; i++) frames.push(frame(`run${i}`, runPose(i / RUN_FRAMES), pal, build));
+  for (const [name, joints] of Object.entries(POSES)) frames.push(frame(name, joints, pal, build));
   addSheet(scene, key, frames, build.w, build.h);
 }
 

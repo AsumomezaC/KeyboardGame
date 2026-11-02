@@ -1,18 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CHAPTER1, allLevels } from '../src/data/chapter1.js';
-import { CAST, STORY1 } from '../src/data/story1.js';
+import { PLAYABLE, CHAPTER1, allLevels } from '../src/data/chapters.js';
+import { CAST } from '../src/data/cast.js';
 import { WEATHER_NAMES } from '../src/data/weathers.js';
 import { TRACKS } from '../src/audio/tracks.js';
 import { parseLine } from '../src/audio/music.js';
 
 const MOODS = new Set(['idle', 'talk', 'sad', 'angry', 'cry', 'shock', 'happy', 'cheer']);
 const FX = new Set(['shake', 'zoom', 'flash']);
-const PLACES = new Set(['casa', 'barrio', 'prohibida', 'noche', 'carrera', 'mercado']);
+const PLACES = new Set(['casa', 'tienda', 'barrio', 'parque', 'prohibida', 'noche', 'carrera', 'mercado']);
+const STORIES = Object.assign({}, ...PLAYABLE.map(c => c.story));
 
 test('cada nivel tiene historia antes y después', () => {
-  for (const level of allLevels(CHAPTER1)) {
-    const s = STORY1[level.id];
+  for (const level of PLAYABLE.flatMap(allLevels)) {
+    const s = STORIES[level.id];
     assert.ok(s, `${level.id} sin historia`);
     assert.ok(s.before?.lines.length && s.after?.lines.length, `${level.id} sin diálogo antes o después`);
     assert.ok(WEATHER_NAMES[s.weather], `${level.id}: clima ${s.weather}`);
@@ -23,7 +24,7 @@ test('cada nivel tiene historia antes y después', () => {
 });
 
 test('las escenas usan personajes, gestos, efectos, música y lugares que existen', () => {
-  for (const [id, s] of Object.entries(STORY1)) {
+  for (const [id, s] of Object.entries(STORIES)) {
     for (const part of ['before', 'after']) {
       const sc = s[part];
       const where = `${id}/${part}`;
@@ -80,4 +81,13 @@ test('primera vez: historia antes y después; al repetir se omite', async () => 
 
   startLevel(scene, CHAPTER1, level, { story: false });
   assert.equal(calls[3].key, 'Lesson', 'sin historia va directo a jugar');
+});
+
+test('quien corre con Sofía existe en el reparto', () => {
+  for (const level of PLAYABLE.flatMap(allLevels)) {
+    for (const m of level.crew) {
+      assert.ok(CAST[m.id] || m.id.startsWith('rival'), `${level.id}: ${m.id} no existe`);
+      assert.ok(['follow', 'chase', 'rival', 'pace'].includes(m.mode), `${level.id}: modo ${m.mode}`);
+    }
+  }
 });

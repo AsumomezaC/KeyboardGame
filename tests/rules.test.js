@@ -1,44 +1,92 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CHAPTER1, allLevels } from '../src/data/chapter1.js';
-import { levelRules, starsFor, starBreakdown, levelStatus, chapterMaxStars, effectivePpm, accuracyTarget } from '../src/game/rules.js';
-import { Runner, simulate } from '../src/game/runner.js';
+import { PLAYABLE, CHAPTERS, CHAPTER1, allLevels } from '../src/data/chapters.js';
+import { levelRules, starsFor, starBreakdown, levelStatus, chapterMaxStars, chapterUnlocked, effectivePpm, accuracyTarget } from '../src/game/rules.js';
+import { Runner, simulate, obstacleType } from '../src/game/runner.js';
 
-const levels = allLevels(CHAPTER1);
+const everyLevel = PLAYABLE.flatMap(allLevels);
+const len = s => Array.from(s).length;
 
-test('los obstáculos solo usan las letras ya enseñadas y miden 8 o menos', () => {
-  const allowed = new Set();
-  for (const level of CHAPTER1.levels) {
-    level.newKeys.forEach(k => allowed.add(k));
-    for (const text of level.obstacles) {
-      assert.ok(Array.from(text).length <= 8, `${level.id}: "${text}" mide más de 8`);
-      for (const ch of text) assert.ok(allowed.has(ch), `${level.id}: "${ch}" en "${text}" aún no se enseña`);
+// Lo que pidió el diseño, nivel por nivel: [solo estas teclas | null, largo máximo].
+const SPEC = {
+  cap1: [['fj', 2], ['dk', 3], ['dfjk', 2], ['dfjk', 4], ['sl', 3], [null, 3], [null, 5], ['añ', 2], [null, 4], [null, 6]],
+  cap2: [[null, 6], [null, 8], ['gh', 4], [null, 4], [null, 8], ['ru', 5], [null, 9], ['ie', 5], [null, 9], [null, 10]],
+  cap3: [['ow', 6], [null, 5], [null, 8], ['pq', 10], [null, 5], [null, 8], [null, 12], ['ty', 12], [null, 6], [null, 13]],
+};
+const SECRET_MAX = { cap1: 6, cap2: 10, cap3: 13 };
+
+test('hay 6 capítulos: 3 jugables y 3 en construcción', () => {
+  assert.equal(CHAPTERS.length, 6);
+  assert.deepEqual(CHAPTERS.map(c => c.subtitle), ['Me llamo Sofía', 'Los gatos', 'El día de mi suerte', null, null, null]);
+  for (const ch of PLAYABLE) assert.equal(ch.levels.length, 10);
+});
+
+test('cada nivel usa solo las teclas y el largo que le tocan', () => {
+  for (const ch of PLAYABLE) {
+    ch.levels.forEach((level, i) => {
+      const [only, maxLen] = SPEC[ch.id][i];
+      assert.equal(level.maxLen, maxLen, `${level.id}: largo máximo`);
+      const allowed = new Set(only || level.letters);
+      for (const t of level.obstacles) {
+        assert.ok(len(t) <= maxLen, `${level.id}: «${t}» mide más de ${maxLen}`);
+        for (const c of t) assert.ok(allowed.has(c), `${level.id}: «${c}» en «${t}» no está permitida`);
+      }
+      if (only) assert.deepEqual(new Set(level.obstacles.join('')), new Set(only), `${level.id}: deben salir todas las teclas de práctica`);
+      assert.ok(Math.max(...level.obstacles.map(len)) >= maxLen - 2, `${level.id}: faltan obstáculos largos`);
+    });
+    const s = ch.secret;
+    assert.equal(s.maxLen, SECRET_MAX[ch.id]);
+    for (const t of s.obstacles) {
+      assert.ok(len(t) <= s.maxLen);
+      for (const c of t) assert.ok(s.letters.includes(c.toLowerCase()), `${s.id}: «${c}» en «${t}»`);
     }
+    assert.ok(s.obstacles.some(t => t !== t.toLowerCase()), `${s.id}: debe tener mayúsculas`);
   }
-  for (const text of CHAPTER1.secret.obstacles) {
-    assert.ok(Array.from(text).length <= 8);
-    for (const ch of text) assert.ok(allowed.has(ch.toLowerCase()), `secreto: "${ch}" en "${text}"`);
+  assert.ok(CHAPTER1.secret.obstacles.some(t => t.includes(' ')), 'el secreto del capítulo 1 agrega el espacio');
+  assert.equal(PLAYABLE[1].secret.hero, 'dani', 'en el secreto del capítulo 2 corre Dani');
+});
+
+test('los niveles avanzados siguen teniendo obstáculos cortos', () => {
+  for (const level of everyLevel.filter(l => l.maxLen >= 6)) {
+    assert.ok(level.obstacles.filter(t => len(t) <= 3).length >= 3, `${level.id}: pocos obstáculos cortos`);
+  }
+});
+
+test('los obstáculos largos usan mesa, pared y hoyo', () => {
+  assert.equal(obstacleType(9), 'table');
+  assert.equal(obstacleType(12), 'wall');
+  assert.equal(obstacleType(13), 'hole');
+  const types = new Set(PLAYABLE[2].levels.flatMap(l => l.obstacles.map(t => obstacleType(len(t)))));
+  for (const t of ['table', 'wall', 'hole']) assert.ok(types.has(t), `el capítulo 3 debe usar ${t}`);
+});
+
+test('jefes en el 7 y el 10: piden 10 y 20 estrellas y cada uno es más estricto', () => {
+  const bosses = PLAYABLE.flatMap(ch => {
+    ch.levels.forEach((l, i) => assert.equal(!!l.boss, i === 6 || i === 9, `${l.id}: jefe solo en 7 y 10`));
+    assert.equal(ch.levels[6].requiresStars, 10);
+    assert.equal(ch.levels[9].requiresStars, 20);
+    return [ch.levels[6], ch.levels[9]];
+  });
+  for (let i = 1; i < bosses.length; i++) {
+    const [a, b] = [bosses[i - 1].boss, bosses[i].boss];
+    assert.ok(b.maxErrors < a.maxErrors, `${bosses[i].id}: menos traspiés permitidos`);
+    assert.ok(b.maxFalls <= a.maxFalls, `${bosses[i].id}: no más caídas permitidas`);
+    assert.ok(levelRules(bosses[i]).limitMs != null, 'los jefes tienen límite de tiempo');
   }
 });
 
 test('el tiempo de la estrella de velocidad es menor que el límite', () => {
-  for (const level of levels) {
+  for (const level of everyLevel) {
     const r = levelRules(level);
     if (r.limitMs != null) assert.ok(r.fastMs < r.limitMs, `${level.id}: velocidad debe ser menor que el límite`);
   }
 });
 
-test('el nivel 2 solo usa d y k; el 3 combina d f j k', () => {
-  const [, l2, l3] = CHAPTER1.levels;
-  assert.ok(l2.obstacles.every(t => /^[dk]+$/.test(t)));
-  assert.deepEqual(new Set(l3.obstacles.join('')), new Set('dfjk'));
-});
-
 test('a ritmo de aprobar no se tropieza', () => {
-  for (const level of levels) {
+  for (const level of everyLevel) {
     const ppm = effectivePpm(level, level.ppm.pass ?? level.ppm.fast);
     const { falls } = simulate(level, ppm, { getupMs: levelRules(level).getupMs });
-    assert.equal(falls, 0, `${level.id} a ${ppm} PPM se cae ${falls} veces`);
+    assert.equal(falls, 0, `${level.id} a ${ppm.toFixed(1)} PPM se cae ${falls} veces`);
   }
 });
 
@@ -49,72 +97,81 @@ test('si no escribes, tropiezas, te levantas y el obstáculo se reinicia', () =>
   for (let t = 0; t < o.windowMs + 20; t += 10) r.update(10);
   assert.equal(r.phase, 'fallen');
   assert.equal(r.falls, 1);
-  assert.equal(r.type('f').ignored, true, 'no se puede escribir en el suelo');
+  assert.equal(r.type(o.chars[0]).ignored, true, 'no se puede escribir en el suelo');
   for (let t = 0; t < 1020; t += 10) r.update(10);
   assert.equal(r.phase, 'run');
   assert.ok(o.timerStart >= o.windowMs + 1000, 'el temporizador se reinicia al levantarse');
-  assert.equal(r.type('f').ok, true);
+  assert.equal(r.type(o.chars[0]).ok, true);
 });
 
 test('solo se escribe el obstáculo actual; el siguiente espera a que lo superes', () => {
   const level = CHAPTER1.levels[0];
   const r = new Runner(level);
   const [first, second] = r.obstacles;
-  assert.equal(r.type(first.text).ok, true);
+  for (const ch of first.chars) assert.equal(r.type(ch).ok, true);
   assert.equal(r.mustRun, true);
   assert.equal(r.type(second.chars[0]).ignored, true, 'aún no se puede escribir el siguiente');
-  assert.equal(second.typed, 0);
   for (let i = 0; i < 1000 && !first.passed; i++) r.update(10);
   assert.equal(r.mustRun, false);
   assert.equal(r.type(second.chars[0]).ok, true);
 });
 
-test('el jefe del perro termina al caer 3 veces', () => {
+test('un jefe se pierde con una caída o un traspié de más', () => {
   const level = CHAPTER1.levels[6];
-  const r = new Runner(level, { getupMs: 500, maxFalls: 3 });
-  for (let i = 0; i < 100000 && r.phase !== 'failed'; i++) r.update(10);
-  assert.equal(r.failReason, 'caught');
-  assert.equal(r.falls, 3);
+  const byFalls = new Runner(level, { getupMs: 300, maxFalls: 2 });
+  for (let i = 0; i < 100000 && byFalls.phase !== 'failed'; i++) byFalls.update(10);
+  assert.equal(byFalls.failReason, 'falls');
+  assert.equal(byFalls.falls, 3);
+
+  const byErrors = new Runner(level, { maxErrors: 2 });
+  const wrong = byErrors.obstacles[0].chars[0] === 'f' ? 'j' : 'f';
+  for (let i = 0; i < 3; i++) byErrors.type(wrong);
+  assert.equal(byErrors.failReason, 'errors');
 });
 
-test('estrellas y desbloqueos', () => {
+test('estrellas, desbloqueos y capítulos', () => {
   const l4 = CHAPTER1.levels[3];
   const rules = levelRules(l4);
-  assert.equal(starsFor(l4, { passed: false, timeMs: 1, accuracy: 1, falls: 0 }), 0);
-  assert.equal(starsFor(l4, { passed: true, timeMs: rules.limitMs, accuracy: 0.9, falls: 0 }), 1);
-  assert.deepEqual(starBreakdown(l4, { passed: true, timeMs: rules.fastMs, accuracy: 0.9 }), { finish: true, speed: true, accuracy: false });
-  assert.deepEqual(starBreakdown(l4, { passed: true, timeMs: rules.limitMs, accuracy: 0.95 }), { finish: true, speed: false, accuracy: true });
-  assert.equal(starsFor(l4, { passed: true, timeMs: rules.fastMs, accuracy: 0.95, falls: 2 }), 3);
+  const acc = accuracyTarget(l4);
+  assert.equal(starsFor(l4, { passed: false, timeMs: 1, accuracy: 1 }), 0);
+  assert.equal(starsFor(l4, { passed: true, timeMs: rules.limitMs, accuracy: acc - 0.02 }), 1);
+  assert.deepEqual(starBreakdown(l4, { passed: true, timeMs: rules.fastMs, accuracy: acc - 0.02 }), { finish: true, speed: true, accuracy: false });
+  assert.deepEqual(starBreakdown(l4, { passed: true, timeMs: rules.limitMs, accuracy: acc }), { finish: true, speed: false, accuracy: true });
 
   const fake = progress => ({ level: id => progress[id] || { stars: 0, passed: false } });
   assert.equal(levelStatus(CHAPTER1, CHAPTER1.levels[0], fake({})).unlocked, true);
   assert.equal(levelStatus(CHAPTER1, CHAPTER1.levels[1], fake({})).unlocked, false);
   const sixPassed = Object.fromEntries(CHAPTER1.levels.slice(0, 6).map(l => [l.id, { stars: 1, passed: true }]));
   assert.match(levelStatus(CHAPTER1, CHAPTER1.levels[6], fake(sixPassed)).reason, /10 ★/);
-  assert.equal(levelStatus(CHAPTER1, CHAPTER1.secret, fake(sixPassed)).visible, false);
   assert.equal(chapterMaxStars(CHAPTER1, fake(sixPassed)), 30);
   const allThree = Object.fromEntries(CHAPTER1.levels.map(l => [l.id, { stars: 3, passed: true }]));
   assert.equal(chapterMaxStars(CHAPTER1, fake(allThree)), 33);
+
+  assert.equal(chapterUnlocked(PLAYABLE, 0, fake({})), true);
+  assert.equal(chapterUnlocked(PLAYABLE, 1, fake({})), false);
+  assert.equal(chapterUnlocked(PLAYABLE, 1, fake(allThree)), true, 'el 2 se abre al superar el nivel 10 del 1');
+  assert.equal(chapterUnlocked(PLAYABLE, 2, fake(allThree)), false);
 });
 
-test('la dificultad sube poco a poco: precisión de 90 % a 97 % y ritmos más lentos al inicio', () => {
-  const [first] = CHAPTER1.levels;
-  const last = CHAPTER1.levels.at(-1);
+test('la dificultad sube poco a poco en los tres capítulos', () => {
+  const first = CHAPTER1.levels[0];
+  const last = PLAYABLE[2].levels.at(-1);
   assert.equal(accuracyTarget(first), 0.9);
   assert.equal(accuracyTarget(last), 0.97);
   assert.ok(effectivePpm(first, 10) < 10);
   assert.equal(effectivePpm(last, 10), 10);
   let prev = 0;
-  for (const level of CHAPTER1.levels) {
+  for (const level of PLAYABLE.flatMap(c => c.levels)) {
     assert.ok(accuracyTarget(level) >= prev, `${level.id}: la precisión no debe bajar`);
     prev = accuracyTarget(level);
   }
 });
 
-test('tabla de tiempos (informativa)', () => {
-  for (const level of levels) {
+test('tabla de niveles (informativa)', () => {
+  for (const level of everyLevel) {
     const r = levelRules(level);
     const s = ms => (ms == null ? '—' : (ms / 1000).toFixed(1) + ' s');
-    console.log(`${level.id.padEnd(6)} límite ${s(r.limitMs).padStart(8)}  velocidad ${s(r.fastMs).padStart(8)}  precisión ${Math.round(accuracyTarget(level) * 100)} %`);
+    const boss = level.boss ? `  jefe ${level.boss.type} (traspiés ≤${level.boss.maxErrors}, caídas ≤${level.boss.maxFalls})` : '';
+    console.log(`${level.id.padEnd(6)} límite ${s(r.limitMs).padStart(7)}  velocidad ${s(r.fastMs).padStart(7)}  ${Math.round(accuracyTarget(level) * 100)} %  ${level.obstacles.slice(0, 6).join(' | ')}${boss}`);
   }
 });

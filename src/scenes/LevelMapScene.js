@@ -1,10 +1,12 @@
 // Mapa del capítulo: 10 niveles en un camino, más el secreto cuando se reúnen 30 estrellas.
+// El secreto sale del nivel después del cual ocurre en la historia.
 import Phaser from 'phaser';
 import { Save } from '../core/save.js';
 import { levelRules, levelStatus, chapterStars, chapterMaxStars, canFail, accuracyTarget } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
 import { escapeHTML } from '../ui/keyboard-view.js';
-import { levelName } from '../data/chapter1.js';
+import { levelName } from '../data/chapters.js';
+import { CAST } from '../data/cast.js';
 import { WEATHER_NAMES } from '../data/weathers.js';
 import { Music } from '../audio/music.js';
 import { startLevel, storyFor } from './flow.js';
@@ -14,13 +16,30 @@ const NODES = [
   [100, 360], [190, 290], [280, 360], [370, 285], [460, 355],
   [550, 280], [645, 350], [740, 275], [830, 345], [895, 225],
 ];
-const SECRET_NODE = [760, 150];
+// El nodo secreto queda arriba, entre el nivel después del cual ocurre y el siguiente.
+function secretNode(after) {
+  const [x0, y0] = NODES[after - 1], [x1, y1] = NODES[after];
+  return [Math.round((x0 + x1) / 2), Math.min(y0, y1) - 120];
+}
+
+const BOSS_TEXT = {
+  race: (rules, names) => `Jefe: carrera contra ${names}. Debes llegar en <b>1.er lugar</b> (antes de ${formatTime(rules.limitMs)}).`,
+  chase: (rules, names) => `Jefe: ${names} te persigue${names.includes(' y ') ? 'n' : ''}. Llega a la meta antes de ${formatTime(rules.limitMs)}.`,
+  catch: (rules, names) => `Jefe: alcanza a ${names} antes de que llegue a la meta (${formatTime(rules.limitMs)}).`,
+};
+
+function crewNames(level, modes) {
+  const names = level.crew.filter(m => modes.includes(m.mode)).map(m => (CAST[m.id] && !m.id.startsWith('rival') ? CAST[m.id].name.replace('Perro guardián', 'el perro guardián') : null));
+  const known = names.filter(Boolean);
+  const unknown = names.length - known.length;
+  if (unknown) known.push(unknown === 1 ? 'otro corredor' : `${unknown} corredores`);
+  return known.length > 1 ? `${known.slice(0, -1).join(', ')} y ${known.at(-1)}` : known[0] || '';
+}
 
 export function goalLines(level) {
   const rules = levelRules(level);
   const lines = [];
-  if (rules.limitMs && level.kind !== 'race') lines.push({ label: 'límite', ms: rules.limitMs, color: '#d1495b' });
-  if (level.kind === 'race') lines.push({ label: '1.er lugar', ms: rules.limitMs, color: '#d1495b' });
+  if (rules.limitMs) lines.push({ label: level.boss?.type === 'race' ? '1.er lugar' : 'límite', ms: rules.limitMs, color: '#d1495b' });
   return lines;
 }
 
@@ -33,9 +52,11 @@ export function levelInfoHtml(chapter, level) {
     ? `Teclas nuevas: <b>${level.newKeys.map(k => (k === ' ' ? 'espacio' : k)).join(' ')}</b>`
     : 'Sin teclas nuevas';
   const rows = [];
-  if (level.kind === 'dog') rows.push(`Jefe: un perro guardián te persigue. Con <b>${rules.maxFalls} caídas</b> te alcanza.`);
-  else if (level.kind === 'race') rows.push(`Jefe: carrera contra 3 rivales. Debes llegar en <b>1.er lugar</b> (antes de ${formatTime(rules.limitMs)}). Levantarte tarda más.`);
-  else if (level.kind === 'secret') rows.push(`Nivel secreto con mayúsculas. Límite: <b>${formatTime(rules.limitMs)}</b>.`);
+  if (level.boss) {
+    const modes = { race: ['rival'], chase: ['chase'], catch: ['pace'] }[level.boss.type];
+    rows.push(BOSS_TEXT[level.boss.type](rules, crewNames(level, modes)));
+    rows.push(`Pierdes con más de <b>${rules.maxErrors} traspiés</b> o más de <b>${rules.maxFalls} caídas</b>.`);
+  } else if (level.kind === 'secret') rows.push(`Nivel secreto con mayúsculas. Límite: <b>${formatTime(rules.limitMs)}</b>.`);
   else if (rules.limitMs) rows.push(`Límite de tiempo: <b>${formatTime(rules.limitMs)}</b>. Si no lo logras, no avanzas.`);
   else rows.push('Aquí no se pierde: solo cuenta para tus estrellas.');
   rows.push(`Cada estrella se gana aparte: ★ terminar${canFail(level) ? ' a tiempo' : ''} · ★ velocidad: ${formatTime(rules.fastMs)} o menos · ★ precisión: ${Math.round(accuracyTarget(level) * 100)} % o más`);
@@ -60,15 +81,17 @@ export class LevelMapScene extends Phaser.Scene {
 
   create() {
     const ch = this.chapter;
-    backdrop(this, 'barrio').scroll(0);
+    backdrop(this, ch.map || 'barrio').scroll(0);
     this.add.rectangle(0, 0, W, 540, 0x1d1b33, 0.35).setOrigin(0);
     const total = chapterStars(ch, Save, { includeSecret: true });
     text(this, 24, 18, `${ch.title} — ${ch.subtitle}`, 30, '#ffd23f');
     text(this, W - 24, 22, `★ ${total} / ${chapterMaxStars(ch, Save)}`, 26, '#ffffff', { ox: 1 });
 
+    // Orden de las flechas: el secreto va justo después del nivel tras el cual ocurre.
     this.entries = ch.levels.map((level, i) => ({ level, pos: NODES[i] }));
     const secretStatus = levelStatus(ch, ch.secret, Save);
-    if (secretStatus.visible) this.entries.push({ level: ch.secret, pos: SECRET_NODE });
+    const secretPos = secretNode(ch.secret.after);
+    if (secretStatus.visible) this.entries.splice(ch.secret.after, 0, { level: ch.secret, pos: secretPos });
 
     // camino de tierra entre nodos
     const path = this.add.graphics();
@@ -83,7 +106,8 @@ export class LevelMapScene extends Phaser.Scene {
     }
     if (secretStatus.visible) {
       path.lineStyle(4, 0xb388ff, 1);
-      path.lineBetween(NODES[7][0], NODES[7][1], SECRET_NODE[0], SECRET_NODE[1]);
+      const [ax, ay] = NODES[ch.secret.after - 1];
+      path.lineBetween(ax, ay, secretPos[0], secretPos[1]);
     }
 
     for (const e of this.entries) this.drawNode(e);
@@ -109,7 +133,7 @@ export class LevelMapScene extends Phaser.Scene {
       Enter: e => (this.choice ? this.confirmChoice(e) : !e.repeat && this.play()),
       h: () => this.play({ story: true }),
       H: () => this.play({ story: true }),
-      Escape: () => (this.choice ? this.closeChoice() : this.scene.start('Chapters')),
+      Escape: () => (this.choice ? this.closeChoice() : this.scene.start('Chapters', { select: ch.index })),
     });
     Panel.show('info');
   }
@@ -118,17 +142,18 @@ export class LevelMapScene extends Phaser.Scene {
     const { level, pos: [x, y] } = e;
     const status = levelStatus(this.chapter, level, Save);
     const best = Save.level(level.id);
-    const boss = level.kind === 'dog' || level.kind === 'race';
+    const boss = !!level.boss;
     const r = boss ? 30 : 24;
     const fill = level.kind === 'secret' ? 0x7b2cbf : status.unlocked ? (best.passed ? 0x7bd389 : 0xfff7e0) : 0x8a8799;
     const node = this.add.circle(x, y, r, fill).setStrokeStyle(5, 0x2b1d2e).setInteractive({ useHandCursor: true });
+    e.stroke = boss ? 0xc1121f : 0x2b1d2e;
     node.on('pointerdown', () => {
       const i = this.entries.indexOf(e);
       if (i === this.index) this.play();
       else this.select(i);
     });
-    if (level.kind === 'dog') this.add.image(x, y, 'dog-head').setScale(3);
-    else if (level.kind === 'race') this.add.image(x, y, 'trophy').setScale(3);
+    if (level.boss && level.crew.some(m => m.id === 'perro')) this.add.image(x, y, 'dog-head').setScale(3);
+    else if (level.boss?.type === 'race') this.add.image(x, y, 'trophy').setScale(3);
     else if (level.kind === 'secret') this.add.image(x, y, 'mystery').setScale(3);
     else text(this, x, y, level.label, 22, '#2b1d2e', { ox: 0.5, oy: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
     if (!status.unlocked) this.add.image(x + r - 6, y - r + 6, 'padlock').setScale(2);
@@ -143,7 +168,7 @@ export class LevelMapScene extends Phaser.Scene {
     this.tweens.killTweensOf(this.marker);
     this.marker.setPosition(e.pos[0], e.pos[1] - e.radius - 26);
     this.tweens.add({ targets: this.marker, y: '-=8', duration: 450, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
-    for (const other of this.entries) other.node.setStrokeStyle(other === e ? 7 : 5, other === e ? 0xffd23f : 0x2b1d2e);
+    for (const other of this.entries) other.node.setStrokeStyle(other === e ? 7 : 5, other === e ? 0xffd23f : other.stroke);
     const level = e.level;
     this.drawLegend();
     Panel.setInfo(levelInfoHtml(this.chapter, level), Save.history(level.id), goalLines(level), `Historial · ${levelName(level)}`);
