@@ -6,6 +6,8 @@ Juego de mecanografía tipo parkour contra reloj, pensado para quien usa la dist
 La versión anterior (HTML puro con niveles Básico/Intermedio/Avanzado y diagnóstico) vive en la
 rama `Borrador_Alfa`.
 
+**Juégalo en línea:** https://teclea-con-sofia.vercel.app (Vercel, se publica solo con cada cambio en `main`).
+
 ## Cómo correrlo
 
 Necesitas [Node.js](https://nodejs.org) (versión LTS, gratuito).
@@ -136,6 +138,15 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 | `src/scenes/` | Escenas de Phaser: título, capítulos, mapa, diálogos, lección, carrera, resultados y climas |
 | `src/ui/` | Panel HTML: teclado visual, manos, pistas y gráfica del historial |
 | `tests/` | Pruebas con `node --test` |
+
+## Publicación y buscadores
+
+- Proyecto de Vercel `teclea-con-sofia` (plan gratuito), ligado a este repositorio.
+- `index.html` tiene título, descripción, URL canónica, vista previa para redes (`public/vista-previa.jpg`)
+  y datos estructurados (schema.org `VideoGame`) que dicen para quién es el juego. La sección
+  «¿Para quién es este juego?» debajo del juego explica lo mismo a las personas.
+- `public/` también tiene `favicon.svg`, `robots.txt` y `sitemap.xml`. Si cambia la dirección,
+  hay que actualizarla en `index.html`, `robots.txt` y `sitemap.xml`.
 
 Fuente: [VT323](https://fonts.google.com/specimen/VT323) (licencia OFL, libre de usar y distribuir).
 

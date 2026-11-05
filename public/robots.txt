@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://teclea-con-sofia.vercel.app/sitemap.xml

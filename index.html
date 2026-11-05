@@ -1,12 +1,63 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-419">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>La Historia de Sofía</title>
+  <title>La Historia de Sofía · Mecanografía para teclado en inglés con distribución latina</title>
+  <meta name="description" content="Juego gratuito de mecanografía en español para quien tiene un teclado físico en inglés (EE. UU.) y lo usa con la distribución Español (Latinoamérica). Aprende dónde están la ñ, los acentos y los signos corriendo parkour con Sofía.">
+  <meta name="keywords" content="mecanografía, juego de mecanografía, aprender a escribir con el teclado, teclado en inglés, teclado americano, distribución latinoamericana, Español (Latinoamérica), ñ en teclado inglés, mecanografía en español">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#1d1b33">
+  <link rel="canonical" href="https://teclea-con-sofia.vercel.app/">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+
+  <!-- Vista previa al compartir el enlace -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Teclea con Sofía">
+  <meta property="og:locale" content="es_LA">
+  <meta property="og:title" content="La Historia de Sofía · Juego de mecanografía para teclado en inglés con distribución latina">
+  <meta property="og:description" content="¿Tu teclado está en inglés pero escribes en español? Aprende mecanografía con la distribución Español (Latinoamérica) en un juego de parkour con historia.">
+  <meta property="og:url" content="https://teclea-con-sofia.vercel.app/">
+  <meta property="og:image" content="https://teclea-con-sofia.vercel.app/vista-previa.jpg">
+  <meta property="og:image:width" content="800">
+  <meta property="og:image:height" content="420">
+  <meta property="og:image:alt" content="Sofía corre por su barrio bajo el título «La Historia de Sofía»">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="La Historia de Sofía · Juego de mecanografía">
+  <meta name="twitter:description" content="Mecanografía para teclado en inglés (EE. UU.) con distribución Español (Latinoamérica), en un juego de parkour con historia.">
+  <meta name="twitter:image" content="https://teclea-con-sofia.vercel.app/vista-previa.jpg">
+
+  <!-- Datos estructurados para buscadores -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": ["VideoGame", "WebApplication"],
+    "name": "La Historia de Sofía",
+    "alternateName": "Teclea con Sofía",
+    "url": "https://teclea-con-sofia.vercel.app/",
+    "image": "https://teclea-con-sofia.vercel.app/vista-previa.jpg",
+    "description": "Juego de mecanografía en español para teclados físicos en inglés (EE. UU., ANSI) usados con la distribución Español (Latinoamérica). Cada nivel enseña teclas nuevas mientras Sofía corre parkour por su barrio.",
+    "inLanguage": "es-419",
+    "genre": ["Mecanografía", "Educativo", "Parkour", "Historia"],
+    "applicationCategory": "GameApplication",
+    "gamePlatform": "Navegador web",
+    "operatingSystem": "Windows, macOS, Linux, ChromeOS",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "contentRating": "12+",
+    "audience": {
+      "@type": "Audience",
+      "audienceType": "Personas con teclado físico en inglés (EE. UU.) que escriben con la distribución de teclado Español (Latinoamérica)"
+    },
+    "teaches": "Mecanografía al tacto con la distribución Español (Latinoamérica) sobre un teclado en inglés: fila central, ñ, espacio, mayúsculas y fila superior."
+  }
+  </script>
 </head>
 <body>
   <textarea id="type-capture" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Captura de teclado"></textarea>
+  <header id="site-header">
+    <h1>La Historia de Sofía <span>· Juego de mecanografía para <strong>teclado en inglés (EE. UU.)</strong> con distribución <strong>Español (Latinoamérica)</strong></span></h1>
+  </header>
   <div id="app">
     <div id="game">
       <div id="music-toast" role="status" aria-live="polite" hidden></div>
@@ -16,6 +67,36 @@
     </div>
     <div id="panel"></div>
   </div>
+
+  <noscript>
+    <p class="noscript">Este juego necesita JavaScript activado para funcionar.</p>
+  </noscript>
+
+  <section id="about" aria-labelledby="about-title">
+    <h2 id="about-title">¿Para quién es este juego?</h2>
+    <p>
+      Para quien tiene un <strong>teclado físico en inglés</strong> (de Estados Unidos, el más común en
+      laptops importadas) pero escribe en español con la distribución <strong>Español (Latinoamérica)</strong>
+      configurada en Windows, macOS o Linux. En esa combinación lo impreso en las teclas no coincide con
+      lo que sale en pantalla: la <strong>ñ</strong> está donde dice <kbd>;</kbd>, los acentos se escriben
+      con la tecla <kbd>[</kbd> y muchos signos cambian de lugar. El juego te muestra, tecla por tecla,
+      qué estás presionando de verdad.
+    </p>
+    <h2>¿Qué aprendes?</h2>
+    <ul>
+      <li>Mecanografía al tacto, empezando por la fila central (<kbd>f</kbd> y <kbd>j</kbd>) y sumando teclas poco a poco.</li>
+      <li>Dónde están la ñ, el espacio, las mayúsculas y la fila superior en la distribución latinoamericana.</li>
+      <li>Qué dedo usar en cada tecla, con un teclado de ayuda y lecciones de calentamiento.</li>
+      <li>Velocidad y precisión: cada nivel da estrellas por terminar, por rapidez y por escribir sin errores.</li>
+    </ul>
+    <h2>¿Cómo se juega?</h2>
+    <p>
+      Escribe el texto de cada obstáculo para que Sofía lo salte. Son tres capítulos de historia, con jefes,
+      niveles secretos y música de 8 bits. Es gratuito, funciona en el navegador y no necesita cuenta.
+      Historia recomendada para mayores de 12 años.
+    </p>
+  </section>
+
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>
