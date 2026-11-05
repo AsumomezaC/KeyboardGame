@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "keyboard-game-tau.vercel.app" }],
+      "destination": "https://teclea-con-sofia.vercel.app/:path*",
+      "permanent": true
+    }
+  ]
+}

@@ -142,6 +142,7 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 ## Publicación y buscadores
 
 - Proyecto de Vercel `teclea-con-sofia` (plan gratuito), ligado a este repositorio.
+- La dirección vieja `keyboard-game-tau.vercel.app` redirige sola a la nueva (308, sin aviso), configurado en `vercel.json`.
 - `index.html` tiene título, descripción, URL canónica, vista previa para redes (`public/vista-previa.jpg`)
   y datos estructurados (schema.org `VideoGame`) que dicen para quién es el juego. La sección
   «¿Para quién es este juego?» debajo del juego explica lo mismo a las personas.
