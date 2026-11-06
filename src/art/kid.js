@@ -155,7 +155,7 @@ function drawArm(p, shoulder, elbow, hand, pal, back, limb = 2) {
   }
 }
 
-function drawHead(p, h, pal, face, swing) {
+function drawHead(p, h, pal, face, swing, blink = false) {
   // Cabello atrás, cara adelante (mira a la derecha).
   if (pal.hairStyle === 'pony') {
     p.line(h.x - 4, h.y - 3, h.x - 8, h.y - 1 + swing, pal.hair, 2);
@@ -211,6 +211,11 @@ function drawHead(p, h, pal, face, swing) {
     else if (face === 'sad') { p.px(ex, ey + 4, pal.eye); p.px(ex + 1, ey + 3, pal.eye); }
     else { p.px(ex + 1, ey + 3, pal.eye); p.px(ex + 2, ey + 3, pal.eye); }
   }
+  // Parpadeo: el ojo se vuelve una rayita (la boca del gesto se queda igual).
+  if (blink) {
+    p.rect(ex - 1, ey - 1, 3, 3, pal.skin);
+    p.rect(ex - 1, ey + 1, 3, 1, pal.eye);
+  }
   p.px(h.x + 2, h.y + 2, pal.blush);
   if (pal.mustache) p.rect(ex, ey + 2, 3, 1, pal.hair);
   if (pal.glasses) {
@@ -238,7 +243,7 @@ function drawKid(p, j, pal, build = BUILDS.kid) {
     p.px(j.shoulder.x + 2, j.shoulder.y + 1, pal.accent);
   }
   drawLeg(p, j.hip, j.kneeF, j.footF, pal, false, limb);
-  drawHead(p, j.head, pal, j.face || 'smile', j.swing || 0);
+  drawHead(p, j.head, pal, j.face || 'smile', j.swing || 0, j.blink);
   drawArm(p, j.shoulder, j.elbowF, j.handF, pal, false, limb);
 }
 
@@ -315,6 +320,9 @@ function reshape(joints, b) {
 
 export const RUN_FRAMES = 6;
 
+// Gestos que tienen un cuadro «_b» con los ojos cerrados para parpadear en los diálogos.
+export const BLINKABLE = ['idle0', 'idle1', 'talk', 'sad', 'angry', 'cheer0', 'shock'];
+
 function frame(name, joints, pal, build = BUILDS.kid) {
   const { c, p } = makeCanvas(build.w, build.h);
   drawKid(p, reshape(joints, build), pal, build);
@@ -326,6 +334,7 @@ export function buildKidSheet(scene, key, pal) {
   const frames = [];
   for (let i = 0; i < RUN_FRAMES; i++) frames.push(frame(`run${i}`, runPose(i / RUN_FRAMES), pal));
   for (const [name, joints] of Object.entries(POSES)) frames.push(frame(name, joints, pal));
+  for (const name of BLINKABLE) frames.push(frame(`${name}_b`, { ...POSES[name], blink: true }, pal));
   addSheet(scene, key, frames, FRAME_W, FRAME_H);
 }
 
@@ -338,6 +347,7 @@ export function buildBuildSheet(scene, key, pal, buildName) {
   const frames = [];
   for (let i = 0; i < RUN_FRAMES; i++) frames.push(frame(`run${i}`, runPose(i / RUN_FRAMES), pal, build));
   for (const [name, joints] of Object.entries(POSES)) frames.push(frame(name, joints, pal, build));
+  for (const name of BLINKABLE) frames.push(frame(`${name}_b`, { ...POSES[name], blink: true }, pal, build));
   addSheet(scene, key, frames, build.w, build.h);
 }
 

@@ -101,6 +101,20 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
   los textos de los obstáculos tienen una placa oscura para leerse igual con cualquier clima.
 - En la lección de teclas nuevas, Sofía calienta (estira, zancadas, posición de salida) con cada
   pulsación y sale corriendo al terminar.
+- Cada personaje tiene su «voz» de balbuceo al hablar (como en los juegos de animalitos): tono,
+  velocidad, timbre y temblor dependen de su edad y forma de ser, y cambian con la emoción. Los
+  parámetros están en `voice` de cada entrada de `src/data/cast.js` (el narrador usa `NARRATOR_VOICE`).
+- Quien habla hace un gesto según su emoción (pisotón si está enojado, brinco hacia atrás si se
+  sorprende, se encoge si está triste, tiembla si llora, rebota si está feliz). La cámara solo se
+  mueve en los momentos marcados con `fx`. Quien no habla parpadea de vez en cuando y reacciona
+  (se hace para atrás) a las sacudidas y destellos.
+- El fondo de cada nivel y de cada diálogo tiene detalles al fondo (gatos, bicis, botes, macetas,
+  perros, carteles…) acomodados al azar pero siempre igual para el mismo nivel; dependen del lugar
+  (`THEME_DETAILS` en `src/art/details.js`) y se ven más pequeños y apagados para no confundirse
+  con los obstáculos.
+- Los obstáculos tienen versiones: sillas de varios colores, manteles y cosas encima de la mesa,
+  charcos de lodo, barreras de colores y bardas con grafitis («LOS GATOS», «ASUMOMEZAC»,
+  «RÁFAGA») o el cartel de la carrera. La lista está en `OBSTACLE_VARIANTS` de `src/art/props.js`.
 
 ### Controles y modo desarrollador
 
@@ -113,6 +127,19 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
   cualquier menú, fuera de los niveles. Marca todos los niveles, incluso los secretos, como
   superados con ★★★ y abre todos los capítulos. Para volver a empezar, borra los datos del sitio
   en el navegador.
+- Con el modo desarrollador activo, Tab activa el modo «solo cinemáticas»: al entrar a un nivel se
+  ven el diálogo de inicio y el de final, sin carrera, y se vuelve al mapa. Tab otra vez lo apaga.
+  Ninguno de los dos modos se guarda: al recargar la página se apagan.
+- En celulares (pantalla táctil y angosta) no se carga el juego: aparece un aviso de que está hecho
+  para computadoras y tablets, con un botón para compartir o copiar el enlace. Las tablets sí lo cargan.
+
+### Progreso guardado
+
+El avance (niveles, estrellas, historial) se guarda en el `localStorage` del navegador con la
+clave `parkourTecla.save.v2`, y la música con `parkourTecla.music`. No se envía a ningún servidor:
+se conserva al cerrar la página, pero es de cada navegador y dispositivo, y se pierde en modo
+incógnito o al borrar los datos del sitio. El aviso de privacidad está en `public/privacidad.html`
+(enlazado en el pie de página).
 
 ### Música
 
@@ -136,7 +163,7 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 | `src/audio/` | Sintetizador de 8 bits y pistas de música |
 | `src/art/` | Pixel art provisional generado por código (personajes, perro, obstáculos, fondos) |
 | `src/scenes/` | Escenas de Phaser: título, capítulos, mapa, diálogos, lección, carrera, resultados y climas |
-| `src/ui/` | Panel HTML: teclado visual, manos, pistas y gráfica del historial |
+| `src/ui/` | Panel HTML: teclado visual, manos, pistas, gráfica del historial y aviso para celulares |
 | `tests/` | Pruebas con `node --test` |
 
 ## Publicación y buscadores
@@ -146,7 +173,7 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 - `index.html` tiene título, descripción, URL canónica, vista previa para redes (`public/vista-previa.jpg`)
   y datos estructurados (schema.org `VideoGame`) que dicen para quién es el juego. La sección
   «¿Para quién es este juego?» debajo del juego explica lo mismo a las personas.
-- `public/` también tiene `favicon.svg`, `robots.txt` y `sitemap.xml`. Si cambia la dirección,
+- `public/` también tiene `favicon.svg`, `robots.txt`, `sitemap.xml` y `privacidad.html`. Si cambia la dirección,
   hay que actualizarla en `index.html`, `robots.txt` y `sitemap.xml`.
 
 Fuente: [VT323](https://fonts.google.com/specimen/VT323) (licencia OFL, libre de usar y distribuir).

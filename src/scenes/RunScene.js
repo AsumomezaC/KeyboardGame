@@ -12,6 +12,7 @@ import { Panel } from '../ui/panel.js';
 import { levelName } from '../data/chapters.js';
 import { CORRE, CAST } from '../data/cast.js';
 import { rng } from '../data/rng.js';
+import { OBSTACLE_VARIANTS } from '../art/props.js';
 import { W, SCALE, FEET_Y, FONT, INK, px, text, backdrop, formatTime } from './common.js';
 import { addWeather } from './weather.js';
 import { storyFor, finishLevel } from './flow.js';
@@ -97,7 +98,7 @@ export class RunScene extends Phaser.Scene {
     this.runner = new Runner(level, {
       getupMs: this.rules.getupMs, limitMs: this.rules.limitMs, maxFalls: this.rules.maxFalls, maxErrors: this.rules.maxErrors,
     });
-    this.bg = backdrop(this, level.theme);
+    this.bg = backdrop(this, level.theme, { seed: level.id });
     this.tale = storyFor(this.chapter, level);
     this.weather = addWeather(this, this.tale?.weather);
     const bossMusic = { race: 'final', chase: 'perro', catch: 'perro' }[level.boss?.type];
@@ -105,7 +106,9 @@ export class RunScene extends Phaser.Scene {
     this.countdownLeft = COUNTDOWN_MS;
     this.ended = false;
 
-    this.obstacleViews = this.runner.obstacles.map(o => this.createObstacleView(o));
+    // Cada obstáculo usa una de sus versiones (color, mantel, grafiti…), siempre la misma por nivel.
+    const look = rng(`${level.id}-looks`);
+    this.obstacleViews = this.runner.obstacles.map(o => this.createObstacleView(o, look));
     this.finish = this.add.image(0, FEET_Y + 4, 'finish').setOrigin(0, 1).setScale(SCALE);
     // Quien corre con Sofía va detrás de ella en pantalla.
     const rand = rng(level.id);
@@ -144,9 +147,10 @@ export class RunScene extends Phaser.Scene {
     });
   }
 
-  createObstacleView(o) {
+  createObstacleView(o, look) {
     const prop = PROPS[o.type];
-    const sprite = this.add.image(0, FEET_Y + prop.y, prop.key).setOrigin(0, 1).setScale(SCALE);
+    const v = Math.floor(look() * (OBSTACLE_VARIANTS[prop.key] || 1));
+    const sprite = this.add.image(0, FEET_Y + prop.y, v ? `${prop.key}-${v}` : prop.key).setOrigin(0, 1).setScale(SCALE);
     const label = this.add.container(0, 0);
     // Placa oscura detrás del texto: se lee igual sobre cielo claro, lluvia o niebla.
     const plate = this.add.graphics();

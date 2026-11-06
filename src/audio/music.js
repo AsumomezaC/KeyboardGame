@@ -157,6 +157,73 @@ function compile(name) {
   return compiled[name];
 }
 
+// ---------- Voces de diálogo («balbuceo» como en Animal Crossing) ----------
+// Cada letra que aparece en la caja suena como una sílaba corta: un pulso con el tono de la voz,
+// un pequeño deslizamiento de tono y un filtro que le da color de vocal. El tono cambia un poco
+// según la letra, así cada frase tiene su propia melodía.
+const MOOD_VOICE = {
+  angry: { semis: 1, vol: 1.3, len: 0.85 },
+  shock: { semis: 3, vol: 1.1, len: 0.9 },
+  sad: { semis: -2, vol: 0.8, len: 1.2 },
+  cry: { semis: -1, vol: 0.85, len: 1.25, wobble: 9 },
+  happy: { semis: 2, vol: 1, len: 0.95 },
+  cheer: { semis: 3, vol: 1.15, len: 0.9 },
+};
+const VOWEL_FORMANT = { a: 1, e: 1.25, i: 1.5, o: 0.8, u: 0.65 };
+
+function syllable(v, ch, mood) {
+  const t = ctx.currentTime + 0.005;
+  const m = MOOD_VOICE[mood] || {};
+  const lower = ch.toLowerCase();
+  if (v.growl) {
+    const src = ctx.createBufferSource();
+    src.buffer = noise;
+    const f = ctx.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.value = 380;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.5, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    src.connect(f).connect(g).connect(master);
+    src.start(t, Math.random() * 0.5);
+    src.stop(t + 0.13);
+    return;
+  }
+  // Tono por letra: ±4 semitonos (según la voz), estable para la misma letra.
+  const code = lower.codePointAt(0);
+  const semis = (((code * 7) % 9) - 4) * (v.range ?? 1) + (m.semis || 0);
+  const f0 = v.pitch * 2 ** (semis / 12);
+  const len = (v.len ?? 0.07) * (m.len || 1);
+  const osc = ctx.createOscillator();
+  if (v.wave === 'triangle') osc.type = 'triangle';
+  else osc.setPeriodicWave(pulses[v.duty || 50]);
+  osc.frequency.setValueAtTime(f0 * (v.slide ?? 1.06), t);
+  osc.frequency.exponentialRampToValueAtTime(f0, t + len * 0.6);
+  const wobble = v.wobble || m.wobble;
+  if (wobble) {
+    const lfo = ctx.createOscillator();
+    const depth = ctx.createGain();
+    lfo.frequency.value = wobble;
+    depth.gain.value = f0 * 0.04;
+    lfo.connect(depth).connect(osc.frequency);
+    lfo.start(t);
+    lfo.stop(t + len + 0.02);
+  }
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = (v.formant ?? 1500) * (VOWEL_FORMANT[lower] || 1.1);
+  filter.Q.value = 1.2;
+  const g = ctx.createGain();
+  const vol = (v.vol ?? 0.55) * (m.vol || 1);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.008);
+  g.gain.setValueAtTime(vol * 0.8, t + len * 0.5);
+  g.gain.linearRampToValueAtTime(0, t + len);
+  osc.connect(filter).connect(g).connect(master);
+  osc.start(t);
+  osc.stop(t + len + 0.02);
+}
+
 function start(name) {
   clearInterval(timer);
   state = null;
@@ -202,5 +269,12 @@ export const Music = {
 
   onMuteChange(fn) {
     muteListeners.push(fn);
+  },
+
+  // Una sílaba de voz para la letra ch. voice: { pitch, len, duty|wave, formant, range, slide,
+  // wobble, vol, growl }. mood: gesto de quien habla (cambia tono, volumen y duración).
+  voice(voice, ch, mood) {
+    if (!ctx || ctx.state !== 'running' || muted || !voice || !/\p{L}/u.test(ch)) return;
+    syllable(voice, ch, mood);
   },
 };

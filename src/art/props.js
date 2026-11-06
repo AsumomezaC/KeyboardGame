@@ -3,58 +3,115 @@ import { makeCanvas, outline, addImage } from './pixel.js';
 
 const INK = '#2b1d2e';
 
-function puddle() {
+// Letras de 3×5 px (M y W de 5, N de 4) para grafitis y carteles.
+const GLYPHS = {
+  A: ['.#.', '#.#', '###', '#.#', '#.#'],
+  C: ['###', '#..', '#..', '#..', '###'],
+  E: ['###', '#..', '##.', '#..', '###'],
+  F: ['###', '#..', '##.', '#..', '#..'],
+  G: ['###', '#..', '#.#', '#.#', '###'],
+  L: ['#..', '#..', '#..', '#..', '###'],
+  M: ['#...#', '##.##', '#.#.#', '#...#', '#...#'],
+  N: ['#..#', '##.#', '#.##', '#..#', '#..#'],
+  O: ['###', '#.#', '#.#', '#.#', '###'],
+  R: ['##.', '#.#', '##.', '#.#', '#.#'],
+  S: ['###', '#..', '###', '..#', '###'],
+  T: ['###', '.#.', '.#.', '.#.', '.#.'],
+  U: ['#.#', '#.#', '#.#', '#.#', '###'],
+  Z: ['###', '..#', '.#.', '#..', '###'],
+  0: ['###', '#.#', '#.#', '#.#', '###'],
+  5: ['###', '#..', '###', '..#', '###'],
+};
+const ACCENTED = { Á: 'A' };
+
+function textWidth(str) {
+  let w = 0;
+  for (const ch of str) w += ch === ' ' ? 2 : GLYPHS[ACCENTED[ch] || ch][0].length + 1;
+  return w - 1;
+}
+
+// Escribe en pixeles, con sombra opcional (para que el grafiti resalte sobre el ladrillo).
+function pixelText(p, x, y, str, color, shadow) {
+  for (const ch of str) {
+    if (ch === ' ') { x += 2; continue; }
+    const base = ACCENTED[ch] || ch;
+    const rows = GLYPHS[base];
+    rows.forEach((row, dy) => [...row].forEach((c, dx) => {
+      if (c !== '#') return;
+      if (shadow) p.px(x + dx + 1, y + dy + 1, shadow);
+      p.px(x + dx, y + dy, color);
+    }));
+    if (ACCENTED[ch]) p.px(x + rows[0].length - 1, y - 2, color);
+    x += rows[0].length + 1;
+  }
+}
+
+function puddle(v) {
+  const [deep, light, rim] = [['#3e7cc9', '#6fb1f2', '#1f4a80'], ['#7a5230', '#a0764a', '#4e331c']][v];
   const { c, p } = makeCanvas(30, 8);
-  p.ellipse(15, 4, 13, 3, '#3e7cc9');
-  p.ellipse(13, 3, 8, 1, '#6fb1f2');
-  p.px(8, 3, '#ffffff'); p.px(9, 3, '#ffffff'); p.px(20, 5, '#cfe8ff');
-  outline(c, '#1f4a80');
+  p.ellipse(15, 4, 13, 3, deep);
+  p.ellipse(13, 3, 8, 1, light);
+  p.px(8, 3, '#ffffff'); p.px(9, 3, v ? light : '#ffffff'); p.px(20, 5, v ? light : '#cfe8ff');
+  if (v === 1) { p.px(18, 2, '#4f8a3a'); p.px(19, 3, '#4f8a3a'); } // una hojita flotando
+  outline(c, rim);
   return c;
 }
 
 // Barrera alta con hueco abajo: Sofía se desliza por debajo.
-function fence() {
+function fence(v) {
+  const [a, b] = [['#ffd23f', '#2b2b2b'], ['#e94f64', '#f4f1e8'], ['#f77f00', '#f4f1e8']][v];
   const { c, p } = makeCanvas(32, 27);
   p.rect(2, 6, 3, 20, '#8d6e63');
   p.rect(27, 6, 3, 20, '#8d6e63');
   p.rect(3, 6, 1, 20, '#a98274');
   p.rect(28, 6, 1, 20, '#a98274');
   for (let y = 1; y < 8; y++) {
-    for (let x = 1; x < 31; x++) p.px(x, y, (x + y) % 8 < 4 ? '#ffd23f' : '#2b2b2b');
+    for (let x = 1; x < 31; x++) p.px(x, y, (x + y) % 8 < 4 ? a : b);
   }
   outline(c, INK);
   return c;
 }
 
-// Silla de plástico roja vista de lado.
-function chair() {
+// Silla de plástico vista de lado, de distintos colores (como en cualquier fiesta).
+const CHAIR_COLORS = [
+  ['#e5383b', '#ff6b6b', '#c92a2d'], ['#3a86ff', '#72a7ff', '#2a5fc0'], ['#2a9d8f', '#5cc8b8', '#1f7a6f'],
+  ['#f4b400', '#ffd54f', '#c48f00'], ['#dfe7ec', '#ffffff', '#a9b5bc'],
+];
+function chair(v) {
+  const [main, light, dark] = CHAIR_COLORS[v];
   const { c, p } = makeCanvas(18, 22);
-  p.rect(3, 2, 3, 11, '#e5383b');
-  p.rect(3, 2, 1, 11, '#ff6b6b');
-  p.rect(3, 11, 12, 3, '#e5383b');
-  p.rect(4, 11, 10, 1, '#ff6b6b');
-  p.line(4, 14, 3, 20, '#c92a2d', 2);
-  p.line(13, 14, 14, 20, '#c92a2d', 2);
-  p.line(4, 17, 13, 17, '#c92a2d', 1);
+  p.rect(3, 2, 3, 11, main);
+  p.rect(3, 2, 1, 11, light);
+  p.rect(3, 11, 12, 3, main);
+  p.rect(4, 11, 10, 1, light);
+  p.line(4, 14, 3, 20, dark, 2);
+  p.line(13, 14, 14, 20, dark, 2);
+  p.line(4, 17, 13, 17, dark, 1);
   outline(c, INK);
   return c;
 }
 
-// Mesa larga de fiesta con mantel de cuadros: Sofía se desliza por encima.
-function table() {
+// Mesa larga de fiesta: Sofía se desliza por encima. Cambian el mantel y lo que hay encima.
+const CLOTHS = [['#c1121f', '#f4f1e8'], ['#3d5aa8', '#f4f1e8'], ['#2a9d8f', '#fff3b0'], ['#9b5de5', '#f4f1e8']];
+function table(v) {
+  const [a, b] = CLOTHS[v];
   const { c, p } = makeCanvas(46, 20);
-  p.rect(1, 4, 44, 3, '#c1121f');
-  for (let x = 1; x < 45; x += 4) { p.rect(x, 4, 2, 3, '#f4f1e8'); p.rect(x + 2, 7, 2, 3, '#c1121f'); p.rect(x, 7, 2, 3, '#f4f1e8'); }
+  p.rect(1, 4, 44, 3, a);
+  for (let x = 1; x < 45; x += 4) { p.rect(x, 4, 2, 3, b); p.rect(x + 2, 7, 2, 3, a); p.rect(x, 7, 2, 3, b); }
   p.rect(4, 10, 2, 10, '#6d4c41'); p.rect(40, 10, 2, 10, '#6d4c41');
   p.line(5, 14, 41, 14, '#5a3d32');
-  p.rect(10, 1, 3, 3, '#ffd23f'); p.rect(30, 2, 4, 2, '#80ed99'); // cosas sobre la mesa
+  if (v === 0) { p.rect(10, 1, 3, 3, '#ffd23f'); p.rect(30, 2, 4, 2, '#80ed99'); }
+  if (v === 1) { p.rect(18, 0, 8, 4, '#f4f1e8'); p.rect(18, 0, 8, 1, '#e94f64'); } // pastel
+  if (v === 2) { p.rect(8, 1, 6, 3, '#d9a066'); p.rect(30, 1, 6, 3, '#d9a066'); } // pan dulce
+  if (v === 3) { for (const x of [12, 20, 28]) { p.rect(x, 1, 3, 3, '#e94f64'); p.px(x + 1, 0, '#4f8a3a'); } } // jarritos
   outline(c, INK);
   return c;
 }
 
-// Barda larga de ladrillo con un tramo de cemento fresco al pie (con conos): por eso Sofía no
-// puede pasar por el piso y corre a lo largo de la pared.
-function wall() {
+// Barda larga de ladrillo con cemento fresco al pie (con conos): por eso Sofía corre por la
+// pared. Cada barda tiene su grafiti o cartel: la firma del desarrollador, Los Gatos, el apodo
+// que Sofía tendrá en el capítulo 2 y el cartel de la carrera del capítulo 3.
+function wall(v) {
   const W = 50, H = 46, BASE = 36;
   const { c, p } = makeCanvas(W, H);
   p.rect(1, 2, W - 2, BASE - 2, '#b5523b');
@@ -64,10 +121,27 @@ function wall() {
     for (let x = 1 + off; x < W - 1; x += 8) p.rect(x, y + 1, 1, 3, '#8c3d2b');
   }
   p.rect(0, 0, W, 3, '#9e9e9e');
-  // grafiti de un gato (Los Gatos dejan su firma en todos lados)
-  p.rect(18, 12, 12, 7, '#2a9d8f'); p.rect(18, 9, 2, 3, '#2a9d8f'); p.rect(28, 9, 2, 3, '#2a9d8f');
-  p.px(21, 14, '#fff3b0'); p.px(26, 14, '#fff3b0'); p.rect(30, 16, 5, 1, '#2a9d8f');
-  // cemento fresco: losa gris brillante con huellas y dos conos
+  const center = str => Math.round((W - textWidth(str)) / 2);
+  if (v === 0) {
+    // gato de Los Gatos
+    p.rect(18, 12, 12, 7, '#2a9d8f'); p.rect(18, 9, 2, 3, '#2a9d8f'); p.rect(28, 9, 2, 3, '#2a9d8f');
+    p.px(21, 14, '#fff3b0'); p.px(26, 14, '#fff3b0'); p.rect(30, 16, 5, 1, '#2a9d8f');
+  } else if (v === 1) {
+    pixelText(p, center('LOS GATOS'), 13, 'LOS GATOS', '#2a9d8f', '#1d1b33');
+    p.rect(10, 8, 2, 3, '#2a9d8f'); p.rect(14, 8, 2, 3, '#2a9d8f'); // orejitas
+  } else if (v === 2) {
+    pixelText(p, center('ASUMOMEZAC'), 12, 'ASUMOMEZAC', '#ffd23f', '#1d1b33');
+    p.line(6, 21, 44, 19, '#ffd23f'); // subrayado de aerosol
+  } else if (v === 3) {
+    pixelText(p, center('RÁFAGA') + 3, 13, 'RÁFAGA', '#e94f64', '#1d1b33');
+    p.line(9, 9, 6, 15, '#ffd23f'); p.line(6, 15, 10, 15, '#ffd23f'); p.line(10, 15, 7, 21, '#ffd23f'); // rayo
+  } else {
+    // cartel de la gran carrera (se pega con cinta)
+    p.rect(9, 6, 32, 22, '#fff3b0'); p.rect(9, 6, 32, 3, '#e94f64');
+    pixelText(p, center('CARRERA'), 11, 'CARRERA', '#2b1d2e');
+    pixelText(p, center('5000'), 19, '5000', '#2f7d3a');
+    for (const [x, y] of [[8, 5], [39, 5], [8, 26], [39, 26]]) p.rect(x, y, 3, 2, '#d9d4c7');
+  }
   p.rect(0, BASE, W, H - BASE, '#9aa0a6');
   p.rect(0, BASE, W, 1, '#c9ced6');
   for (const x of [12, 20, 31]) { p.rect(x, BASE + 4, 2, 2, '#7d838b'); p.px(x + 1, BASE + 7, '#7d838b'); }
@@ -79,24 +153,30 @@ function wall() {
   return c;
 }
 
-// Hoyo enorme en la banqueta: se brinca de un lado a otro como si volara.
-function hole() {
+// Hoyo enorme en la banqueta: se brinca como si volara. Uno trae cinta de precaución.
+function hole(v) {
   const { c, p } = makeCanvas(50, 14);
   p.ellipse(25, 6, 24, 6, '#3b2a20');
   p.ellipse(25, 7, 21, 5, '#1d1410');
   p.ellipse(25, 8, 16, 3, '#0d0907');
   for (const x of [4, 12, 38, 45]) p.rect(x, 1, 3, 2, '#9c8b75'); // piedritas del borde
   p.rect(2, 12, 46, 2, '#7a6a55');
+  if (v === 1) for (let x = 0; x < 50; x++) p.px(x, 0, Math.floor(x / 3) % 2 ? '#2b2b2b' : '#ffd23f');
   return c;
 }
 
-function chalk() {
+function chalk(v) {
+  const color = ['#f4f1e8', '#ffd23f', '#f8a5c2'][v];
   const { c, p } = makeCanvas(14, 5);
-  p.rect(0, 2, 9, 1, '#f4f1e8');
-  p.line(9, 0, 12, 2, '#f4f1e8');
-  p.line(9, 4, 12, 2, '#f4f1e8');
+  p.rect(0, 2, 9, 1, color);
+  p.line(9, 0, 12, 2, color);
+  p.line(9, 4, 12, 2, color);
   return c;
 }
+
+// Cuántas versiones hay de cada obstáculo: la 0 usa la clave simple ('chair'), las demás 'chair-1'…
+export const OBSTACLE_VARIANTS = { chalk: 3, puddle: 2, fence: 3, chair: 5, table: 4, wall: 5, hole: 2 };
+const OBSTACLE_ART = { chalk, puddle, fence, chair, table, wall, hole };
 
 function finish() {
   const { c, p } = makeCanvas(46, 48);
@@ -178,13 +258,9 @@ function dot(color, size) {
 }
 
 export function buildProps(scene) {
-  addImage(scene, 'puddle', puddle());
-  addImage(scene, 'fence', fence());
-  addImage(scene, 'chair', chair());
-  addImage(scene, 'chalk', chalk());
-  addImage(scene, 'table', table());
-  addImage(scene, 'wall', wall());
-  addImage(scene, 'hole', hole());
+  for (const [key, n] of Object.entries(OBSTACLE_VARIANTS)) {
+    for (let v = 0; v < n; v++) addImage(scene, v ? `${key}-${v}` : key, OBSTACLE_ART[key](v));
+  }
   addImage(scene, 'finish', finish());
   addImage(scene, 'star-on', star('#ffd23f', '#e8a400'));
   addImage(scene, 'star-off', star('#5a5878', '#4a4866'));

@@ -64,6 +64,8 @@ body {
   padding: 0 6px;
 }
 .noscript { text-align: center; color: var(--hint); }
+#site-footer { text-align: center; color: var(--muted); padding: 0 16px 32px; }
+#site-footer a { color: var(--hint); }
 
 #game {
   position: relative;
@@ -315,3 +317,31 @@ body {
 #music-toast.leaving { opacity: 0; transition: opacity 0.3s; }
 #music-toast svg { width: 40px; height: 40px; shape-rendering: crispEdges; }
 @keyframes toast-in { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ---------- Celulares: aviso en lugar del juego ---------- */
+
+body.phone #game { aspect-ratio: auto; }
+body.phone #caps-row, body.phone #panel { display: none; }
+.phone-notice {
+  background: var(--cream);
+  color: var(--ink);
+  text-align: center;
+  padding: 22px 18px 26px;
+}
+.phone-notice svg { width: 160px; height: 80px; }
+.phone-notice h2 { font-size: 1.5rem; font-weight: normal; margin: 8px 0; color: #b83350; line-height: 1.1; }
+.phone-notice p { margin: 6px 0; font-size: 1.1rem; }
+.phone-share {
+  margin-top: 10px;
+  font: inherit;
+  font-size: 1.1rem;
+  background: var(--hint);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  border-bottom-width: 5px;
+  border-radius: 8px;
+  padding: 6px 16px;
+  cursor: pointer;
+}
+.phone-share:active { border-bottom-width: 3px; transform: translateY(2px); }
+.phone-done { color: var(--ok); }

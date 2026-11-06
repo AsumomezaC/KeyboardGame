@@ -23,7 +23,7 @@ export const STORY1 = {
         { t: 'Sábado en la tarde. En casa de Sofía, otra vez, nadie escucha a nadie.' },
         { s: 'leticia', m: 'angry', t: '¡Ramiro! ¡Prometiste pintar la cocina! ¡Llevas tres sábados prometiéndolo!' },
         { s: 'ramiro', m: 'talk', t: 'Y la voy a pintar, Leti. Nada más acaba el partido... y el otro partido.' },
-        { s: 'leticia', m: 'angry', t: '¡Tú no acabas nada! ¡Ni la cocina, ni el techo, ni la paciencia de nadie!', fx: 'shake' },
+        { s: 'leticia', m: 'angry', t: '¡Tú no acabas nada! ¡Ni la cocina, ni el techo, solo con la paciencia de uno!', fx: 'shake' },
         { s: 'sofia', m: 'talk', t: 'Yo puedo ayudar a pintar. Sé quedarme quieta y no salirme de la raya...' },
         { s: 'leticia', m: 'angry', t: '¡Ahorita no, Sofía! Esto es plática de adultos.' },
         { s: 'ramiro', m: 'talk', t: 'Hazle caso a tu madre, princesa. Ve a jugar a otro lado.' },

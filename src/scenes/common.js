@@ -1,10 +1,12 @@
 // Piezas compartidas por las escenas: textos con contorno, fondo con paralaje y cajas de diálogo.
 import Phaser from 'phaser';
 import { THEMES, FAR, MID, GROUND } from '../art/backgrounds.js';
+import { THEME_DETAILS } from '../art/details.js';
 import { Music } from '../audio/music.js';
 import { Save } from '../core/save.js';
 import { PLAYABLE, allLevels } from '../data/chapters.js';
 import { showDevToast } from '../ui/music-toast.js';
+import { Dev } from '../core/dev.js';
 
 export const W = 960;
 export const H = 540;
@@ -50,7 +52,51 @@ export function box(scene, x, y, w, h, { fill = CREAM, alpha = 1 } = {}) {
 export const SKY_DEPTH = -30;
 export const CELESTIAL_DEPTH = -20;
 
-export function backdrop(scene, theme) {
+const LAYER_DEPTH = { far: -16, mid: -15, ground: -14, details: -13 };
+
+// Detalles del fondo (gatos, bicis, carritos…): uno cada DETAIL_SLOT px, decididos con la semilla
+// del nivel. Se mueven con un paralaje intermedio, más chicos y apagados que el juego: se notan
+// como fondo. Solo existen los que están cerca de la pantalla.
+const DETAIL_SLOT = 170;
+const DETAIL_PARALLAX = 0.6;
+const DETAIL_CHANCE = 0.55;
+
+function hash(seed, k) {
+  let h = 2166136261 ^ k;
+  for (const ch of seed) h = Math.imul(h ^ ch.codePointAt(0), 16777619);
+  h = Math.imul(h ^ (h >>> 15), 2246822507);
+  return ((h ^ (h >>> 13)) >>> 0) / 4294967296;
+}
+
+function detailLayer(scene, theme, seed) {
+  const keys = THEME_DETAILS[theme];
+  const live = new Map(); // slot -> sprite
+  if (!keys) return { scroll() {} };
+  return {
+    scroll(x) {
+      const d = x * DETAIL_PARALLAX;
+      const first = Math.floor((d - 120) / DETAIL_SLOT);
+      const last = Math.floor((d + W + 120) / DETAIL_SLOT);
+      for (const [slot, s] of live) {
+        if (slot < first || slot > last) { s.destroy(); live.delete(slot); }
+      }
+      for (let slot = first; slot <= last; slot++) {
+        if (!live.has(slot)) {
+          if (hash(seed, slot * 3) > DETAIL_CHANCE) { live.set(slot, { destroy() {}, x: 0 }); continue; }
+          const key = keys[Math.floor(hash(seed, slot * 3 + 1) * keys.length)];
+          const s = scene.add.image(0, GROUND_TOP + 5, key).setOrigin(0.5, 1).setScale(2)
+            .setTint(0xc8c4d4).setDepth(LAYER_DEPTH.details).setFlipX(hash(seed, slot * 3 + 2) < 0.5);
+          s.slotX = slot * DETAIL_SLOT + 30 + hash(seed, slot * 7 + 5) * (DETAIL_SLOT - 60);
+          live.set(slot, s);
+        }
+        const s = live.get(slot);
+        if (s.slotX != null) s.x = s.slotX - d;
+      }
+    },
+  };
+}
+
+export function backdrop(scene, theme, { seed = theme } = {}) {
   const t = THEMES[theme];
   const sky = scene.add.graphics().setDepth(SKY_DEPTH);
   const top = Phaser.Display.Color.HexStringToColor(t.sky[0]).color;
@@ -64,14 +110,16 @@ export function backdrop(scene, theme) {
     moon.fillStyle(0xfff6d5, 1).fillCircle(W - 150, 90, 30);
     moon.fillStyle(0xe6dcb8, 1).fillCircle(W - 160, 82, 6).fillCircle(W - 140, 100, 4).fillCircle(W - 136, 78, 3);
   }
-  const far = scene.add.tileSprite(0, GROUND_TOP - FAR.h * SCALE + 30, W / SCALE, FAR.h, `far-${theme}`).setOrigin(0).setScale(SCALE);
-  const mid = scene.add.tileSprite(0, GROUND_TOP - MID.h * SCALE, W / SCALE, MID.h, `mid-${theme}`).setOrigin(0).setScale(SCALE);
-  const ground = scene.add.tileSprite(0, GROUND_TOP, W / SCALE, GROUND.h, `ground-${theme}`).setOrigin(0).setScale(SCALE);
+  const far = scene.add.tileSprite(0, GROUND_TOP - FAR.h * SCALE + 30, W / SCALE, FAR.h, `far-${theme}`).setOrigin(0).setScale(SCALE).setDepth(LAYER_DEPTH.far);
+  const mid = scene.add.tileSprite(0, GROUND_TOP - MID.h * SCALE, W / SCALE, MID.h, `mid-${theme}`).setOrigin(0).setScale(SCALE).setDepth(LAYER_DEPTH.mid);
+  const ground = scene.add.tileSprite(0, GROUND_TOP, W / SCALE, GROUND.h, `ground-${theme}`).setOrigin(0).setScale(SCALE).setDepth(LAYER_DEPTH.ground);
+  const details = detailLayer(scene, theme, seed);
   return {
     scroll(x) {
       far.tilePositionX = (x * 0.15) / SCALE;
       mid.tilePositionX = (x * 0.45) / SCALE;
       ground.tilePositionX = x / SCALE;
+      details.scroll(x);
     },
   };
 }
@@ -85,18 +133,28 @@ export function onKeys(scene, map) {
     if (fn) fn(e);
     else if (e.key === 'm' || e.key === 'M') Music.toggleMute();
     else if (e.key === '|') developerMode(scene);
+    else if (e.key === 'Tab' && Dev.enabled) {
+      e.preventDefault();
+      toggleCinematics();
+    }
   });
 }
 
 // Desbloquea todos los niveles (también los secretos) con 3 estrellas y vuelve a dibujar el menú.
 export function developerMode(scene) {
+  Dev.enabled = true;
   Save.unlockAll(PLAYABLE.flatMap(allLevels).map(l => l.id));
-  showDevToast('Modo desarrollador: todo desbloqueado con ★★★');
+  showDevToast('Modo desarrollador: todo desbloqueado con ★★★ · Tab: solo cinemáticas');
   scene.scene.restart(scene.sys.settings.data);
 }
 
+// Modo solo cinemáticas (dentro del modo desarrollador): al entrar a un nivel solo se ven sus diálogos.
+function toggleCinematics() {
+  Dev.cinematics = !Dev.cinematics;
+  showDevToast(Dev.cinematics ? 'Solo cinemáticas: activado (Tab para salir)' : 'Solo cinemáticas: desactivado');
+}
+
 // Barra inferior con las teclas disponibles: cada tecla en su propia tapa, seguida de lo que hace.
-// items: [['Enter', 'jugar'], ['Esc', 'volver'], ...]
 // items: [tecla, texto, acción?]. Con acción, la tecla y su texto también son un botón que se
 // puede pulsar con el ratón (la «M» siempre lo es). El clic no llega al resto de la escena.
 export function keyLegend(scene, items) {

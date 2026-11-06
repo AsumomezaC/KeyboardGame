@@ -1,12 +1,15 @@
 // Diálogos de la historia con la estética de los RPG de consola portátil de finales de los 90:
 // personajes de pie en el escenario y una caja de texto blanca de doble borde que se escribe
-// letra por letra, con ▼ cuando puedes continuar.
+// letra por letra, con ▼ cuando puedes continuar. Cada personaje «balbucea» con su propia voz,
+// marca sus emociones con el cuerpo y, cuando escucha, parpadea y reacciona sin robar atención.
+// La cámara solo se mueve en los momentos marcados con fx (temblor, destello, zoom).
 import Phaser from 'phaser';
 import { Music } from '../audio/music.js';
 import { Panel } from '../ui/panel.js';
 import { ROOM } from '../art/backgrounds.js';
 import { RUNNERS } from '../art/index.js';
-import { CAST } from '../data/cast.js';
+import { CAST, NARRATOR_VOICE } from '../data/cast.js';
+import { BLINKABLE } from '../art/kid.js';
 import { addWeather } from './weather.js';
 import { storyFor } from './flow.js';
 import { W, SCALE, FEET_Y, GROUND_TOP, FONT, px, backdrop, keyLegend } from './common.js';
@@ -17,6 +20,8 @@ const BOX = { x: 16, y: 372, w: W - 32, h: 120 };
 const AGE_SCALE = { 8: 3.6, 9: 3.7, 10: 4, 11: 4.15, 12: 4.3 };
 const ROOMS = { casa: 'room-casa', tienda: 'room-tienda' };
 const MOOD_FRAME = { idle: null, talk: 'talk', sad: 'sad', angry: 'angry', cry: 'cry', shock: 'shock', happy: 'cheer0', cheer: null };
+const BLINK_MS = 130;
+const BLINK_EVERY = [2200, 5200]; // cada cuánto parpadea alguien que escucha (al azar en este rango)
 
 export class DialogueScene extends Phaser.Scene {
   constructor() {
@@ -47,7 +52,7 @@ export class DialogueScene extends Phaser.Scene {
       this.add.image(0, GROUND_TOP - ROOM.floor * SCALE, ROOMS[this.sc.place]).setOrigin(0).setScale(SCALE);
       this.weather = null;
     } else {
-      backdrop(this, this.sc.place).scroll(this.sc.scroll ?? 0);
+      backdrop(this, this.sc.place, { seed: `${this.level.id}-${this.part}` }).scroll(this.sc.scroll ?? 0);
       this.weather = addWeather(this, this.sc.weather ?? story.weather);
     }
     for (const [id, x, face = 'right', mood = 'idle'] of this.sc.cast) this.spawn(id, x, face, mood);
@@ -77,7 +82,7 @@ export class DialogueScene extends Phaser.Scene {
     if (id === 'perro') scale = SCALE + 1;
     const sprite = this.add.sprite(x, FEET_Y, key, info.frame || 'idle0').setOrigin(0.5, 1).setScale(scale);
     sprite.setFlipX(face === 'left');
-    const actor = { id, sprite, scale, baseY: FEET_Y };
+    const actor = { id, sprite, scale, baseY: FEET_Y, mood: 'idle', poseTweens: [], nextBlink: this.time.now + Phaser.Math.Between(...BLINK_EVERY) };
     this.actors[id] = actor;
     // Papá se tambalea un poco.
     if (id === 'ramiro') this.tweens.add({ targets: sprite, angle: { from: -2, to: 2 }, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
@@ -87,6 +92,7 @@ export class DialogueScene extends Phaser.Scene {
 
   setMood(actor, mood) {
     if (!mood || actor.id === 'perro') return;
+    actor.mood = mood;
     const s = actor.sprite;
     if (mood === 'idle') s.play(`${actor.id}-idle`, true);
     else if (mood === 'cheer') s.play(`${actor.id}-cheer`, true);
@@ -159,19 +165,26 @@ export class DialogueScene extends Phaser.Scene {
     this.nameG.fillStyle(0xe94f64, 1).fillRect(x + 15, y - 33, w - 6, 34);
   }
 
-  type(str, narrator) {
+  // Escribe la línea letra por letra con la voz de quien habla: una sílaba cada dos letras
+  // (cada tres para el narrador). La velocidad depende de la voz y del gesto.
+  type(str, speakerId, mood) {
     this.arrow.setVisible(false);
-    this.body.setColor(narrator ? '#4a4a7a' : '#303030');
+    this.body.setColor(speakerId ? '#303030' : '#4a4a7a');
     this.body.setText('');
+    const voice = speakerId ? CAST[speakerId].voice : NARRATOR_VOICE;
+    const every = speakerId ? 2 : 3;
+    const moodSpeed = { sad: 0.8, cry: 0.75, angry: 1.15, shock: 1.1 }[mood] || 1;
     const chars = Array.from(str);
     let shown = 0;
     this.typing?.remove();
     this.typing = this.time.addEvent({
-      delay: 1000 / CHARS_PER_S,
+      delay: 1000 / (CHARS_PER_S * (voice?.speed || 1) * moodSpeed),
       repeat: chars.length - 1,
       callback: () => {
+        const ch = chars[shown];
         shown++;
         this.body.setText(chars.slice(0, shown).join(''));
+        if (shown % every === 1) Music.voice(voice, ch, mood);
         if (shown >= chars.length) this.finishTyping(str);
       },
     });
@@ -226,14 +239,126 @@ export class DialogueScene extends Phaser.Scene {
     this.current = line;
     const speaker = line.s ? this.actors[line.s] : null;
     if (speaker && line.m) this.setMood(speaker, line.m);
+    this.speaker = speaker;
     // Quien habla queda al frente y a todo color; los demás se atenúan un poco.
     for (const a of Object.values(this.actors)) a.sprite.setTint(!line.s || a === speaker ? 0xffffff : 0xb8b8c8);
-    if (speaker) {
-      this.tweens.add({ targets: speaker.sprite, y: speaker.baseY - 8, duration: 110, yoyo: true });
-    }
+    if (speaker) this.emote(speaker, line.m || speaker.mood);
     this.fx(line.fx, speaker);
+    this.react(line, speaker);
     this.showName(line.s ? CAST[line.s].name : null);
-    this.type(line.t, !line.s);
+    this.type(line.t, line.s, speaker ? speaker.mood : null);
+  }
+
+  // Detiene el gesto anterior de un personaje y lo deja en su postura normal (sin tocar el
+  // tambaleo de papá, que es otra animación).
+  resetPose(actor) {
+    for (const t of actor.poseTweens || []) t.stop();
+    actor.poseTweens = [];
+    const s = actor.sprite;
+    actor.baseX ??= s.x;
+    s.x = actor.baseX;
+    s.y = actor.baseY;
+    s.setScale(actor.scale);
+  }
+
+  pose(actor, tween) {
+    actor.poseTweens.push(tween);
+    return tween;
+  }
+
+  // Movimiento del cuerpo según la emoción de quien habla (la cámara no se mueve).
+  emote(actor, mood) {
+    const s = actor.sprite;
+    const flip = s.flipX ? -1 : 1;
+    this.resetPose(actor);
+    const sc = actor.scale;
+    const add = cfg => this.pose(actor, this.tweens.add({ targets: s, ...cfg }));
+    const chain = tweens => this.pose(actor, this.tweens.chain({ targets: s, tweens }));
+    switch (mood) {
+      case 'angry':
+        // pisotón y sacudida corta
+        chain([
+          { scaleY: sc * 0.9, scaleX: sc * 1.06, duration: 70 },
+          { scaleY: sc, scaleX: sc, duration: 90 },
+          { x: actor.baseX + 3, duration: 40, yoyo: true, repeat: 2 },
+        ]);
+        break;
+      case 'shock':
+        // brinco hacia atrás
+        chain([
+          { y: actor.baseY - 16, x: actor.baseX - 8 * flip, duration: 110, ease: 'Quad.out' },
+          { y: actor.baseY, duration: 140, ease: 'Quad.in' },
+          { x: actor.baseX, duration: 260, ease: 'Sine.inOut' },
+        ]);
+        break;
+      case 'sad':
+        // se encoge un poco y se queda así
+        add({ scaleY: sc * 0.95, y: actor.baseY + 2, duration: 420, ease: 'Sine.out' });
+        break;
+      case 'cry':
+        // tiembla mientras llora
+        add({ x: actor.baseX + 1.5, duration: 60, yoyo: true, repeat: 7 });
+        add({ scaleY: sc * 0.96, duration: 300 });
+        break;
+      case 'happy':
+        add({ y: actor.baseY - 10, duration: 120, yoyo: true, repeat: 1, ease: 'Quad.out' });
+        break;
+      case 'cheer':
+        add({ y: actor.baseY - 14, duration: 140, yoyo: true, repeat: 2, ease: 'Quad.out' });
+        break;
+      default:
+        // hablar normal: un pequeño rebote al empezar
+        add({ y: actor.baseY - 8, duration: 110, yoyo: true });
+    }
+  }
+
+  // Quien escucha reacciona sin resaltarse: se sobresalta con un grito o un golpe dramático y
+  // parpadea de sorpresa con una revelación.
+  react(line, speaker) {
+    const listeners = Object.values(this.actors).filter(a => a !== speaker && a.id !== 'perro');
+    if (line.fx === 'shake' || line.fx === 'zoom') {
+      for (const a of listeners) {
+        const s = a.sprite;
+        const away = speaker ? Math.sign(s.x - speaker.sprite.x) || 1 : 0;
+        // conserva la postura (p. ej. encogido de tristeza) pero sin gestos a medias
+        const y0 = s.y;
+        this.resetPose(a);
+        s.y = y0;
+        this.pose(a, this.tweens.chain({ targets: s, tweens: [
+          { x: a.baseX + 6 * away, y: y0 - 5, duration: 90, ease: 'Quad.out' },
+          { x: a.baseX, y: y0, duration: 240, ease: 'Sine.inOut', delay: 120 },
+        ] }));
+      }
+    } else if (line.fx === 'flash') {
+      for (const a of listeners) this.blink(a, 2);
+    }
+  }
+
+  // Parpadeo: cambia un momento al cuadro con ojos cerrados del gesto actual.
+  blink(actor, times = 1) {
+    const s = actor.sprite;
+    const name = s.frame?.name;
+    if (!name || !BLINKABLE.includes(name) || actor.blinking) return;
+    actor.blinking = true;
+    const playing = s.anims.isPlaying;
+    if (playing) s.anims.pause();
+    const close = () => s.active && s.setFrame(`${name}_b`);
+    const open = () => s.active && s.setFrame(name);
+    close();
+    this.time.delayedCall(BLINK_MS, () => {
+      open();
+      if (times > 1) {
+        this.time.delayedCall(110, () => {
+          close();
+          this.time.delayedCall(BLINK_MS, () => { open(); this.endBlink(actor, playing); });
+        });
+      } else this.endBlink(actor, playing);
+    });
+  }
+
+  endBlink(actor, playing) {
+    actor.blinking = false;
+    if (playing && actor.sprite.active) actor.sprite.anims.resume();
   }
 
   // Efectos de telenovela: temblor, flash y el «triple zoom» dramático.
@@ -258,7 +383,13 @@ export class DialogueScene extends Phaser.Scene {
     this.scene.start(this.then.key, this.then.data);
   }
 
-  update(_, delta) {
+  update(time, delta) {
     this.weather?.update(delta);
+    // Quien no está hablando parpadea de vez en cuando.
+    for (const a of Object.values(this.actors)) {
+      if (a === this.speaker || a.id === 'perro' || time < a.nextBlink) continue;
+      a.nextBlink = time + Phaser.Math.Between(...BLINK_EVERY);
+      this.blink(a);
+    }
   }
 }
