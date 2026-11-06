@@ -29,7 +29,7 @@ export function showPhoneNotice() {
     <div class="phone-notice" role="status">
       ${ICON}
       <h2>Este juego fue diseñado para computadoras y tablets</h2>
-      <p>¡Pruébalo ahí! Sofía corre cuando escribes, y para eso necesitas un teclado de verdad.</p>
+      <p>¡Pruébalo ahí! Sofía corre cuando escribes, y para eso necesitas un teclado algo más grande.</p>
       <button type="button" class="phone-share">Copiar enlace para después</button>
       <p class="phone-done" hidden>¡Listo! Ábrelo en tu computadora o tablet.</p>
     </div>`);

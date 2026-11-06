@@ -18,6 +18,7 @@ export class BootScene extends Phaser.Scene {
       await document.fonts.load('20px "VT323"');
     } catch { /* si la fuente falla se usa la de respaldo */ }
     generateArt(this);
+    this.game.events.emit('art-ready');
     this.scene.start('Title');
   }
 }

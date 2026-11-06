@@ -330,6 +330,11 @@ function frame(name, joints, pal, build = BUILDS.kid) {
   return { name, canvas: c };
 }
 
+// Cuadros de carrera sueltos (canvas), para dibujarlos fuera de Phaser (pantalla de carga).
+export function runFrames(pal) {
+  return Array.from({ length: RUN_FRAMES }, (_, i) => frame(`run${i}`, runPose(i / RUN_FRAMES), pal).canvas);
+}
+
 export function buildKidSheet(scene, key, pal) {
   const frames = [];
   for (let i = 0; i < RUN_FRAMES; i++) frames.push(frame(`run${i}`, runPose(i / RUN_FRAMES), pal));

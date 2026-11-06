@@ -132,6 +132,11 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
   Ninguno de los dos modos se guarda: al recargar la página se apagan.
 - En celulares (pantalla táctil y angosta) no se carga el juego: aparece un aviso de que está hecho
   para computadoras y tablets, con un botón para compartir o copiar el enlace. Las tablets sí lo cargan.
+- La página y el juego se cargan por separado: `src/main.js` es una entrada ligera (~7 kB comprimidos)
+  que muestra la página, el aviso para celulares o una barra de carga con Sofía corriendo
+  (`src/ui/loader.js`), y descarga el juego (`src/game.js`, con Phaser) con `import()`. Así la
+  página abre rápido y los buscadores ven el texto sin esperar al juego. La barra avanza por
+  tiempo y se completa cuando el arte del juego ya está listo.
 
 ### Progreso guardado
 

@@ -345,3 +345,54 @@ body.phone #caps-row, body.phone #panel { display: none; }
 }
 .phone-share:active { border-bottom-width: 3px; transform: translateY(2px); }
 .phone-done { color: var(--ok); }
+
+/* ---------- Pantalla de carga del juego ---------- */
+
+.loader {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--bg);
+  transition: opacity 0.35s;
+}
+.loader.leaving { opacity: 0; }
+.loader-title { margin: 0 0 18px; font-size: 2.2rem; color: var(--hint); text-shadow: 3px 3px 0 var(--ink); }
+.loader-track { position: relative; width: min(70%, 420px); padding-top: 96px; }
+.loader-sofia {
+  position: absolute;
+  bottom: 22px;
+  width: 72px;
+  height: 96px;
+  image-rendering: pixelated;
+}
+.loader-bar {
+  height: 22px;
+  border: 3px solid var(--ink);
+  border-radius: 4px;
+  background: var(--cream);
+  box-shadow: 0 0 0 3px var(--gold);
+  overflow: hidden;
+}
+.loader-fill {
+  width: 0;
+  height: 100%;
+  background: repeating-linear-gradient(90deg, var(--accent) 0 12px, var(--hint) 12px 24px);
+}
+.loader-text { margin: 12px 0 0; font-size: 1.3rem; color: var(--text); }
+.loader.error .loader-text { color: #ff8a80; }
+.loader-retry {
+  font: inherit;
+  font-size: 1.1rem;
+  background: var(--hint);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  border-bottom-width: 5px;
+  border-radius: 8px;
+  padding: 4px 14px;
+  cursor: pointer;
+}
