@@ -10,7 +10,6 @@ import { RunScene } from './scenes/RunScene.js';
 import { ResultsScene } from './scenes/ResultsScene.js';
 import { DialogueScene } from './scenes/DialogueScene.js';
 import { Music } from './audio/music.js';
-import { showMusicToast } from './ui/music-toast.js';
 
 // Espacio, flechas y Re Pág/Av Pág son controles del juego: mientras el juego se ve en pantalla
 // no deben desplazar la página (p. ej. el espacio en los diálogos la mandaba hasta abajo).
@@ -37,7 +36,6 @@ export function startGame(onReady) {
 
   // El navegador solo deja sonar audio después de la primera tecla o clic.
   for (const ev of ['keydown', 'pointerdown']) window.addEventListener(ev, () => Music.unlock(), true);
-  Music.onMuteChange(showMusicToast);
 
   const game = new Phaser.Game({
     type: Phaser.AUTO,

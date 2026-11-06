@@ -95,7 +95,10 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
 - Antes de cada nivel hay una lección: las teclas nuevas o, si el nivel no tiene, un calentamiento
   con dos pares de teclas ya aprendidas. Sale la primera vez y cada vez que se juega con historia.
 - En resultados hay botones (también con su tecla) para reintentar o pasar al siguiente nivel; si
-  ese nivel ya está superado, se puede elegir jugarlo con historia o sin ella.
+  ese nivel ya está superado, se puede elegir jugarlo con historia o sin ella. Al superar el
+  último nivel de un capítulo, el botón «Siguiente capítulo» (→) lleva directo a su nivel 1.
+- Sofía tiene el pelo que le tapa la frente y enmarca la oreja, y una trenza de dos tonos con
+  listón amarillo en la nuca y en la punta (peinado `braid` en `src/art/kid.js`).
 - Personajes: Sofía; su papá Ramiro, su mamá Leticia y su hermano Tomás (Tomasito); Dani, su mejor
   amigo y vecino; la Tata, abuela de Dani y dueña de Abarrotes La Esperanza; Los Gatos (Kevin, Yesi,
   Chuy, Brayan y Memo); el perro guardián y Don Chema, el panadero del mercado.
@@ -117,8 +120,9 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
   (se hace para atrás) a las sacudidas y destellos.
 - El fondo de cada nivel y de cada diálogo tiene detalles al fondo (gatos, bicis, botes, macetas,
   perros, carteles…) acomodados al azar pero siempre igual para el mismo nivel; dependen del lugar
-  (`THEME_DETAILS` en `src/art/details.js`). Salen pocos, sin contorno negro y con colores
-  apagados, con la misma estética del fondo, para no confundirse con los obstáculos.
+  (`THEME_DETAILS` en `src/art/details.js`). Salen pocos y se apoyan en la base de las casas
+  (nunca en la banqueta); en lugar de contorno negro llevan una orilla de su mismo color más
+  oscuro y colores apagados, con la misma estética del fondo, para no confundirse con los obstáculos.
 - Los obstáculos tienen versiones: sillas de varios colores, manteles de la mesa (sin nada encima: por ahí se desliza Sofía),
   charcos de lodo, barreras de colores y bardas con grafitis («LOS GATOS», «ASUMOMEZAC»,
   «RÁFAGA») o el cartel de la carrera. La lista está en `OBSTACLE_VARIANTS` de `src/art/props.js`.
@@ -157,8 +161,9 @@ incógnito o al borrar los datos del sitio. El aviso de privacidad está en `pub
 
 Música de 8 bits generada en el navegador (WebAudio, sin archivos de audio): pulsos para la
 melodía, triángulo para el bajo y ruido para la batería. Pistas en `src/audio/tracks.js`.
-La tecla M la prende o apaga en menús y diálogos (se recuerda entre partidas) y aparece un aviso
-con el ícono de bocina. Hay pistas propias para los momentos clave: el despertar de Sofía, la
+La tecla M (o un clic en el ícono de bocina) abre un selector de volumen de 0 a 100 %: ← → lo
+ajustan y M, Enter o Esc lo cierran. El ícono muestra de 3 ondas a una X según el volumen, que se
+recuerda entre partidas (`src/ui/volume-panel.js` y `src/ui/volume-icon.js`). Hay pistas propias para los momentos clave: el despertar de Sofía, la
 primera fila vacía, Los Gatos, los corazones rotos, el peligro en la niebla, la soledad, el
 reencuentro con Dani y la victoria.
 

@@ -2,14 +2,14 @@
 import Phaser from 'phaser';
 import { Save } from '../core/save.js';
 import * as Layout from '../core/layout.js';
-import { starsFor, starBreakdown, levelRules, levelStatus, nextLevel, canFail, accuracyTarget } from '../game/rules.js';
+import { starsFor, starBreakdown, levelRules, levelStatus, nextLevel, canFail, accuracyTarget, chapterUnlocked } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
 import { escapeHTML } from '../ui/keyboard-view.js';
-import { levelName } from '../data/chapters.js';
+import { levelName, PLAYABLE } from '../data/chapters.js';
 import { goalLines } from './LevelMapScene.js';
 import { startLevel, storyFor } from './flow.js';
 import { Music } from '../audio/music.js';
-import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime, button, buttonRow } from './common.js';
+import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime, button, buttonRow, openVolume } from './common.js';
 
 // Por qué no se superó el nivel, según el tipo de jefe.
 function failText(level, rules, reason) {
@@ -89,6 +89,12 @@ export class ResultsScene extends Phaser.Scene {
 
     const next = nextLevel(chapter, level);
     this.next = next && levelStatus(chapter, next, Save).unlocked ? next : null;
+    // Al superar el último nivel del capítulo: botón para empezar el nivel 1 del siguiente capítulo.
+    const nextChapter = PLAYABLE[chapter.index + 1];
+    const chapterDone = result.passed && level.id === chapter.levels.at(-1).id && nextChapter &&
+      chapterUnlocked(PLAYABLE, nextChapter.index, Save);
+    const firstOfNext = chapterDone ? nextChapter.levels[0] : null;
+    const nextChapterReplay = firstOfNext && Save.level(firstOfNext.id).passed && storyFor(nextChapter, firstOfNext);
     // Si un nivel ya está superado se puede jugar con historia o sin ella: este y el siguiente.
     const replay = Save.level(level.id).passed && storyFor(chapter, level);
     const nextReplay = this.next && Save.level(this.next.id).passed && storyFor(chapter, this.next);
@@ -98,6 +104,8 @@ export class ResultsScene extends Phaser.Scene {
       retryStory: () => replay && startLevel(this, chapter, level, { story: true }),
       next: () => this.next && startLevel(this, chapter, this.next, nextReplay ? { story: false } : undefined),
       nextStory: () => nextReplay && startLevel(this, chapter, this.next, { story: true }),
+      nextChapter: () => firstOfNext && startLevel(this, nextChapter, firstOfNext, nextChapterReplay ? { story: false } : undefined),
+      nextChapterStory: () => nextChapterReplay && startLevel(this, nextChapter, firstOfNext, { story: true }),
       map: () => this.scene.start('LevelMap', { chapter, select: (result.passed && this.next ? this.next : level).id }),
     };
     const CX = 595;
@@ -108,9 +116,13 @@ export class ResultsScene extends Phaser.Scene {
     buttonRow(this, CX, 484, [
       ...(this.next ? [{ key: '→', label: nextReplay ? 'Siguiente' : 'Siguiente nivel', onClick: actions.next, primary: result.passed }] : []),
       ...(nextReplay ? [{ key: 'Mayús →', label: 'Siguiente con historia', onClick: actions.nextStory }] : []),
+      ...(firstOfNext ? [{ key: '→', label: `Siguiente capítulo`, onClick: actions.nextChapter, primary: true }] : []),
+      ...(nextChapterReplay ? [{ key: 'Mayús →', label: 'Con historia', onClick: actions.nextChapterStory }] : []),
       { key: 'Esc', label: 'Mapa', onClick: actions.map },
     ]);
-    button(this, W - 132, 8, { key: 'M', label: 'Música', onClick: () => Music.toggleMute() });
+    const music = button(this, 0, 8, { key: 'M', label: 'Música', volumeIcon: true, onClick: () => openVolume(this) });
+    music.container.x = W - 16 - music.width;
+    this.musicAnchor = { x: music.container.x + music.width / 2, y: 8 + 20 };
 
     const weak = Object.entries(result.errByChar).sort((a, b) => b[1] - a[1]);
     const weakHtml = '<h3>Teclas a practicar</h3>' + (weak.length
@@ -125,7 +137,10 @@ export class ResultsScene extends Phaser.Scene {
       Enter: actions.retry,
       h: actions.retryStory,
       H: actions.retryStory,
-      ArrowRight: e => (e.shiftKey ? actions.nextStory() : actions.next()),
+      ArrowRight: e => {
+        if (firstOfNext) return e.shiftKey ? actions.nextChapterStory() : actions.nextChapter();
+        return e.shiftKey ? actions.nextStory() : actions.next();
+      },
       Escape: actions.map,
     });
   }

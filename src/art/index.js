@@ -4,6 +4,7 @@ import { buildDogSheet } from './dog.js';
 import { buildProps } from './props.js';
 import { buildBackgrounds } from './backgrounds.js';
 import { buildDetails } from './details.js';
+import { buildIcons } from './icons.js';
 
 // Complexión de cada personaje. Todos pueden correr (la Tata y la mamá persiguen a Sofía).
 export const CAST_BUILDS = {
@@ -20,6 +21,7 @@ export function generateArt(scene) {
   buildProps(scene);
   buildBackgrounds(scene);
   buildDetails(scene);
+  buildIcons(scene);
 
   const frames = (key, names) => names.map(frame => ({ key, frame }));
   for (const key of RUNNERS) {

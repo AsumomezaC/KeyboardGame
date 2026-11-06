@@ -7,6 +7,8 @@ import { Save } from '../core/save.js';
 import { PLAYABLE, allLevels } from '../data/chapters.js';
 import { showDevToast } from '../ui/music-toast.js';
 import { Dev } from '../core/dev.js';
+import { toggleVolumePanel } from '../ui/volume-panel.js';
+import { volumeLevel } from '../ui/volume-icon.js';
 
 export const W = 960;
 export const H = 540;
@@ -59,7 +61,7 @@ const LAYER_DEPTH = { far: -16, mid: -15, ground: -14, details: -13 };
 // como fondo. Solo existen los que están cerca de la pantalla.
 const DETAIL_SLOT = 220;
 const DETAIL_PARALLAX = 0.6;
-const DETAIL_CHANCE = 0.3;
+const DETAIL_CHANCE = 0.21;
 
 function hash(seed, k) {
   let h = 2166136261 ^ k;
@@ -84,7 +86,7 @@ function detailLayer(scene, theme, seed) {
         if (!live.has(slot)) {
           if (hash(seed, slot * 3) > DETAIL_CHANCE) { live.set(slot, { destroy() {}, x: 0 }); continue; }
           const key = keys[Math.floor(hash(seed, slot * 3 + 1) * keys.length)];
-          const s = scene.add.image(0, GROUND_TOP + 5, key).setOrigin(0.5, 1).setScale(2)
+          const s = scene.add.image(0, GROUND_TOP - 1, key).setOrigin(0.5, 1).setScale(2)
             .setTint(0xd8d4e0).setDepth(LAYER_DEPTH.details).setFlipX(hash(seed, slot * 3 + 2) < 0.5);
           s.slotX = slot * DETAIL_SLOT + 30 + hash(seed, slot * 7 + 5) * (DETAIL_SLOT - 60);
           live.set(slot, s);
@@ -131,13 +133,28 @@ export function onKeys(scene, map) {
   scene.input.keyboard.on('keydown', e => {
     const fn = map[e.key];
     if (fn) fn(e);
-    else if (e.key === 'm' || e.key === 'M') Music.toggleMute();
+    else if (e.key === 'm' || e.key === 'M') openVolume(scene);
     else if (e.key === '|') developerMode(scene);
     else if (e.key === 'Tab' && Dev.enabled) {
       e.preventDefault();
       toggleCinematics();
     }
   });
+}
+
+// Abre (o cierra) el selector de volumen junto al ícono de música de la escena.
+export function openVolume(scene) {
+  toggleVolumePanel(scene.musicAnchor);
+}
+
+// Ícono de música que cambia con el volumen (de bocina con 3 ondas a silencio).
+// prefix: 'vol' (claro, para fondo oscuro) o 'vol-ink' (oscuro, para botones crema).
+export function volumeImage(scene, x, y, prefix = 'vol') {
+  const img = scene.add.image(x, y, `${prefix}-${volumeLevel(Music.volume)}`).setScale(2);
+  const stop = Music.onVolumeChange(v => img.active && img.setTexture(`${prefix}-${volumeLevel(v)}`));
+  scene.events.once('shutdown', stop);
+  img.once('destroy', stop);
+  return img;
 }
 
 // Desbloquea todos los niveles (también los secretos) con 3 estrellas y vuelve a dibujar el menú.
@@ -166,20 +183,24 @@ export function keyLegend(scene, items) {
       fontFamily: FONT, fontSize: px(16), fontStyle: 'normal', color: INK,
       backgroundColor: CREAM, padding: { x: 8, y: 3 },
     }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
-    const desc = text(scene, 0, y, label, 16, '#ffffff', { oy: 0.5, bold: false, strokeThickness: 0 }).setScrollFactor(0).setDepth(100);
-    const fn = action || (key === 'M' ? () => Music.toggleMute() : null);
-    return { cap, desc, fn, w: cap.width + 8 + desc.width };
+    const isMusic = key === 'M';
+    const desc = isMusic
+      ? volumeImage(scene, 0, y).setOrigin(0, 0.5).setScrollFactor(0).setDepth(100)
+      : text(scene, 0, y, label, 16, '#ffffff', { oy: 0.5, bold: false, strokeThickness: 0 }).setScrollFactor(0).setDepth(100);
+    const fn = action || (isMusic ? () => openVolume(scene) : null);
+    return { cap, desc, fn, isMusic, w: cap.width + 8 + desc.displayWidth };
   });
   const GAP = 28;
   let x = (W - parts.reduce((n, p) => n + p.w, 0) - GAP * (parts.length - 1)) / 2;
   for (const p of parts) {
     p.cap.x = x;
     p.desc.x = x + p.cap.width + 8;
+    if (p.isMusic) scene.musicAnchor = { x: x + p.w / 2, y };
     if (p.fn) {
       const hit = scene.add.zone(x - 4, H - BAR_H, p.w + 8, BAR_H).setOrigin(0).setScrollFactor(0).setDepth(101)
         .setInteractive({ useHandCursor: true });
-      hit.on('pointerover', () => { p.cap.setBackgroundColor('#ffd23f'); p.desc.setColor('#ffd23f'); });
-      hit.on('pointerout', () => { p.cap.setBackgroundColor(CREAM); p.desc.setColor('#ffffff'); });
+      hit.on('pointerover', () => { p.cap.setBackgroundColor('#ffd23f'); p.desc.setColor?.('#ffd23f'); });
+      hit.on('pointerout', () => { p.cap.setBackgroundColor(CREAM); p.desc.setColor?.('#ffffff'); });
       hit.on('pointerdown', (_pointer, _x, _y, event) => {
         event.stopPropagation();
         p.fn();
@@ -193,13 +214,15 @@ export function keyLegend(scene, items) {
 // Botón con relieve: borde oscuro, sombra, brillo y la tecla de atajo dibujada a la izquierda.
 // Se ilumina al pasar el ratón y se hunde al pulsarlo. Devuelve { container, width }.
 const BTN_H = 40;
-export function button(scene, x, y, { key, label, onClick, primary = false }) {
+export function button(scene, x, y, { key, label, onClick, primary = false, volumeIcon = false }) {
   const c = scene.add.container(x, y).setDepth(110);
   const g = scene.add.graphics();
   const keyT = scene.add.text(0, 0, key, { fontFamily: FONT, fontSize: px(15), color: CREAM }).setOrigin(0.5);
-  const labelT = text(scene, 0, 0, label, 18, INK, { oy: 0.5, strokeThickness: 0 });
+  const labelT = volumeIcon
+    ? volumeImage(scene, 0, 0, 'vol-ink').setOrigin(0, 0.5)
+    : text(scene, 0, 0, label, 18, INK, { oy: 0.5, strokeThickness: 0 });
   const kw = Math.max(26, keyT.width + 12);
-  const width = 14 + kw + 10 + labelT.width + 16;
+  const width = 14 + kw + 10 + labelT.displayWidth + 16;
   const face = primary ? 0xffe680 : Phaser.Display.Color.HexStringToColor(CREAM).color;
   const draw = state => {
     const dy = state === 'down' ? 3 : 0;

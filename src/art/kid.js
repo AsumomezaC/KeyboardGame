@@ -158,7 +158,7 @@ function drawArm(p, shoulder, elbow, hand, pal, back, limb = 2) {
 // Trenza de Sofía: sale de la nuca con un listón, cae hacia atrás (más extendida al correr) y
 // termina con otro listón y una puntita. Los pixeles alternan dos tonos para que se lea trenzada.
 function drawBraid(p, h, pal, swing, len = 7) {
-  const tx = h.x - 5, ty = h.y - 1;
+  const tx = h.x - 6, ty = h.y + 1;
   const a = 1.15 - 0.3 * swing; // ángulo bajo la horizontal, hacia atrás
   const pts = [];
   for (let k = 0; k <= len; k++) pts.push({ x: Math.round(tx - Math.cos(a) * k * 0.9), y: Math.round(ty + Math.sin(a) * k) });
@@ -184,24 +184,15 @@ function drawHead(p, h, pal, face, swing, blink = false) {
     p.px(h.x - 4, h.y - 2, pal.accent);
   }
   if (pal.hairStyle === 'bun') p.disc(h.x - 5, h.y - 4, 2, pal.hair);
-  if (pal.hairStyle === 'braid') {
-    // pelo recogido: sigue la forma del cráneo, con un mechón que cae sobre la frente
-    p.disc(h.x - 1, h.y - 1, 4, pal.hair);
-    p.rect(h.x - 4, h.y - 4, 7, 2, pal.hair);
-    p.disc(h.x + 1, h.y + 1, 4, pal.skin);
-    p.rect(h.x - 1, h.y - 4, 5, 1, pal.hair);
-    p.rect(h.x + 3, h.y - 3, 2, 1, pal.hair);
-    p.px(h.x - 1, h.y - 3, pal.hair);
-    p.px(h.x - 3, h.y - 4, pal.hairLight); p.px(h.x - 2, h.y - 5, pal.hairLight); p.px(h.x + 1, h.y - 4, pal.hairLight);
+  // Mismo pelo de siempre (tapa la frente y enmarca la oreja); la trenza sale por detrás.
+  p.disc(h.x - 1, h.y - 1, pal.hairStyle === 'buzz' ? 4 : 5, pal.hair);
+  p.disc(h.x + 1, h.y + 1, 4, pal.skin);
+  if (tie) {
     // listón donde se amarra la trenza
-    p.px(tie.tx, tie.ty, pal.ribbon || pal.accent);
-    p.px(tie.tx + 1, tie.ty - 1, pal.ribbon || pal.accent);
-    p.px(tie.tx - 1, tie.ty - 1, pal.ribbon || pal.accent);
-  } else {
-    p.disc(h.x - 1, h.y - 1, pal.hairStyle === 'buzz' ? 4 : 5, pal.hair);
-    p.disc(h.x + 1, h.y + 1, 4, pal.skin);
+    const rib = pal.ribbon || pal.accent;
+    p.px(tie.tx, tie.ty, rib); p.px(tie.tx - 1, tie.ty - 1, rib); p.px(tie.tx - 1, tie.ty + 1, rib);
   }
-  if (pal.hairStyle !== 'buzz' && pal.hairStyle !== 'braid') {
+  if (pal.hairStyle !== 'buzz') {
     p.rect(h.x - 1, h.y - 4, 5, 2, pal.hair); // fleco
     p.px(h.x - 2, h.y - 4, pal.hairLight);
   }

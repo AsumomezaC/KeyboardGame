@@ -12,7 +12,7 @@ import { CAST, NARRATOR_VOICE } from '../data/cast.js';
 import { BLINKABLE } from '../art/kid.js';
 import { addWeather } from './weather.js';
 import { storyFor } from './flow.js';
-import { W, SCALE, FEET_Y, GROUND_TOP, FONT, px, backdrop, keyLegend } from './common.js';
+import { W, SCALE, FEET_Y, GROUND_TOP, FONT, px, backdrop, keyLegend, openVolume } from './common.js';
 
 const CAM_Y = 110;            // la cámara baja para que los personajes queden sobre la caja de texto
 const CHARS_PER_S = 45;
@@ -204,7 +204,7 @@ export class DialogueScene extends Phaser.Scene {
     else if (e.key === 'Escape') {
       if (this.canSkip) this.end();
       else if (this.part === 'before') this.scene.start('LevelMap', { chapter: this.chapter, select: this.level.id });
-    } else if (e.key === 'm' || e.key === 'M') Music.toggleMute();
+    } else if (e.key === 'm' || e.key === 'M') openVolume(this);
   }
 
   advance() {

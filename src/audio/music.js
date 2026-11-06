@@ -5,7 +5,8 @@
 // una nota («E5»), «-» para sostener la anterior o «.» para silencio.
 import { TRACKS } from './tracks.js';
 
-const KEY = 'parkourTecla.music';
+const KEY = 'parkourTecla.music';    // versión vieja: 'on' / 'off'
+const VOLUME_KEY = 'parkourTecla.volume'; // de 0 a 1
 const LOOKAHEAD_S = 0.15;
 const MASTER = 0.16;
 
@@ -16,12 +17,22 @@ let pulses = {};
 let timer = 0;
 let current = null;   // nombre de la pista sonando (o pedida antes de desbloquear el audio)
 let state = null;     // { track, step, nextTime }
-let muted = readMuted();
-const muteListeners = [];
+let volume = readVolume();
+let lastVolume = volume || 1; // para volver a prender con la tecla de silencio
+const volumeListeners = [];
 
-function readMuted() {
-  try { return localStorage.getItem(KEY) === 'off'; } catch { return false; }
+function readVolume() {
+  try {
+    const saved = localStorage.getItem(VOLUME_KEY);
+    if (saved !== null && !Number.isNaN(Number(saved))) return Math.min(1, Math.max(0, Number(saved)));
+    return localStorage.getItem(KEY) === 'off' ? 0 : 1;
+  } catch {
+    return 1;
+  }
 }
+
+// Volumen percibido: el oído escucha en escala logarítmica, así que se eleva al cuadrado.
+const gainFor = v => MASTER * v * v;
 
 const NOTE_INDEX = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
@@ -62,7 +73,7 @@ function pulseWave(duty) {
 function setup() {
   ctx = new (window.AudioContext || window.webkitAudioContext)();
   master = ctx.createGain();
-  master.gain.value = muted ? 0 : MASTER;
+  master.gain.value = gainFor(volume);
   master.connect(ctx.destination);
   pulses = { 12: pulseWave(0.125), 25: pulseWave(0.25), 50: pulseWave(0.5) };
   noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
@@ -256,25 +267,42 @@ export const Music = {
   },
 
   get muted() {
-    return muted;
+    return volume === 0;
+  },
+
+  // Volumen de 0 a 1 (se recuerda entre partidas).
+  get volume() {
+    return volume;
+  },
+
+  setVolume(v) {
+    v = Math.round(Math.min(1, Math.max(0, v)) * 100) / 100;
+    if (v === volume) return volume;
+    volume = v;
+    if (v > 0) lastVolume = v;
+    try { localStorage.setItem(VOLUME_KEY, String(v)); } catch { /* sin almacenamiento */ }
+    if (master) master.gain.setTargetAtTime(gainFor(v), ctx.currentTime, 0.05);
+    for (const fn of volumeListeners) fn(v);
+    return v;
   },
 
   toggleMute() {
-    muted = !muted;
-    try { localStorage.setItem(KEY, muted ? 'off' : 'on'); } catch { /* sin almacenamiento */ }
-    if (master) master.gain.setTargetAtTime(muted ? 0 : MASTER, ctx.currentTime, 0.05);
-    for (const fn of muteListeners) fn(muted);
-    return muted;
+    return this.setVolume(volume > 0 ? 0 : lastVolume);
   },
 
-  onMuteChange(fn) {
-    muteListeners.push(fn);
+  // Avisa cada cambio de volumen. Devuelve una función para dejar de escuchar.
+  onVolumeChange(fn) {
+    volumeListeners.push(fn);
+    return () => {
+      const i = volumeListeners.indexOf(fn);
+      if (i >= 0) volumeListeners.splice(i, 1);
+    };
   },
 
   // Una sílaba de voz para la letra ch. voice: { pitch, len, duty|wave, formant, range, slide,
   // wobble, vol, growl }. mood: gesto de quien habla (cambia tono, volumen y duración).
   voice(voice, ch, mood) {
-    if (!ctx || ctx.state !== 'running' || muted || !voice || !/\p{L}/u.test(ch)) return;
+    if (!ctx || ctx.state !== 'running' || volume === 0 || !voice || !/\p{L}/u.test(ch)) return;
     syllable(voice, ch, mood);
   },
 };
