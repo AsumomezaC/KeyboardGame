@@ -57,9 +57,9 @@ const LAYER_DEPTH = { far: -16, mid: -15, ground: -14, details: -13 };
 // Detalles del fondo (gatos, bicis, carritos…): uno cada DETAIL_SLOT px, decididos con la semilla
 // del nivel. Se mueven con un paralaje intermedio, más chicos y apagados que el juego: se notan
 // como fondo. Solo existen los que están cerca de la pantalla.
-const DETAIL_SLOT = 170;
+const DETAIL_SLOT = 220;
 const DETAIL_PARALLAX = 0.6;
-const DETAIL_CHANCE = 0.55;
+const DETAIL_CHANCE = 0.3;
 
 function hash(seed, k) {
   let h = 2166136261 ^ k;
@@ -85,7 +85,7 @@ function detailLayer(scene, theme, seed) {
           if (hash(seed, slot * 3) > DETAIL_CHANCE) { live.set(slot, { destroy() {}, x: 0 }); continue; }
           const key = keys[Math.floor(hash(seed, slot * 3 + 1) * keys.length)];
           const s = scene.add.image(0, GROUND_TOP + 5, key).setOrigin(0.5, 1).setScale(2)
-            .setTint(0xc8c4d4).setDepth(LAYER_DEPTH.details).setFlipX(hash(seed, slot * 3 + 2) < 0.5);
+            .setTint(0xd8d4e0).setDepth(LAYER_DEPTH.details).setFlipX(hash(seed, slot * 3 + 2) < 0.5);
           s.slotX = slot * DETAIL_SLOT + 30 + hash(seed, slot * 7 + 5) * (DETAIL_SLOT - 60);
           live.set(slot, s);
         }

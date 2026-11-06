@@ -1,13 +1,28 @@
 // Detalles del fondo: objetos pequeños que aparecen al pie de las casas, distintos en cada tramo.
-// Se dibujan más chicos y apagados que los obstáculos para que se lean como fondo.
-import { makeCanvas, outline, addImage } from './pixel.js';
+// Como el resto del fondo, no llevan contorno negro y sus colores se apagan (menos saturados y
+// un poco más oscuros), para que nunca se confundan con los obstáculos.
+import { makeCanvas, addImage } from './pixel.js';
 
 const INK = '#2b1d2e';
+const SATURATION = 0.45; // cuánto color conserva (1 = igual)
+const BRIGHTNESS = 0.85;
+
+function mute(c) {
+  const ctx = c.getContext('2d');
+  const img = ctx.getImageData(0, 0, c.width, c.height);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (!d[i + 3]) continue;
+    const gray = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2];
+    for (let k = 0; k < 3; k++) d[i + k] = (gray + (d[i + k] - gray) * SATURATION) * BRIGHTNESS;
+  }
+  ctx.putImageData(img, 0, 0);
+}
 
 function draw(w, h, fn) {
   const { c, p } = makeCanvas(w, h);
   fn(p);
-  outline(c, INK);
+  mute(c);
   return c;
 }
 

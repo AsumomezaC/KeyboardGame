@@ -91,7 +91,7 @@ function chair(v) {
   return c;
 }
 
-// Mesa larga de fiesta: Sofía se desliza por encima. Cambian el mantel y lo que hay encima.
+// Mesa larga de fiesta: Sofía se desliza por encima, así que no tiene nada arriba. Cambia el mantel.
 const CLOTHS = [['#c1121f', '#f4f1e8'], ['#3d5aa8', '#f4f1e8'], ['#2a9d8f', '#fff3b0'], ['#9b5de5', '#f4f1e8']];
 function table(v) {
   const [a, b] = CLOTHS[v];
@@ -100,10 +100,6 @@ function table(v) {
   for (let x = 1; x < 45; x += 4) { p.rect(x, 4, 2, 3, b); p.rect(x + 2, 7, 2, 3, a); p.rect(x, 7, 2, 3, b); }
   p.rect(4, 10, 2, 10, '#6d4c41'); p.rect(40, 10, 2, 10, '#6d4c41');
   p.line(5, 14, 41, 14, '#5a3d32');
-  if (v === 0) { p.rect(10, 1, 3, 3, '#ffd23f'); p.rect(30, 2, 4, 2, '#80ed99'); }
-  if (v === 1) { p.rect(18, 0, 8, 4, '#f4f1e8'); p.rect(18, 0, 8, 1, '#e94f64'); } // pastel
-  if (v === 2) { p.rect(8, 1, 6, 3, '#d9a066'); p.rect(30, 1, 6, 3, '#d9a066'); } // pan dulce
-  if (v === 3) { for (const x of [12, 20, 28]) { p.rect(x, 1, 3, 3, '#e94f64'); p.px(x + 1, 0, '#4f8a3a'); } } // jarritos
   outline(c, INK);
   return c;
 }

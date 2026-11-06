@@ -11,7 +11,7 @@ export const PALETTES = {
     skin: '#f2c29b', skinDark: '#d9946c', hair: '#4a2a1f', hairLight: '#7a4a32',
     shirt: '#e94f64', shirtDark: '#b83350', shorts: '#3d5aa8', shortsDark: '#2c4280',
     shoe: '#f5f5f5', shoeAccent: '#e23d3d', accent: '#ffd23f', eye: '#2b1d2e', blush: '#f08a8a',
-    outline: '#2b1d2e', hairStyle: 'pony',
+    outline: '#2b1d2e', hairStyle: 'braid',
   },
   rivalA: {
     skin: '#c98d62', skinDark: '#a8704a', hair: '#1f1a17', hairLight: '#3a302a',
@@ -155,8 +155,28 @@ function drawArm(p, shoulder, elbow, hand, pal, back, limb = 2) {
   }
 }
 
+// Trenza de Sofía: sale de la nuca con un listón, cae hacia atrás (más extendida al correr) y
+// termina con otro listón y una puntita. Los pixeles alternan dos tonos para que se lea trenzada.
+function drawBraid(p, h, pal, swing, len = 7) {
+  const tx = h.x - 5, ty = h.y - 1;
+  const a = 1.15 - 0.3 * swing; // ángulo bajo la horizontal, hacia atrás
+  const pts = [];
+  for (let k = 0; k <= len; k++) pts.push({ x: Math.round(tx - Math.cos(a) * k * 0.9), y: Math.round(ty + Math.sin(a) * k) });
+  pts.forEach(({ x, y }, k) => {
+    const [c1, c2] = k % 2 ? [pal.hairLight, pal.hair] : [pal.hair, pal.hairLight];
+    p.px(x, y, c1);
+    if (k < len - 1) p.px(x - 1, y, c2);
+  });
+  const end = pts[len];
+  p.px(end.x, end.y, pal.ribbon || pal.accent);
+  p.px(end.x - 1, end.y + 1, pal.hair);
+  return { tx, ty };
+}
+
 function drawHead(p, h, pal, face, swing, blink = false) {
   // Cabello atrás, cara adelante (mira a la derecha).
+  let tie = null;
+  if (pal.hairStyle === 'braid') tie = drawBraid(p, h, pal, swing);
   if (pal.hairStyle === 'pony') {
     p.line(h.x - 4, h.y - 3, h.x - 8, h.y - 1 + swing, pal.hair, 2);
     p.line(h.x - 8, h.y - 1 + swing, h.x - 9, h.y + 2 + swing * 2, pal.hair, 2);
@@ -164,9 +184,24 @@ function drawHead(p, h, pal, face, swing, blink = false) {
     p.px(h.x - 4, h.y - 2, pal.accent);
   }
   if (pal.hairStyle === 'bun') p.disc(h.x - 5, h.y - 4, 2, pal.hair);
-  p.disc(h.x - 1, h.y - 1, pal.hairStyle === 'buzz' ? 4 : 5, pal.hair);
-  p.disc(h.x + 1, h.y + 1, 4, pal.skin);
-  if (pal.hairStyle !== 'buzz') {
+  if (pal.hairStyle === 'braid') {
+    // pelo recogido: sigue la forma del cráneo, con un mechón que cae sobre la frente
+    p.disc(h.x - 1, h.y - 1, 4, pal.hair);
+    p.rect(h.x - 4, h.y - 4, 7, 2, pal.hair);
+    p.disc(h.x + 1, h.y + 1, 4, pal.skin);
+    p.rect(h.x - 1, h.y - 4, 5, 1, pal.hair);
+    p.rect(h.x + 3, h.y - 3, 2, 1, pal.hair);
+    p.px(h.x - 1, h.y - 3, pal.hair);
+    p.px(h.x - 3, h.y - 4, pal.hairLight); p.px(h.x - 2, h.y - 5, pal.hairLight); p.px(h.x + 1, h.y - 4, pal.hairLight);
+    // listón donde se amarra la trenza
+    p.px(tie.tx, tie.ty, pal.ribbon || pal.accent);
+    p.px(tie.tx + 1, tie.ty - 1, pal.ribbon || pal.accent);
+    p.px(tie.tx - 1, tie.ty - 1, pal.ribbon || pal.accent);
+  } else {
+    p.disc(h.x - 1, h.y - 1, pal.hairStyle === 'buzz' ? 4 : 5, pal.hair);
+    p.disc(h.x + 1, h.y + 1, 4, pal.skin);
+  }
+  if (pal.hairStyle !== 'buzz' && pal.hairStyle !== 'braid') {
     p.rect(h.x - 1, h.y - 4, 5, 2, pal.hair); // fleco
     p.px(h.x - 2, h.y - 4, pal.hairLight);
   }
@@ -186,30 +221,31 @@ function drawHead(p, h, pal, face, swing, blink = false) {
   p.px(h.x - 1, h.y + 1, pal.skinDark); // oreja
   if (pal.earrings) p.px(h.x - 1, h.y + 3, pal.accent);
   const ex = h.x + 3, ey = h.y;
+  const m = pal.mouth || MOUTH;
   if (pal.stubble) { p.px(h.x + 1, h.y + 4, pal.skinDark); p.px(h.x + 3, h.y + 4, pal.skinDark); }
   if (face === 'cry') {
     p.px(ex - 1, ey + 1, pal.eye); p.px(ex, ey + 1, pal.eye); p.px(ex + 1, ey + 1, pal.eye);
-    p.px(ex, ey + 2, '#6fb1f2'); p.px(ex, ey + 3, '#6fb1f2');
-    p.px(ex + 1, ey + 4, pal.eye); p.px(ex + 2, ey + 3, pal.eye);
+    p.px(ex + 1, ey + 2, '#6fb1f2'); p.px(ex + 1, ey + 3, '#6fb1f2');
+    p.px(ex, ey + 3, m); p.px(ex - 1, ey + 4, m);
   } else if (face === 'angry') {
     p.px(ex - 1, ey - 2, pal.eye); p.px(ex, ey - 1, pal.eye);
     p.px(ex, ey, pal.eye); p.px(ex, ey + 1, pal.eye);
-    p.px(ex, ey + 3, pal.eye); p.px(ex + 1, ey + 3, pal.eye); p.px(ex + 2, ey + 3, pal.eye);
+    p.px(ex - 1, ey + 3, m); p.px(ex, ey + 3, m); p.px(ex + 1, ey + 3, m);
   } else if (face === 'shock') {
     p.rect(ex, ey - 1, 2, 2, pal.eye);
-    p.rect(ex + 1, ey + 3, 2, 2, pal.eye);
+    p.rect(ex, ey + 3, 2, 1, m); p.px(ex, ey + 4, m);
   } else if (face === 'ouch') {
     p.px(ex - 1, ey, pal.eye); p.px(ex, ey + 1, pal.eye); p.px(ex + 1, ey, pal.eye);
-    p.px(ex + 1, ey + 3, pal.eye); p.px(ex + 2, ey + 3, pal.eye);
+    p.px(ex, ey + 3, m); p.px(ex + 1, ey + 3, m);
   } else if (face === 'happy') {
     p.px(ex - 1, ey + 1, pal.eye); p.px(ex, ey, pal.eye); p.px(ex + 1, ey + 1, pal.eye);
-    p.px(ex + 1, ey + 3, pal.eye); p.px(ex + 2, ey + 3, '#c0392b');
+    p.px(ex, ey + 3, m); p.px(ex + 1, ey + 3, '#e0605a');
   } else {
     p.px(ex, ey, pal.eye); p.px(ex, ey + 1, pal.eye);
-    if (face === 'open') { p.px(ex + 1, ey + 3, pal.eye); p.px(ex + 1, ey + 4, pal.eye); }
-    else if (face === 'grit') { p.px(ex, ey + 3, pal.eye); p.px(ex + 1, ey + 3, pal.eye); p.px(ex + 2, ey + 3, pal.eye); }
-    else if (face === 'sad') { p.px(ex, ey + 4, pal.eye); p.px(ex + 1, ey + 3, pal.eye); }
-    else { p.px(ex + 1, ey + 3, pal.eye); p.px(ex + 2, ey + 3, pal.eye); }
+    if (face === 'open') { p.px(ex, ey + 3, m); p.px(ex, ey + 4, m); }
+    else if (face === 'grit') { p.px(ex - 1, ey + 3, m); p.px(ex, ey + 3, m); p.px(ex + 1, ey + 3, m); }
+    else if (face === 'sad') { p.px(ex - 1, ey + 4, m); p.px(ex, ey + 3, m); }
+    else { p.px(ex, ey + 3, m); p.px(ex + 1, ey + 3, m); }
   }
   // Parpadeo: el ojo se vuelve una rayita (la boca del gesto se queda igual).
   if (blink) {
@@ -225,6 +261,9 @@ function drawHead(p, h, pal, face, swing, blink = false) {
     p.line(h.x - 1, ey - 1, ex - 2, ey - 1, g);
   }
 }
+
+// Color de la boca: oscuro pero rojizo, distinto del contorno.
+const MOUTH = '#8a3a3f';
 
 function drawKid(p, j, pal, build = BUILDS.kid) {
   const { body, limb } = build;
@@ -363,6 +402,10 @@ export function buildKidHead(scene, key, pal) {
   if (pal.hairStyle === 'pony') {
     p.line(2, 4, 0, 7, pal.hair, 2);
     p.px(2, 4, pal.accent);
+  }
+  if (pal.hairStyle === 'braid') {
+    p.px(2, 6, pal.hair); p.px(1, 7, pal.hairLight); p.px(1, 8, pal.hair); p.px(0, 9, pal.hairLight);
+    p.px(2, 5, pal.ribbon || pal.accent);
   }
   outline(c, pal.outline);
   scene.textures.addCanvas(key, c);

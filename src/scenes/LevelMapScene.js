@@ -2,10 +2,10 @@
 // El secreto sale del nivel después del cual ocurre en la historia.
 import Phaser from 'phaser';
 import { Save } from '../core/save.js';
-import { levelRules, levelStatus, chapterStars, chapterMaxStars, canFail, accuracyTarget } from '../game/rules.js';
+import { levelRules, levelStatus, chapterStars, chapterMaxStars, canFail, accuracyTarget, chapterUnlocked } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
 import { escapeHTML } from '../ui/keyboard-view.js';
-import { levelName } from '../data/chapters.js';
+import { levelName, PLAYABLE } from '../data/chapters.js';
 import { CAST } from '../data/cast.js';
 import { WEATHER_NAMES } from '../data/weathers.js';
 import { Music } from '../audio/music.js';
@@ -180,7 +180,19 @@ export class LevelMapScene extends Phaser.Scene {
   step(d) {
     const last = this.chapter.levels.length - 1;
     if (this.onSecret()) this.select(this.chapter.secret.after - (d < 0 ? 1 : 0));
-    else this.select(Math.max(0, Math.min(last, this.index + d)));
+    else if (this.index + d < 0 || this.index + d > last) this.changeChapter(d);
+    else this.select(this.index + d);
+  }
+
+  // Desde el primer nivel (←) o el último (→) se pasa al capítulo anterior o siguiente, si existe
+  // y está abierto: al nivel que sigue en el orden de la historia (el último del anterior o el
+  // primero del siguiente).
+  changeChapter(d) {
+    const i = this.chapter.index + d;
+    const next = PLAYABLE[i];
+    if (!next || !chapterUnlocked(PLAYABLE, i, Save)) return;
+    const level = d < 0 ? next.levels.at(-1) : next.levels[0];
+    this.scene.start('LevelMap', { chapter: next, select: level.id });
   }
 
   select(i) {

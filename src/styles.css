@@ -66,6 +66,10 @@ body {
 .noscript { text-align: center; color: var(--hint); }
 #site-footer { text-align: center; color: var(--muted); padding: 0 16px 32px; }
 #site-footer a { color: var(--hint); }
+#site-footer p { margin: 10px 0 0; }
+.credits { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 40px; }
+.credits strong { color: var(--text); font-weight: normal; margin: 0 6px 0 2px; }
+.credits .role { display: block; font-size: 0.85rem; }
 
 #game {
   position: relative;
@@ -219,12 +223,13 @@ body {
 .kb-side.right .kb-row { justify-content: flex-end; }
 .play-center { min-width: 0; }
 
-/* Pantallas normales: una mitad del teclado a cada lado del texto, y el juego un poco más bajo
-   si hace falta, para que todo quepa sin desplazarse. */
+/* Pantallas normales: una mitad del teclado a cada lado del texto. El juego se achica en pantallas
+   bajas para que quepa más del panel, pero nunca a menos del 60 % del ancho de la ventana. */
 @media (min-width: 1100px) {
   #app { max-width: 1260px; }
   #game, #caps-row {
-    max-width: min(960px, calc((100vh - 370px) * 16 / 9));
+    /* nunca menos del 60 % del ancho de la ventana, aunque la pantalla sea baja */
+    max-width: clamp(60vw, calc((100vh - 370px) * 16 / 9), 960px);
     margin-left: auto;
     margin-right: auto;
   }

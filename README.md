@@ -8,6 +8,11 @@ rama `Borrador_Alfa`.
 
 **Juégalo en línea:** https://teclea-con-sofia.vercel.app (Vercel, se publica solo con cada cambio en `main`).
 
+**Desarrollo:** [AsumomezaC](https://github.com/AsumomezaC) (desarrollador principal,
+[LinkedIn](https://www.linkedin.com/in/cuevas-solis-adrian-fernando)) y [Esraly](https://github.com/Esraly)
+(segundo desarrollador, [LinkedIn](https://www.linkedin.com/in/jehm11)). Los créditos también
+están en el pie de la página y en los datos estructurados de `index.html` (`author`).
+
 ## Cómo correrlo
 
 Necesitas [Node.js](https://nodejs.org) (versión LTS, gratuito).
@@ -50,7 +55,9 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
   menú, las tarjetas se deslizan: flechas, rueda del ratón, la barra, los puntos o un clic llevan a
   cualquier capítulo.
 - En el mapa, ← → recorren los niveles. El secreto queda arriba: se entra con ↑ desde el nivel
-  anterior o el siguiente, y se sale con ← o → (o ↓).
+  anterior o el siguiente, y se sale con ← o → (o ↓). Desde el nivel 1, ← pasa al nivel 10 del
+  capítulo anterior; desde el nivel 10, → pasa al nivel 1 del siguiente (si ya está abierto).
+- Mientras el juego se ve en pantalla, el espacio y las flechas no desplazan la página.
 - Hay niveles de práctica («solo d k», «solo p q») y niveles con todas las letras aprendidas.
   Desde que se aprende el espacio, los niveles de práctica también lo usan («dk kd»). Cada
   nivel tiene un largo máximo de obstáculo; aun en los avanzados siguen saliendo obstáculos cortos.
@@ -110,9 +117,9 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
   (se hace para atrás) a las sacudidas y destellos.
 - El fondo de cada nivel y de cada diálogo tiene detalles al fondo (gatos, bicis, botes, macetas,
   perros, carteles…) acomodados al azar pero siempre igual para el mismo nivel; dependen del lugar
-  (`THEME_DETAILS` en `src/art/details.js`) y se ven más pequeños y apagados para no confundirse
-  con los obstáculos.
-- Los obstáculos tienen versiones: sillas de varios colores, manteles y cosas encima de la mesa,
+  (`THEME_DETAILS` en `src/art/details.js`). Salen pocos, sin contorno negro y con colores
+  apagados, con la misma estética del fondo, para no confundirse con los obstáculos.
+- Los obstáculos tienen versiones: sillas de varios colores, manteles de la mesa (sin nada encima: por ahí se desliza Sofía),
   charcos de lodo, barreras de colores y bardas con grafitis («LOS GATOS», «ASUMOMEZAC»,
   «RÁFAGA») o el cartel de la carrera. La lista está en `OBSTACLE_VARIANTS` de `src/art/props.js`.
 
