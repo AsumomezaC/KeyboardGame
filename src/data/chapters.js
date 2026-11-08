@@ -105,13 +105,33 @@ function tuning(g, { canLose, boss, newKeys }) {
   };
 }
 
-// Calentamiento de los niveles sin teclas nuevas: el último par aprendido y otro anterior.
+// Calentamiento de los niveles sin teclas nuevas: WARMUP_STEPS grupos de 3 letras distintas
+// (p. ej. «f d j»). Cada grupo trae al menos una del último par aprendido y el resto sale de dos
+// pares anteriores, mezcladas al azar (siempre igual para el mismo nivel).
+export const WARMUP_STEPS = 4;
+export const WARMUP_SIZE = 3;
 function warmupFor(groups, seed) {
   if (!groups.length) return null;
+  const r = rng(seed);
+  const pick = list => list[Math.floor(r() * list.length)];
   const last = groups[groups.length - 1];
   const older = groups.slice(0, -1);
-  const other = older.length ? older[Math.floor(rng(seed)() * older.length)] : null;
-  return other ? [last, other] : [last];
+  const extra = [];
+  for (let i = 0; i < 2 && older.length; i++) extra.push(...older.splice(Math.floor(r() * older.length), 1)[0]);
+  const pool = [...new Set([...last, ...extra])];
+  const steps = [];
+  while (steps.length < WARMUP_STEPS) {
+    const step = [pick(last)];
+    const rest = pool.filter(k => !step.includes(k));
+    while (step.length < WARMUP_SIZE && rest.length) step.push(...rest.splice(Math.floor(r() * rest.length), 1));
+    // si aún hay pocas teclas aprendidas se repite alguna, pero nunca dos iguales seguidas
+    while (step.length < WARMUP_SIZE) step.push(pool.find(k => k !== step.at(-1)) ?? step[0]);
+    // el orden también se mezcla, y no se repite el grupo anterior tal cual
+    step.sort(() => r() - 0.5);
+    if (steps.length && steps.at(-1).join('') === step.join('') && pool.length > WARMUP_SIZE) continue;
+    steps.push(step);
+  }
+  return steps;
 }
 
 function buildChapter(spec, ci) {

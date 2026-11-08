@@ -271,7 +271,7 @@ export const STORY3 = {
     },
     after: {
       place: 'parque', music: 'despertar', scroll: 1500,
-      cast: [['sofia', 440, 'right', 'sad'], ['dani', 300, 'right', 'happy']],
+      cast: [['sofia', 440, 'left', 'sad'], ['dani', 300, 'right', 'happy']],
       lines: [
         { s: 'sofia', m: 'sad', t: 'Me duelen las piernas... me falta el aire...' },
         { s: 'dani', m: 'happy', t: 'Eso se llama entrenar. Lo leí en el periódico de los huevos.' },

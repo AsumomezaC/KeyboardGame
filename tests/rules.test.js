@@ -185,14 +185,19 @@ test('la dificultad sube en curva: más rápido al final que al principio', () =
   assert.ok(step(1) > step(0) && step(2) > step(1), 'cada capítulo sube más que el anterior');
 });
 
-test('los niveles sin teclas nuevas calientan con dos pares de teclas ya aprendidas', () => {
+test('los niveles sin teclas nuevas calientan con grupos variados de 3 letras ya aprendidas', () => {
   for (const level of PLAYABLE.flatMap(allLevels)) {
     if (level.newKeys.length) {
       assert.equal(level.warmup ?? null, null, `${level.id}: con teclas nuevas no hay calentamiento`);
       continue;
     }
-    assert.equal(level.warmup.length, 2, `${level.id}: deben ser dos pares`);
+    assert.equal(level.warmup.length, 4, `${level.id}: deben ser 4 grupos`);
+    for (const step of level.warmup) {
+      assert.equal(step.length, 3, `${level.id}: cada grupo es de 3`);
+      assert.equal(new Set(step).size, 3, `${level.id}: «${step.join('')}» debe tener 3 letras distintas`);
+    }
     for (const k of level.warmup.flat()) assert.ok(level.letters.includes(k), `${level.id}: «${k}» aún no se aprende`);
+    assert.ok(new Set(level.warmup.map(s => s.join(''))).size > 1, `${level.id}: los grupos deben variar`);
   }
 });
 

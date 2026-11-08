@@ -92,11 +92,16 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
 - La primera vez los diálogos siempre se ven. Al repetir un nivel superado aparece un menú para
   jugar sin diálogos o verlos de nuevo (H es atajo para verlos); en resultados, Enter reintenta
   sin diálogos y H con diálogos. Dentro de un diálogo repetido, Esc lo omite.
-- Antes de cada nivel hay una lección: las teclas nuevas o, si el nivel no tiene, un calentamiento
-  con dos pares de teclas ya aprendidas. Sale la primera vez y cada vez que se juega con historia.
-- En resultados hay botones (también con su tecla) para reintentar o pasar al siguiente nivel; si
-  ese nivel ya está superado, se puede elegir jugarlo con historia o sin ella. Al superar el
-  último nivel de un capítulo, el botón «Siguiente capítulo» (→) lleva directo a su nivel 1.
+- Antes de cada nivel hay una lección: las teclas nuevas (5 veces cada una) o, si el nivel no
+  tiene, un calentamiento de 4 grupos de 3 letras distintas ya aprendidas (p. ej. «f d j»), que
+  mezclan el último par con otros anteriores. Sale la primera vez y cada vez que se juega con historia.
+- En resultados hay botones (también con su tecla) para reintentar y un solo botón para seguir (→):
+  «Siguiente nivel», «Siguiente capítulo» (al superar el último nivel, lleva al nivel 1 del
+  siguiente) o, después de un nivel secreto, «Seguir con la historia» (el nivel que sigue al
+  secreto). Si ese nivel ya está superado y tiene diálogos, al iniciarlo se pregunta si se juega
+  con historia o sin ella (el mismo menú que en el mapa, `src/scenes/story-choice.js`).
+- En los diálogos los personajes se miran al hablar; solo se dan la espalda cuando es a propósito
+  (p. ej. Sofía buscando a su papá en la primera fila en el nivel 7 del capítulo 1).
 - Sofía tiene el pelo que le tapa la frente y enmarca la oreja, y una trenza de dos tonos con
   listón amarillo en la nuca y en la punta (peinado `braid` en `src/art/kid.js`).
 - Personajes: Sofía; su papá Ramiro, su mamá Leticia y su hermano Tomás (Tomasito); Dani, su mejor

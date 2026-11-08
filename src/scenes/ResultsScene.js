@@ -8,6 +8,7 @@ import { escapeHTML } from '../ui/keyboard-view.js';
 import { levelName, PLAYABLE } from '../data/chapters.js';
 import { goalLines } from './LevelMapScene.js';
 import { startLevel, storyFor } from './flow.js';
+import { askStory, shouldAsk } from './story-choice.js';
 import { Music } from '../audio/music.js';
 import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime, button, buttonRow, openVolume } from './common.js';
 
@@ -29,6 +30,24 @@ function failText(level, rules, reason) {
 export class ResultsScene extends Phaser.Scene {
   constructor() {
     super('Results');
+  }
+
+  // { chapter, level, label } o null si no hay a dónde seguir.
+  nextTarget() {
+    const { chapter, level, result } = this;
+    const open = (ch, lv) => lv && levelStatus(ch, lv, Save).unlocked;
+    if (level.kind === 'secret') {
+      // el secreto está entre el nivel «after» y el siguiente: la historia sigue en ese
+      const lv = chapter.levels[chapter.secret.after];
+      return open(chapter, lv) ? { chapter, level: lv, label: 'Seguir con la historia' } : null;
+    }
+    const next = nextLevel(chapter, level);
+    if (next) return open(chapter, next) ? { chapter, level: next, label: 'Siguiente nivel' } : null;
+    const nextChapter = PLAYABLE[chapter.index + 1];
+    if (result.passed && nextChapter && chapterUnlocked(PLAYABLE, nextChapter.index, Save)) {
+      return { chapter: nextChapter, level: nextChapter.levels[0], label: 'Siguiente capítulo' };
+    }
+    return null;
   }
 
   init(data) {
@@ -87,26 +106,24 @@ export class ResultsScene extends Phaser.Scene {
     if (secretNow) lines.push('¡Apareció un nivel secreto en el mapa!');
     text(this, 590, 230, lines.join('\n'), 20, '#2b1d2e', { ox: 0.5, align: 'center', stroke: '#fff7e0', strokeThickness: 2, wrap: 560, lineSpacing: 10 });
 
-    const next = nextLevel(chapter, level);
-    this.next = next && levelStatus(chapter, next, Save).unlocked ? next : null;
-    // Al superar el último nivel del capítulo: botón para empezar el nivel 1 del siguiente capítulo.
-    const nextChapter = PLAYABLE[chapter.index + 1];
-    const chapterDone = result.passed && level.id === chapter.levels.at(-1).id && nextChapter &&
-      chapterUnlocked(PLAYABLE, nextChapter.index, Save);
-    const firstOfNext = chapterDone ? nextChapter.levels[0] : null;
-    const nextChapterReplay = firstOfNext && Save.level(firstOfNext.id).passed && storyFor(nextChapter, firstOfNext);
-    // Si un nivel ya está superado se puede jugar con historia o sin ella: este y el siguiente.
+    // Un solo «Siguiente»: al siguiente nivel, al nivel 1 del siguiente capítulo (al terminar el
+    // último) o, después de un secreto, al nivel que sigue en la historia. Si ese nivel ya está
+    // superado y tiene diálogos, al iniciarlo se pregunta si con historia o sin ella.
+    this.target = this.nextTarget();
     const replay = Save.level(level.id).passed && storyFor(chapter, level);
-    const nextReplay = this.next && Save.level(this.next.id).passed && storyFor(chapter, this.next);
+    const target = this.target;
     // Cada acción funciona con su tecla o con un clic en su botón.
     const actions = {
       retry: () => this.scene.start('Run', { chapter, level, story: false }),
       retryStory: () => replay && startLevel(this, chapter, level, { story: true }),
-      next: () => this.next && startLevel(this, chapter, this.next, nextReplay ? { story: false } : undefined),
-      nextStory: () => nextReplay && startLevel(this, chapter, this.next, { story: true }),
-      nextChapter: () => firstOfNext && startLevel(this, nextChapter, firstOfNext, nextChapterReplay ? { story: false } : undefined),
-      nextChapterStory: () => nextChapterReplay && startLevel(this, nextChapter, firstOfNext, { story: true }),
-      map: () => this.scene.start('LevelMap', { chapter, select: (result.passed && this.next ? this.next : level).id }),
+      next: () => {
+        if (!target) return;
+        if (shouldAsk(target.chapter, target.level)) askStory(this, target.level, story => startLevel(this, target.chapter, target.level, { story }));
+        else startLevel(this, target.chapter, target.level);
+      },
+      map: () => this.scene.start('LevelMap', {
+        chapter, select: (result.passed && target?.chapter === chapter ? target.level : level).id,
+      }),
     };
     const CX = 595;
     buttonRow(this, CX, 432, [
@@ -114,10 +131,7 @@ export class ResultsScene extends Phaser.Scene {
       ...(replay ? [{ key: 'H', label: 'Reintentar con historia', onClick: actions.retryStory }] : []),
     ]);
     buttonRow(this, CX, 484, [
-      ...(this.next ? [{ key: '→', label: nextReplay ? 'Siguiente' : 'Siguiente nivel', onClick: actions.next, primary: result.passed }] : []),
-      ...(nextReplay ? [{ key: 'Mayús →', label: 'Siguiente con historia', onClick: actions.nextStory }] : []),
-      ...(firstOfNext ? [{ key: '→', label: `Siguiente capítulo`, onClick: actions.nextChapter, primary: true }] : []),
-      ...(nextChapterReplay ? [{ key: 'Mayús →', label: 'Con historia', onClick: actions.nextChapterStory }] : []),
+      ...(target ? [{ key: '→', label: target.label, onClick: actions.next, primary: result.passed }] : []),
       { key: 'Esc', label: 'Mapa', onClick: actions.map },
     ]);
     const music = button(this, 0, 8, { key: 'M', label: 'Música', volumeIcon: true, onClick: () => openVolume(this) });
@@ -137,10 +151,7 @@ export class ResultsScene extends Phaser.Scene {
       Enter: actions.retry,
       h: actions.retryStory,
       H: actions.retryStory,
-      ArrowRight: e => {
-        if (firstOfNext) return e.shiftKey ? actions.nextChapterStory() : actions.nextChapter();
-        return e.shiftKey ? actions.nextStory() : actions.next();
-      },
+      ArrowRight: actions.next,
       Escape: actions.map,
     });
   }

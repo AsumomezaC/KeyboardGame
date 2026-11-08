@@ -122,7 +122,7 @@ export const STORY1 = {
     },
     after: {
       place: 'barrio', music: 'alegre', scroll: 1400,
-      cast: [['sofia', 440, 'right'], ['dani', 300, 'right', 'sad']],
+      cast: [['sofia', 440, 'left'], ['dani', 300, 'right', 'sad']],
       lines: [
         { s: 'dani', m: 'sad', t: '*jadeo*... Me caí cuatro veces. Una de ellas sin obstáculo.' },
         { s: 'sofia', m: 'talk', t: '¿Estás bien? Si quieres voy más despacio...' },
