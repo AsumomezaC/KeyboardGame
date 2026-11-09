@@ -195,8 +195,22 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 - `index.html` tiene título, descripción, URL canónica, vista previa para redes (`public/vista-previa.jpg`)
   y datos estructurados (schema.org `VideoGame`) que dicen para quién es el juego. La sección
   «¿Para quién es este juego?» debajo del juego explica lo mismo a las personas.
-- `public/` también tiene `favicon.svg`, `robots.txt`, `sitemap.xml` y `privacidad.html`. Si cambia la dirección,
-  hay que actualizarla en `index.html`, `robots.txt` y `sitemap.xml`.
+- `public/` también tiene `favicon.svg`, `robots.txt` y `sitemap.xml`. Si cambia la dirección, hay que
+  actualizarla en `index.html`, `robots.txt`, `sitemap.xml` y en las URL canónicas de las páginas.
+- Google Search Console: el sitio se verifica con `public/google0a349268467f5c5b.html` (no borrarlo; si se
+  borra, Google deja de considerar verificada la propiedad). Allí se envía `sitemap.xml` y se pide indexar.
+- Al cambiar el contenido de una página, actualiza su `<lastmod>` en `sitemap.xml`.
+- Las direcciones extra de Vercel (`…-asumomeza-c.vercel.app`, `…-git-main-…`) están protegidas y llevan
+  `noindex`, así que no compiten con la dirección principal.
+
+### Páginas legales
+
+- `public/privacidad.html`: aviso de privacidad (México y una sección para el Espacio Económico Europeo y el
+  Reino Unido). Si el juego empieza a guardar algo nuevo, hay que actualizarlo antes de publicar el cambio.
+- `public/licencias.html`: créditos y licencias. El juego compilado no conserva los avisos de licencia, así que
+  aquí van los de Phaser (MIT) y la fuente VT323 (OFL), con sus textos completos en `public/licencias/`.
+  Si se agrega otra biblioteca o fuente, hay que sumarla.
+- `public/404.html`: página para direcciones que no existen (Vercel la usa sola; lleva `noindex`).
 
 Fuente: [VT323](https://fonts.google.com/specimen/VT323) (licencia OFL, libre de usar y distribuir).
 
