@@ -49,6 +49,8 @@ export const Panel = {
 
   show(view) {
     for (const s of root.querySelectorAll('.pv')) s.hidden = s.dataset.view !== view;
+    // Sin panel (título, capítulos, diálogos): la página quita el espacio reservado debajo del juego.
+    document.body.classList.toggle('panel-empty', view === 'none');
   },
 
   // El aviso de Bloq Mayús solo aplica mientras se escribe; su espacio siempre está reservado.

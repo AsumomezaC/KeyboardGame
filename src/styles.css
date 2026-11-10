@@ -44,6 +44,30 @@ body {
 #site-header h1 span { color: var(--muted); }
 #site-header h1 strong { color: var(--text); font-weight: normal; }
 
+/* «Conoce al desarrollador»: una línea discreta entre el juego y la explicación. */
+#meet-dev {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 2px 8px;
+  max-width: 900px;
+  margin: -34px auto 22px; /* casi pegada al área del juego (#app deja 40px abajo) */
+  padding: 0 16px;
+  color: var(--muted);
+  font-size: 0.9rem; /* 18 px */
+  opacity: 0.85;
+}
+#meet-dev a {
+  color: var(--hint);
+  text-decoration: none;
+  border-bottom: 1px dashed currentColor;
+}
+#meet-dev:hover { opacity: 1; }
+#meet-dev a:hover, #meet-dev a:focus-visible { color: var(--accent); }
+#meet-dev a span { display: inline-block; transition: transform 0.15s; }
+#meet-dev a:hover span { transform: translateX(3px); }
+
 #about {
   max-width: 900px;
   margin: 0 auto 48px;
@@ -95,6 +119,9 @@ body {
 
 /* Espacio siempre reservado bajo la carrera: el aviso aparece sin mover nada. */
 #caps-row { height: 34px; display: flex; align-items: center; justify-content: center; }
+/* Sin panel debajo (título, capítulos, diálogos) no se escribe, así que el aviso de Bloq Mayús no
+   necesita su espacio: así «Conoce al desarrollador» queda cerca del juego. */
+body.panel-empty #caps-row { height: 12px; }
 #caps-warning {
   visibility: hidden;
   background: #4a3b12;
