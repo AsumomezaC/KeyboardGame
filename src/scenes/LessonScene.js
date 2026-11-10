@@ -102,10 +102,11 @@ export class LessonScene extends Phaser.Scene {
     const code = ch === ' ' ? 'Space' : combo.steps[0].code;
     const finger = fingerOf(code);
     if (this.isWarmup) {
-      this.stepTexts.forEach((t, i) => t.setText(this.step[i].toUpperCase())
+      // tal como se escriben: cuando el calentamiento incluya mayúsculas, se distinguirán
+      this.stepTexts.forEach((t, i) => t.setText(this.step[i])
         .setColor(i < this.count ? '#7bd389' : i === this.count ? '#ff9f1c' : '#d8c3a5'));
     } else {
-      this.keyText.setText(ch === ' ' ? 'ESPACIO' : ch.toUpperCase()).setFontSize(px(ch === ' ' ? 64 : 110));
+      this.keyText.setText(ch === ' ' ? 'ESPACIO' : ch).setFontSize(px(ch === ' ' ? 64 : 110));
     }
     this.fingerText.setText(`Usa el ${fingerLabel(code)}`);
     if (this.count === 0) this.pips.forEach(p => p.setFillStyle(0xd8c3a5));
@@ -113,7 +114,7 @@ export class LessonScene extends Phaser.Scene {
     const where = ch === ' ' ? 'la barra espaciadora' : `la tecla ${Layout.usLegend(code)}`;
     const home = finger && finger.finger !== 'thumb' && ['KeyF', 'KeyJ'].includes(code) ? ' Tiene un relieve para encontrarla sin mirar.' : '';
     Panel.setHints(this.isWarmup
-      ? `Calienta con teclas que ya conoces: escribe ${this.step.join(' ').toUpperCase()}. Ahora ${where} con el ${fingerLabel(code)}.${home}`
+      ? `Calienta con teclas que ya conoces: escribe ${this.step.join(' ')}. Ahora ${where} con el ${fingerLabel(code)}.${home}`
       : `Presiona ${where} ${this.reps} veces con el ${fingerLabel(code)}.${home}`,
       'Deja los demás dedos descansando sobre la fila central: A S D F · J K L Ñ.');
     Panel.showHands(true, fingersFor(ch));
