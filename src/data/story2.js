@@ -1,3 +1,4 @@
+// Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Capítulo 2 «Los gatos» (10 a 12 años): Sofía conoce a Los Gatos, se aleja de Dani y descubre
 // el parkour. Formato de las escenas: ver story1.js. Clasificación: 12+ (ver README).
 

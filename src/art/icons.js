@@ -1,3 +1,4 @@
+// Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Íconos de la interfaz dentro del juego (texturas): la bocina de música en sus 4 niveles,
 // en versión clara (barra de teclas, fondo oscuro) y oscura (botones color crema).
 import { makeCanvas, addImage } from './pixel.js';

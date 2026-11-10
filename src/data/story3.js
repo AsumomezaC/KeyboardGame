@@ -1,3 +1,4 @@
+// Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Capítulo 3 «El día de mi suerte» (12 años): volver a casa y ver cuánto cambió, reconciliarse
 // con Dani, extrañar a Los Gatos aunque duela, perder a su hermano sin darse cuenta, buscar la
 // aprobación de sus papás y encontrar en la Tata un refugio. Formato: ver story1.js. 12+.

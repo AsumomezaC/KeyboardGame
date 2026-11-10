@@ -1,3 +1,4 @@
+// Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Pistas de 8 bits. Cada una: tempo, voces (melodía, arpegio, bajo) y batería, en compases de 16 pasos.
 // La melodía se escribe a mano; arpegio y bajo se generan desde la progresión de acordes.
 // Batería: k = bombo, s = tarola, h = platillo, . = nada.

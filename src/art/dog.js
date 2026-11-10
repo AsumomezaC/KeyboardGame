@@ -1,3 +1,4 @@
+// Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Perro guardián (nivel 7): galope de 4 cuadros y un cuadro ladrando.
 import { makeCanvas, outline, addSheet } from './pixel.js';
 

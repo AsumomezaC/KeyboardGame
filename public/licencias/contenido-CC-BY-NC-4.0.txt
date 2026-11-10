@@ -1,0 +1,12 @@
+La Historia de Sofía - contenido creativo
+Copyright (c) 2026 AsumomezaC (Adrian C) y Esraly
+
+Los personajes, la historia (guion y diálogos), el pixel art y la música del juego
+están bajo la licencia Creative Commons Atribución-NoComercial 4.0 Internacional
+(CC BY-NC 4.0).
+
+Resumen:   https://creativecommons.org/licenses/by-nc/4.0/deed.es
+Texto legal: https://creativecommons.org/licenses/by-nc/4.0/legalcode.es
+
+Qué archivos son contenido creativo y qué es código (MIT):
+https://github.com/AsumomezaC/KeyboardGame/blob/main/LICENSE-CONTENIDO.md

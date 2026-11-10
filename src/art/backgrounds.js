@@ -1,3 +1,4 @@
+// Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Fondos en tres capas que se repiten (lejana, media y suelo), uno por ambiente.
 // Todo se dibuja para repetirse sin costuras: lo que cruza el borde se dibuja "dando la vuelta".
 import { makeCanvas, rng } from './pixel.js';

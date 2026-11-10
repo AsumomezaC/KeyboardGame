@@ -1,3 +1,4 @@
+// Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Capítulo 1 «Me llamo Sofía» (8 y 9 años): la familia, Dani y la Tata.
 // Tono: telenovela mexicana y K-drama exagerados, con un respiro de humor de vez en cuando.
 // Clasificación: 12+ (ver README).

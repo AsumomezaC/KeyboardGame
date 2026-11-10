@@ -1,3 +1,4 @@
+// Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Detalles del fondo: objetos pequeños que aparecen al pie de las casas, distintos en cada tramo.
 // Como el resto del fondo, no llevan contorno negro: su orilla es un tono más oscuro de su propio
 // color (así no pierden grosor). Además se apagan (menos saturados y un poco más oscuros), para

@@ -1,3 +1,4 @@
+// Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Obstáculos, íconos y efectos.
 import { makeCanvas, outline, addImage } from './pixel.js';
 

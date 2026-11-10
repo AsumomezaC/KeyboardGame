@@ -2,6 +2,7 @@
   "name": "parkour-tecla",
   "private": true,
   "version": "0.2.0",
+  "license": "(MIT AND CC-BY-NC-4.0)",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -1,3 +1,4 @@
+// Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Reparto de la historia: nombre que aparece en la caja de diálogo y, si no es el mismo id,
 // qué sprite usa. Formato de las escenas: ver el inicio de story1.js.
 

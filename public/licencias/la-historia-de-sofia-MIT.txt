@@ -19,3 +19,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+This MIT license covers the game's source code. The creative content (characters,
+story, pixel art and music) is licensed under CC BY-NC 4.0: see LICENSE-CONTENIDO.md.
+Esta licencia MIT cubre el código del juego. El contenido creativo (personajes,
+historia, arte y música) está bajo CC BY-NC 4.0: ver LICENSE-CONTENIDO.md.

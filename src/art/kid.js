@@ -1,3 +1,4 @@
+// Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Personajes como "marionetas" de pixeles: las poses se definen por articulaciones
 // y el contorno se agrega al final. Una paleta define ropa, peinado y accesorios; una
 // complexión (niño, adolescente, adulto, niño pequeño) estira o encoge el cuerpo sin cambiar la cabeza.

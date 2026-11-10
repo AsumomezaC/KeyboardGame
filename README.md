@@ -203,6 +203,14 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 - Las direcciones extra de Vercel (`…-asumomeza-c.vercel.app`, `…-git-main-…`) están protegidas y llevan
   `noindex`, así que no compiten con la dirección principal.
 
+### Licencias
+
+- **Código:** MIT (`LICENSE`).
+- **Contenido creativo** (personajes, historia, arte y música): CC BY-NC 4.0, © 2026 AsumomezaC y Esraly
+  (`LICENSE-CONTENIDO.md`, que lista qué archivos son contenido). Esos archivos empiezan con una línea que lo indica.
+  Al crear un archivo nuevo de personajes, guion, arte o música, agrégale esa línea y súmalo a la lista.
+- Las versiones publicadas antes del 10 de noviembre de 2026 se distribuyeron con todo bajo MIT.
+
 ### Páginas legales
 
 - `public/privacidad.html`: aviso de privacidad (México y una sección para el Espacio Económico Europeo y el
