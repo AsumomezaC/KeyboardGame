@@ -6,9 +6,8 @@ import { Music } from '../audio/music.js';
 import { Save } from '../core/save.js';
 import { PLAYABLE, allLevels } from '../data/chapters.js';
 import { showDevToast } from '../ui/music-toast.js';
-import { Dev } from '../core/dev.js';
-import { toggleVolumePanel } from '../ui/volume-panel.js';
-import { volumeLevel } from '../ui/volume-icon.js';
+import { Dev, setDevOption } from '../core/dev.js';
+import { toggleSettings } from '../ui/settings-panel.js';
 
 export const W = 960;
 export const H = 540;
@@ -127,14 +126,15 @@ export function backdrop(scene, theme, { seed = theme } = {}) {
 }
 
 // Atajos de teclado para menús, sin capturar teclas (no interfieren con el texto).
-// La M prende o apaga la música en cualquier menú. «|» (la tecla a la izquierda del 1 en la
-// distribución latina) activa el modo desarrollador: solo funciona fuera de los niveles.
+// La M abre Configuración en cualquier menú. «|» (la tecla a la izquierda del 1 en la distribución
+// latina) es un atajo a la advertencia del modo desarrollador. Con el modo activo, Tab prende o
+// apaga «solo cinemáticas».
 export function onKeys(scene, map) {
   scene.input.keyboard.on('keydown', e => {
     const fn = map[e.key];
     if (fn) fn(e);
-    else if (e.key === 'm' || e.key === 'M') openVolume(scene);
-    else if (e.key === '|') developerMode(scene);
+    else if (e.key === 'm' || e.key === 'M') openSettings(scene);
+    else if (e.key === '|') openSettings(scene, { confirmDev: true });
     else if (e.key === 'Tab' && Dev.enabled) {
       e.preventDefault();
       toggleCinematics();
@@ -142,32 +142,27 @@ export function onKeys(scene, map) {
   });
 }
 
-// Abre (o cierra) el selector de volumen junto al ícono de música de la escena.
-export function openVolume(scene) {
-  toggleVolumePanel(scene.musicAnchor);
+// Abre (o cierra) el menú de Configuración.
+export function openSettings(scene, { confirmDev = false } = {}) {
+  toggleSettings({ enableDev: () => developerMode(scene), confirmDev });
 }
 
-// Ícono de música que cambia con el volumen (de bocina con 3 ondas a silencio).
-// prefix: 'vol' (claro, para fondo oscuro) o 'vol-ink' (oscuro, para botones crema).
-export function volumeImage(scene, x, y, prefix = 'vol') {
-  const img = scene.add.image(x, y, `${prefix}-${volumeLevel(Music.volume)}`).setScale(2);
-  const stop = Music.onVolumeChange(v => img.active && img.setTexture(`${prefix}-${volumeLevel(v)}`));
-  scene.events.once('shutdown', stop);
-  img.once('destroy', stop);
-  return img;
+// Engrane de Configuración. key: 'gear' (claro, para fondo oscuro) o 'gear-ink' (para botones crema).
+function gearImage(scene, x, y, key = 'gear') {
+  return scene.add.image(x, y, key).setScale(2);
 }
 
 // Desbloquea todos los niveles (también los secretos) con 3 estrellas y vuelve a dibujar el menú.
 export function developerMode(scene) {
   Dev.enabled = true;
   Save.unlockAll(PLAYABLE.flatMap(allLevels).map(l => l.id));
-  showDevToast('Modo desarrollador: todo desbloqueado con ★★★ · Tab: solo cinemáticas');
+  showDevToast('Modo desarrollador: todo desbloqueado con ★★★');
   scene.scene.restart(scene.sys.settings.data);
 }
 
 // Modo solo cinemáticas (dentro del modo desarrollador): al entrar a un nivel solo se ven sus diálogos.
 function toggleCinematics() {
-  Dev.cinematics = !Dev.cinematics;
+  setDevOption('cinematics', !Dev.cinematics);
   showDevToast(Dev.cinematics ? 'Solo cinemáticas: activado (Tab para salir)' : 'Solo cinemáticas: desactivado');
 }
 
@@ -183,24 +178,30 @@ export function keyLegend(scene, items) {
       fontFamily: FONT, fontSize: px(16), fontStyle: 'normal', color: INK,
       backgroundColor: CREAM, padding: { x: 8, y: 3 },
     }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
-    const isMusic = key === 'M';
-    const desc = isMusic
-      ? volumeImage(scene, 0, y).setOrigin(0, 0.5).setScrollFactor(0).setDepth(100)
+    const isSettings = key === 'M';
+    const desc = isSettings
+      ? gearImage(scene, 0, y).setOrigin(0, 0.5).setScrollFactor(0).setDepth(100)
       : text(scene, 0, y, label, 16, '#ffffff', { oy: 0.5, bold: false, strokeThickness: 0 }).setScrollFactor(0).setDepth(100);
-    const fn = action || (isMusic ? () => openVolume(scene) : null);
-    return { cap, desc, fn, isMusic, w: cap.width + 8 + desc.displayWidth };
+    const fn = action || (isSettings ? () => openSettings(scene) : null);
+    return { cap, desc, fn, w: cap.width + 8 + desc.displayWidth };
   });
   const GAP = 28;
   let x = (W - parts.reduce((n, p) => n + p.w, 0) - GAP * (parts.length - 1)) / 2;
   for (const p of parts) {
     p.cap.x = x;
     p.desc.x = x + p.cap.width + 8;
-    if (p.isMusic) scene.musicAnchor = { x: x + p.w / 2, y };
     if (p.fn) {
       const hit = scene.add.zone(x - 4, H - BAR_H, p.w + 8, BAR_H).setOrigin(0).setScrollFactor(0).setDepth(101)
         .setInteractive({ useHandCursor: true });
-      hit.on('pointerover', () => { p.cap.setBackgroundColor('#ffd23f'); p.desc.setColor?.('#ffd23f'); });
-      hit.on('pointerout', () => { p.cap.setBackgroundColor(CREAM); p.desc.setColor?.('#ffffff'); });
+      // el texto cambia de color; el engrane (imagen) se tiñe
+      const lit = on => {
+        p.cap.setBackgroundColor(on ? '#ffd23f' : CREAM);
+        if (p.desc.setColor) p.desc.setColor(on ? '#ffd23f' : '#ffffff');
+        else if (on) p.desc.setTint(0xffd23f);
+        else p.desc.clearTint();
+      };
+      hit.on('pointerover', () => lit(true));
+      hit.on('pointerout', () => lit(false));
       hit.on('pointerdown', (_pointer, _x, _y, event) => {
         event.stopPropagation();
         p.fn();
@@ -214,12 +215,12 @@ export function keyLegend(scene, items) {
 // Botón con relieve: borde oscuro, sombra, brillo y la tecla de atajo dibujada a la izquierda.
 // Se ilumina al pasar el ratón y se hunde al pulsarlo. Devuelve { container, width }.
 const BTN_H = 40;
-export function button(scene, x, y, { key, label, onClick, primary = false, volumeIcon = false }) {
+export function button(scene, x, y, { key, label, onClick, primary = false, gearIcon = false }) {
   const c = scene.add.container(x, y).setDepth(110);
   const g = scene.add.graphics();
   const keyT = scene.add.text(0, 0, key, { fontFamily: FONT, fontSize: px(15), color: CREAM }).setOrigin(0.5);
-  const labelT = volumeIcon
-    ? volumeImage(scene, 0, 0, 'vol-ink').setOrigin(0, 0.5)
+  const labelT = gearIcon
+    ? gearImage(scene, 0, 0, 'gear-ink').setOrigin(0, 0.5)
     : text(scene, 0, 0, label, 18, INK, { oy: 0.5, strokeThickness: 0 });
   const kw = Math.max(26, keyT.width + 12);
   const width = 14 + kw + 10 + labelT.displayWidth + 16;

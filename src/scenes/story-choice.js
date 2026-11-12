@@ -2,12 +2,14 @@
 // Lo usan el mapa y los resultados (botón «Siguiente»). Mientras está abierto, las teclas son
 // suyas: ↑ ↓ eligen, Enter (o espacio) confirma, H elige con historia y Esc lo cierra.
 import { Save } from '../core/save.js';
+import { Dev } from '../core/dev.js';
 import { levelName } from '../data/chapters.js';
 import { storyFor } from './flow.js';
 import { W, H, text, box } from './common.js';
 
 // ¿Hay que preguntar? Solo si el nivel ya se superó y tiene diálogos.
 export function shouldAsk(chapter, level) {
+  if (Dev.noDialogues) return false; // modo desarrollador «sin diálogos»: nunca se pregunta
   return Save.level(level.id).passed && !!storyFor(chapter, level);
 }
 

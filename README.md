@@ -100,6 +100,8 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
   siguiente) o, después de un nivel secreto, «Seguir con la historia» (el nivel que sigue al
   secreto). Si ese nivel ya está superado y tiene diálogos, al iniciarlo se pregunta si se juega
   con historia o sin ella (el mismo menú que en el mapa, `src/scenes/story-choice.js`).
+- Al terminar el nivel que va justo antes del secreto (el 6 en el capítulo 1, el 4 en el 2 y el 8 en
+  el 3), si el secreto ya está desbloqueado aparece «Continuar al nivel secreto» (↑).
 - En los diálogos los personajes se miran al hablar; solo se dan la espalda cuando es a propósito
   (p. ej. Sofía buscando a su papá en la primera fila en el nivel 7 del capítulo 1).
 - Sofía tiene el pelo que le tapa la frente y enmarca la oreja, y una trenza de dos tonos con
@@ -139,13 +141,20 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
   debajo del texto.
 
 - Las teclas de la barra inferior de cada pantalla también son botones: se pueden pulsar con clic.
-- Modo desarrollador: presiona `|` (la tecla a la izquierda del 1 en la distribución latina) en
-  cualquier menú, fuera de los niveles. Marca todos los niveles, incluso los secretos, como
-  superados con ★★★ y abre todos los capítulos. Para volver a empezar, borra los datos del sitio
-  en el navegador.
-- Con el modo desarrollador activo, Tab activa el modo «solo cinemáticas»: al entrar a un nivel se
-  ven el diálogo de inicio y el de final, sin carrera, y se vuelve al mapa. Tab otra vez lo apaga.
-  Ninguno de los dos modos se guarda: al recargar la página se apagan.
+- **Configuración** (tecla M o el engrane de la barra de teclas; `src/ui/settings-panel.js`):
+  - Volumen general, de la música y de los diálogos (voces). El general multiplica a los otros dos.
+    Se recuerdan entre partidas.
+  - Modo desarrollador: al activarlo avisa que podría modificar la progresión con la que fue creado
+    el juego, porque marca todos los niveles, incluso los secretos, como superados con ★★★ y abre
+    todos los capítulos. Para volver a empezar, borra los datos del sitio en el navegador. La tecla
+    `|` (a la izquierda del 1 en la distribución latina) abre directo esa advertencia.
+  - Con el modo desarrollador activo aparecen sus opciones (`src/core/dev.js`):
+    - **Jugar sin diálogos:** los niveles empiezan y terminan sin escenas.
+    - **Solo cinemáticas** (también con Tab): al entrar a un nivel se ven el diálogo de inicio y el
+      de final, sin carrera, y se vuelve al mapa. No se puede junto con «sin diálogos».
+    - **Modo Dios:** al entrar a un nivel (o reintentarlo) se supera solo con ★★★; si se entra con
+      historia, primero se ven sus escenas.
+  - El modo desarrollador y sus opciones no se guardan: al recargar la página se apagan.
 - En celulares (pantalla táctil y angosta) no se carga el juego: aparece un aviso de que está hecho
   para computadoras y tablets, con un botón para compartir o copiar el enlace. Las tablets sí lo cargan.
 - La página y el juego se cargan por separado: `src/main.js` es una entrada ligera (~7 kB comprimidos)
@@ -157,7 +166,8 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
 ### Progreso guardado
 
 El avance (niveles, estrellas, historial) se guarda en el `localStorage` del navegador con la
-clave `parkourTecla.save.v2`, y la música con `parkourTecla.music`. No se envía a ningún servidor:
+clave `parkourTecla.save.v2`, y los volúmenes con `parkourTecla.volume`, `parkourTecla.volume.music` y
+`parkourTecla.volume.voice`. No se envía a ningún servidor:
 se conserva al cerrar la página, pero es de cada navegador y dispositivo, y se pierde en modo
 incógnito o al borrar los datos del sitio. El aviso de privacidad está en `public/privacidad.html`
 (enlazado en el pie de página).
@@ -166,9 +176,8 @@ incógnito o al borrar los datos del sitio. El aviso de privacidad está en `pub
 
 Música de 8 bits generada en el navegador (WebAudio, sin archivos de audio): pulsos para la
 melodía, triángulo para el bajo y ruido para la batería. Pistas en `src/audio/tracks.js`.
-La tecla M (o un clic en el ícono de bocina) abre un selector de volumen de 0 a 100 %: ← → lo
-ajustan y M, Enter o Esc lo cierran. El ícono muestra de 3 ondas a una X según el volumen, que se
-recuerda entre partidas (`src/ui/volume-panel.js` y `src/ui/volume-icon.js`). Hay pistas propias para los momentos clave: el despertar de Sofía, la
+La música y las voces de los diálogos van por canales separados, con su volumen en Configuración
+(tecla M). Hay pistas propias para los momentos clave: el despertar de Sofía, la
 primera fila vacía, Los Gatos, los corazones rotos, el peligro en la niebla, la soledad, el
 reencuentro con Dani y la victoria.
 

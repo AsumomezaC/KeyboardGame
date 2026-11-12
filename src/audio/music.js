@@ -6,7 +6,12 @@
 import { TRACKS } from './tracks.js';
 
 const KEY = 'parkourTecla.music';    // versión vieja: 'on' / 'off'
-const VOLUME_KEY = 'parkourTecla.volume'; // de 0 a 1
+// Volúmenes de 0 a 1. El general multiplica a los otros dos (música y voces de los diálogos).
+const VOLUME_KEYS = {
+  general: 'parkourTecla.volume',
+  music: 'parkourTecla.volume.music',
+  voice: 'parkourTecla.volume.voice',
+};
 const LOOKAHEAD_S = 0.15;
 const MASTER = 0.16;
 
@@ -17,22 +22,29 @@ let pulses = {};
 let timer = 0;
 let current = null;   // nombre de la pista sonando (o pedida antes de desbloquear el audio)
 let state = null;     // { track, step, nextTime }
-let volume = readVolume();
-let lastVolume = volume || 1; // para volver a prender con la tecla de silencio
+let musicBus = null;   // pistas de música
+let voiceBus = null;   // voces de los diálogos
+const volumes = {
+  general: readVolume('general', () => (localStorage.getItem(KEY) === 'off' ? 0 : 1)),
+  music: readVolume('music'),
+  voice: readVolume('voice'),
+};
 const volumeListeners = [];
 
-function readVolume() {
+function readVolume(channel, fallback = () => 1) {
   try {
-    const saved = localStorage.getItem(VOLUME_KEY);
+    const saved = localStorage.getItem(VOLUME_KEYS[channel]);
     if (saved !== null && !Number.isNaN(Number(saved))) return Math.min(1, Math.max(0, Number(saved)));
-    return localStorage.getItem(KEY) === 'off' ? 0 : 1;
+    return fallback();
   } catch {
     return 1;
   }
 }
 
 // Volumen percibido: el oído escucha en escala logarítmica, así que se eleva al cuadrado.
-const gainFor = v => MASTER * v * v;
+const curve = v => v * v;
+const gainOf = channel => (channel === 'general' ? MASTER : 1) * curve(volumes[channel]);
+const busOf = channel => ({ general: master, music: musicBus, voice: voiceBus })[channel];
 
 const NOTE_INDEX = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
@@ -73,8 +85,14 @@ function pulseWave(duty) {
 function setup() {
   ctx = new (window.AudioContext || window.webkitAudioContext)();
   master = ctx.createGain();
-  master.gain.value = gainFor(volume);
+  master.gain.value = gainOf('general');
   master.connect(ctx.destination);
+  musicBus = ctx.createGain();
+  musicBus.gain.value = gainOf('music');
+  musicBus.connect(master);
+  voiceBus = ctx.createGain();
+  voiceBus.gain.value = gainOf('voice');
+  voiceBus.connect(master);
   pulses = { 12: pulseWave(0.125), 25: pulseWave(0.25), 50: pulseWave(0.5) };
   noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
   const d = noise.getChannelData(0);
@@ -101,7 +119,7 @@ function tone(voice, note, t, dur) {
     lfo.start(t + 0.15);
     lfo.stop(t + dur);
   }
-  osc.connect(g).connect(master);
+  osc.connect(g).connect(musicBus);
   osc.start(t);
   osc.stop(t + dur + 0.02);
 }
@@ -114,7 +132,7 @@ function drum(kind, t) {
     osc.frequency.exponentialRampToValueAtTime(40, t + 0.12);
     g.gain.setValueAtTime(0.7, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
-    osc.connect(g).connect(master);
+    osc.connect(g).connect(musicBus);
     osc.start(t);
     osc.stop(t + 0.15);
     return;
@@ -128,7 +146,7 @@ function drum(kind, t) {
   filter.frequency.value = kind === 's' ? 1800 : 7000;
   g.gain.setValueAtTime(kind === 's' ? 0.45 : 0.18, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  src.connect(filter).connect(g).connect(master);
+  src.connect(filter).connect(g).connect(musicBus);
   src.start(t, Math.random() * 0.5);
   src.stop(t + dur + 0.01);
 }
@@ -195,7 +213,7 @@ function syllable(v, ch, mood) {
     const g = ctx.createGain();
     g.gain.setValueAtTime(0.5, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-    src.connect(f).connect(g).connect(master);
+    src.connect(f).connect(g).connect(voiceBus);
     src.start(t, Math.random() * 0.5);
     src.stop(t + 0.13);
     return;
@@ -230,7 +248,7 @@ function syllable(v, ch, mood) {
   g.gain.linearRampToValueAtTime(vol, t + 0.008);
   g.gain.setValueAtTime(vol * 0.8, t + len * 0.5);
   g.gain.linearRampToValueAtTime(0, t + len);
-  osc.connect(filter).connect(g).connect(master);
+  osc.connect(filter).connect(g).connect(voiceBus);
   osc.start(t);
   osc.stop(t + len + 0.02);
 }
@@ -266,28 +284,20 @@ export const Music = {
     state = null;
   },
 
-  get muted() {
-    return volume === 0;
+  // Volúmenes de 0 a 1 (se recuerdan entre partidas): { general, music, voice }.
+  get volumes() {
+    return { ...volumes };
   },
 
-  // Volumen de 0 a 1 (se recuerda entre partidas).
-  get volume() {
-    return volume;
-  },
-
-  setVolume(v) {
+  setVolume(channel, v) {
     v = Math.round(Math.min(1, Math.max(0, v)) * 100) / 100;
-    if (v === volume) return volume;
-    volume = v;
-    if (v > 0) lastVolume = v;
-    try { localStorage.setItem(VOLUME_KEY, String(v)); } catch { /* sin almacenamiento */ }
-    if (master) master.gain.setTargetAtTime(gainFor(v), ctx.currentTime, 0.05);
-    for (const fn of volumeListeners) fn(v);
+    if (v === volumes[channel]) return v;
+    volumes[channel] = v;
+    try { localStorage.setItem(VOLUME_KEYS[channel], String(v)); } catch { /* sin almacenamiento */ }
+    const bus = busOf(channel);
+    if (bus) bus.gain.setTargetAtTime(gainOf(channel), ctx.currentTime, 0.05);
+    for (const fn of volumeListeners) fn({ ...volumes });
     return v;
-  },
-
-  toggleMute() {
-    return this.setVolume(volume > 0 ? 0 : lastVolume);
   },
 
   // Avisa cada cambio de volumen. Devuelve una función para dejar de escuchar.
@@ -302,7 +312,7 @@ export const Music = {
   // Una sílaba de voz para la letra ch. voice: { pitch, len, duty|wave, formant, range, slide,
   // wobble, vol, growl }. mood: gesto de quien habla (cambia tono, volumen y duración).
   voice(voice, ch, mood) {
-    if (!ctx || ctx.state !== 'running' || volume === 0 || !voice || !/\p{L}/u.test(ch)) return;
+    if (!ctx || ctx.state !== 'running' || !volumes.general || !volumes.voice || !voice || !/\p{L}/u.test(ch)) return;
     syllable(voice, ch, mood);
   },
 };

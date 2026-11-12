@@ -10,7 +10,8 @@ import { goalLines } from './LevelMapScene.js';
 import { startLevel, storyFor } from './flow.js';
 import { askStory, shouldAsk } from './story-choice.js';
 import { Music } from '../audio/music.js';
-import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime, button, buttonRow, openVolume } from './common.js';
+import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime, button, buttonRow, openSettings } from './common.js';
+import { Dev } from '../core/dev.js';
 
 // Por qué no se superó el nivel, según el tipo de jefe.
 function failText(level, rules, reason) {
@@ -48,6 +49,14 @@ export class ResultsScene extends Phaser.Scene {
       return { chapter: nextChapter, level: nextChapter.levels[0], label: 'Siguiente capítulo' };
     }
     return null;
+  }
+
+  // El nivel justo antes del secreto (en la historia, el que lleva a él): si el secreto ya está
+  // desbloqueado, se puede continuar directo a él.
+  secretTarget() {
+    const { chapter, level } = this;
+    if (level.kind === 'secret' || chapter.levels.indexOf(level) !== chapter.secret.after - 1) return null;
+    return levelStatus(chapter, chapter.secret, Save).unlocked ? { chapter, level: chapter.secret } : null;
   }
 
   init(data) {
@@ -112,15 +121,20 @@ export class ResultsScene extends Phaser.Scene {
     this.target = this.nextTarget();
     const replay = Save.level(level.id).passed && storyFor(chapter, level);
     const target = this.target;
+    const secret = this.secretTarget();
+    // Ir a un nivel: si ya está superado y tiene diálogos, se pregunta si con historia o sin ella.
+    const go = t => {
+      if (!t) return;
+      if (shouldAsk(t.chapter, t.level)) askStory(this, t.level, story => startLevel(this, t.chapter, t.level, { story }));
+      else startLevel(this, t.chapter, t.level);
+    };
     // Cada acción funciona con su tecla o con un clic en su botón.
     const actions = {
-      retry: () => this.scene.start('Run', { chapter, level, story: false }),
+      // en modo Dios, reintentar también lo supera solo
+      retry: () => (Dev.god ? startLevel(this, chapter, level, { story: false }) : this.scene.start('Run', { chapter, level, story: false })),
       retryStory: () => replay && startLevel(this, chapter, level, { story: true }),
-      next: () => {
-        if (!target) return;
-        if (shouldAsk(target.chapter, target.level)) askStory(this, target.level, story => startLevel(this, target.chapter, target.level, { story }));
-        else startLevel(this, target.chapter, target.level);
-      },
+      next: () => go(target),
+      secret: () => go(secret),
       map: () => this.scene.start('LevelMap', {
         chapter, select: (result.passed && target?.chapter === chapter ? target.level : level).id,
       }),
@@ -132,11 +146,11 @@ export class ResultsScene extends Phaser.Scene {
     ]);
     buttonRow(this, CX, 484, [
       ...(target ? [{ key: '→', label: target.label, onClick: actions.next, primary: result.passed }] : []),
+      ...(secret ? [{ key: '↑', label: 'Continuar al nivel secreto', onClick: actions.secret }] : []),
       { key: 'Esc', label: 'Mapa', onClick: actions.map },
     ]);
-    const music = button(this, 0, 8, { key: 'M', label: 'Música', volumeIcon: true, onClick: () => openVolume(this) });
-    music.container.x = W - 16 - music.width;
-    this.musicAnchor = { x: music.container.x + music.width / 2, y: 8 + 20 };
+    const settings = button(this, 0, 8, { key: 'M', label: 'Configuración', gearIcon: true, onClick: () => openSettings(this) });
+    settings.container.x = W - 16 - settings.width;
 
     const weak = Object.entries(result.errByChar).sort((a, b) => b[1] - a[1]);
     const weakHtml = '<h3>Teclas a practicar</h3>' + (weak.length
@@ -152,6 +166,7 @@ export class ResultsScene extends Phaser.Scene {
       h: actions.retryStory,
       H: actions.retryStory,
       ArrowRight: actions.next,
+      ArrowUp: actions.secret,
       Escape: actions.map,
     });
   }
