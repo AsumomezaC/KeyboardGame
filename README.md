@@ -173,8 +173,8 @@ Desde la selección de capítulo, Esc regresa a esta pantalla.
 - El juego necesita un teclado físico (`src/ui/keyboard-notice.js`). En celulares y tablets (puntero
   principal táctil y sin ratón ni trackpad) no se carga de inmediato: aparece un aviso de que hace
   falta un teclado físico, con un botón para compartir o copiar el enlace, y el juego arranca en
-  cuanto se presiona una tecla de un teclado conectado (el aviso también se lo dice a quien esté en
-  una computadora que no se detectó como tal). El teclado de la pantalla no lo desbloquea
+  cuanto se presiona una tecla de un teclado conectado (el aviso dice que no se detectó un teclado
+  físico y que, si hay uno, basta con presionar una tecla). El teclado de la pantalla no lo desbloquea
   (no se abre sin un campo de texto activo y sus teclas llegan como `Unidentified`/229). No se
   guarda nada: en cada visita basta con presionar una tecla. Las computadoras juegan directo, sin
   importar el ancho de la ventana.

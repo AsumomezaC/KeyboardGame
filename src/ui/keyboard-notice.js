@@ -41,9 +41,8 @@ export function showKeyboardNotice(onKeyboard) {
       ${ICON}
       <h2>Este juego necesita un teclado físico</h2>
       <p>Sofía corre cuando escribes, y para eso necesitas un teclado de verdad: el de la pantalla no sirve.</p>
-      <p class="keyboard-ready">¿Ya conectaste uno? <strong>Presiona cualquier tecla</strong> para empezar.</p>
-      <p class="keyboard-pc">¿Estás en una computadora con teclado físico y ves este mensaje en lugar del juego?
-        Presiona cualquier tecla para continuar.</p>
+      <p class="keyboard-ready">No se detectó un teclado físico. ¿Sí tienes uno?
+        <strong>Presiona cualquier tecla</strong> para comenzar a jugar.</p>
       <button type="button" class="keyboard-share">Copiar enlace para después</button>
       <p class="keyboard-done" hidden>¡Listo! Ábrelo en tu computadora o en un dispositivo con teclado físico.</p>
     </div>`);

@@ -377,7 +377,6 @@ body.no-keyboard #caps-row, body.no-keyboard #panel { display: none; }
 }
 .keyboard-share:active { border-bottom-width: 3px; transform: translateY(2px); }
 .keyboard-ready strong { color: #b83350; font-weight: normal; }
-.keyboard-notice .keyboard-pc { max-width: 30em; margin: 10px auto 0; font-size: 0.95rem; color: #6d5f55; }
 .keyboard-done { color: var(--ok); }
 
 /* ---------- Pantalla de carga del juego ---------- */
