@@ -15,9 +15,9 @@ const SPEC = {
 };
 const SECRET_MAX = { cap1: 6, cap2: 10, cap3: 13 };
 
-test('hay 6 capítulos: 3 jugables y 3 en construcción', () => {
-  assert.equal(CHAPTERS.length, 6);
-  assert.deepEqual(CHAPTERS.map(c => c.subtitle), ['Me llamo Sofía', 'Los gatos', 'El día de mi suerte', null, null, null]);
+test('hay 10 capítulos: 3 jugables y 7 en construcción', () => {
+  assert.equal(CHAPTERS.length, 10);
+  assert.deepEqual(CHAPTERS.map(c => c.subtitle), ['Me llamo Sofía', 'Los gatos', 'El día de mi suerte', ...Array(7).fill(null)]);
   for (const ch of PLAYABLE) assert.equal(ch.levels.length, 10);
 });
 

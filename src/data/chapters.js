@@ -181,7 +181,7 @@ export const [CHAPTER1, CHAPTER2, CHAPTER3] = PLAYABLE;
 // Menú de capítulos: los que aún no existen aparecen en construcción.
 export const CHAPTERS = [
   ...PLAYABLE.map(c => ({ id: c.id, title: c.title, subtitle: c.subtitle, age: c.age, data: c })),
-  ...[4, 5, 6].map(n => ({ id: `cap${n}`, title: `Capítulo ${n}`, subtitle: null, data: null })),
+  ...[4, 5, 6, 7, 8, 9, 10].map(n => ({ id: `cap${n}`, title: `Capítulo ${n}`, subtitle: null, data: null })),
 ];
 
 export function levelName(level) {

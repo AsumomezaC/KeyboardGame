@@ -50,8 +50,8 @@ Después de la pantalla de título se elige el tipo de juego (`ModesScene` en `s
   el total de estrellas de todos los capítulos.
 - **Modo Libre:** abre otra pantalla (titulada «Modo Libre», `FreeScene`) con dos opciones,
   las dos en construcción:
-  - **Todo el Juego:** todos los niveles y teclas, aunque no se hayan desbloqueado.
-  - **Mis Teclas:** solo las teclas ya desbloqueadas en el Modo Historia.
+  - **Todo el Juego:** «Todos los niveles y teclas, aunque no los hayas desbloqueado.»
+  - **Mis Teclas:** «Solo las teclas que ya desbloqueaste en el Modo Historia.»
 
   Al pasar el ratón sobre una opción (o elegirla con las flechas) aparece su descripción debajo.
 
@@ -67,7 +67,7 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
 | 1 | «Me llamo Sofía» | 8-9 | `f j`, `d k`, `s l`, `a ñ` (el secreto agrega espacio y mayúsculas) |
 | 2 | «Los gatos» | 10-12 | espacio, `g h`, `r u`, `i e` |
 | 3 | «El día de mi suerte» | 12 | `o w`, `p q`, `t y` |
-| 4-6 | En construcción | | |
+| 4-10 | En construcción | | |
 
 - Cada capítulo tiene 10 niveles y un secreto. Se abre al superar el nivel 10 del anterior. En el
   menú, las tarjetas se deslizan: flechas, rueda del ratón, la barra, los puntos o un clic llevan a
@@ -96,6 +96,8 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
 - Dificultad progresiva a lo largo de los 30 niveles, en curva: sube despacio al principio y cada
   vez más rápido (`DIFFICULTY_CURVE` en `chapters.js`). El primero pide el 75 % del ritmo y 90 % de
   precisión; el último, el ritmo completo y 97 %. Los niveles 1-3 del capítulo 1 no se pierden.
+  La curva se reparte sobre los capítulos jugables (`TOTAL` en `chapters.js`): al agregar uno, los
+  anteriores se vuelven más fáciles si no se fija.
 - Jefes en los niveles 7 (requiere 10 ★) y 10 (requiere 20 ★). Se pierden por tiempo, por más de
   cierto número de traspiés o por más de cierto número de caídas; cada jefe es más estricto que el
   anterior. Pueden ser una carrera contra rivales, una persecución o alcanzar a alguien.
