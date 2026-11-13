@@ -155,6 +155,10 @@ Desde la selección de capítulo, Esc regresa a esta pantalla.
 - **Configuración** (tecla M o el engrane de la barra de teclas; `src/ui/settings-panel.js`):
   - Volumen general, de la música y de los diálogos (voces). El general multiplica a los otros dos.
     Se recuerdan entre partidas.
+  - El panel siempre queda arriba de la barra de teclas, para que su pie no caiga sobre el engrane
+    con el que se abrió. Si no cabe todo (ventanas angostas), las opciones tienen una barra de
+    desplazamiento visible y el aviso «▼ Desliza para ver más opciones». El ratón solo elige una
+    opción si de verdad se mueve sobre ella.
   - Modo desarrollador: al activarlo avisa que podría modificar la progresión con la que fue creado
     el juego, porque marca todos los niveles, incluso los secretos, como superados con ★★★ y abre
     todos los capítulos. Para volver a empezar, borra los datos del sitio en el navegador. La tecla
@@ -166,10 +170,16 @@ Desde la selección de capítulo, Esc regresa a esta pantalla.
     - **Modo Dios:** al entrar a un nivel (o reintentarlo) se supera solo con ★★★; si se entra con
       historia, primero se ven sus escenas.
   - El modo desarrollador y sus opciones no se guardan: al recargar la página se apagan.
-- En celulares (pantalla táctil y angosta) no se carga el juego: aparece un aviso de que está hecho
-  para computadoras y tablets, con un botón para compartir o copiar el enlace. Las tablets sí lo cargan.
+- El juego necesita un teclado físico (`src/ui/keyboard-notice.js`). En celulares y tablets (puntero
+  principal táctil y sin ratón ni trackpad) no se carga de inmediato: aparece un aviso de que hace
+  falta un teclado físico, con un botón para compartir o copiar el enlace, y el juego arranca en
+  cuanto se presiona una tecla de un teclado conectado (el aviso también se lo dice a quien esté en
+  una computadora que no se detectó como tal). El teclado de la pantalla no lo desbloquea
+  (no se abre sin un campo de texto activo y sus teclas llegan como `Unidentified`/229). No se
+  guarda nada: en cada visita basta con presionar una tecla. Las computadoras juegan directo, sin
+  importar el ancho de la ventana.
 - La página y el juego se cargan por separado: `src/main.js` es una entrada ligera (~7 kB comprimidos)
-  que muestra la página, el aviso para celulares o una barra de carga con Sofía corriendo
+  que muestra la página, el aviso de teclado físico o una barra de carga con Sofía corriendo
   (`src/ui/loader.js`), y descarga el juego (`src/game.js`, con Phaser) con `import()`. Así la
   página abre rápido y los buscadores ven el texto sin esperar al juego. La barra avanza por
   tiempo y se completa cuando el arte del juego ya está listo.
@@ -205,7 +215,7 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 | `src/audio/` | Sintetizador de 8 bits y pistas de música |
 | `src/art/` | Pixel art provisional generado por código (personajes, perro, obstáculos, fondos) |
 | `src/scenes/` | Escenas de Phaser: título, modos de juego, capítulos, mapa, diálogos, lección, carrera, resultados y climas |
-| `src/ui/` | Panel HTML: teclado visual, manos, pistas, gráfica del historial y aviso para celulares |
+| `src/ui/` | Panel HTML: teclado visual, manos, pistas, gráfica del historial y aviso de teclado físico |
 | `tests/` | Pruebas con `node --test` |
 
 ## Publicación y buscadores

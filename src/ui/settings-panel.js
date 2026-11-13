@@ -50,6 +50,7 @@ function open({ enableDev, confirmDev }) {
         <button type="button" class="settings-close" aria-label="Cerrar">✕</button>
       </div>
       <div class="settings-body"></div>
+      <p class="settings-more" hidden>▼ Desliza para ver más opciones</p>
       <p class="settings-desc" aria-live="polite"></p>
       <p class="settings-keys"></p>
       <p class="settings-dev-link">¿Te gustó “La Historia de Sofía”?
@@ -59,6 +60,12 @@ function open({ enableDev, confirmDev }) {
   const body = backdrop.querySelector('.settings-body');
   const keysHint = backdrop.querySelector('.settings-keys');
   const desc = backdrop.querySelector('.settings-desc');
+  // Si no cabe todo (ventanas angostas), un aviso debajo de las opciones dice que hay más abajo.
+  const more = backdrop.querySelector('.settings-more');
+  const updateMore = () => { more.hidden = body.scrollTop + body.clientHeight >= body.scrollHeight - 2; };
+  body.addEventListener('scroll', updateMore);
+  window.addEventListener('resize', updateMore);
+  more.addEventListener('click', () => body.scrollBy({ top: body.clientHeight * 0.8, behavior: 'smooth' }));
   // «Conoce al desarrollador» (igual que en la página): también se elige con el teclado (Enter lo abre)
   const devLink = backdrop.querySelector('.settings-dev-link');
   const devAnchor = devLink.querySelector('a');
@@ -71,7 +78,7 @@ function open({ enableDev, confirmDev }) {
     rows = [];
     body.innerHTML = '';
     devLink.classList.remove('focused');
-    devLink.onpointerenter = null;
+    devLink.onpointermove = null;
     if (confirming) {
       body.innerHTML = `
         <div class="settings-warning" role="alert">
@@ -143,7 +150,7 @@ function open({ enableDev, confirmDev }) {
     }
     keysHint.textContent = '↑ ↓ elegir · ← → ajustar · Enter cambiar · M o Esc cerrar';
     const linkIndex = rows.length;
-    devLink.onpointerenter = () => focusRow(linkIndex, false);
+    devLink.onpointermove = hoverRow(linkIndex);
     rows.push({ el: devLink, kind: 'link', hint: 'Abre su portafolio en otra pestaña.', act: () => devAnchor.click() });
     update();
   }
@@ -151,8 +158,17 @@ function open({ enableDev, confirmDev }) {
   function addRow(el, info) {
     body.appendChild(el);
     const i = rows.length;
-    el.addEventListener('pointerenter', () => focusRow(i, false));
+    el.addEventListener('pointermove', hoverRow(i));
     rows.push({ el, ...info });
+  }
+
+  // Pasar el ratón por una opción la elige, pero solo si el ratón de verdad se movió: el panel puede
+  // aparecer debajo de un cursor quieto (en ventanas angostas su pie, «Conoce al desarrollador»,
+  // llegaba a quedar sobre el engrane con el que se abrió y se elegía solo).
+  function hoverRow(i) {
+    return e => {
+      if ((e.movementX || e.movementY) && focus !== i) focusRow(i, false);
+    };
   }
 
   function addToggle(id, label, hint, on, act, cls = '') {
@@ -194,6 +210,7 @@ function open({ enableDev, confirmDev }) {
     if (!confirming) desc.textContent = rows[focus]?.hint || '';
     desc.hidden = confirming;
     if (scroll) rows[focus]?.el.scrollIntoView({ block: 'nearest' });
+    updateMore();
   }
 
   const stopListening = Music.onVolumeChange(update);
@@ -236,6 +253,7 @@ function open({ enableDev, confirmDev }) {
   function close() {
     window.removeEventListener('keydown', onKey, true);
     window.removeEventListener('keyup', onKeyUp, true);
+    window.removeEventListener('resize', updateMore);
     stopListening();
     backdrop.remove();
     panel = null;

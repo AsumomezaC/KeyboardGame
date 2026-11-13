@@ -350,20 +350,20 @@ body.panel-empty #caps-row { height: 12px; }
 #music-toast svg { width: 40px; height: 40px; shape-rendering: crispEdges; }
 @keyframes toast-in { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-/* ---------- Celulares: aviso en lugar del juego ---------- */
+/* ---------- Sin teclado físico (celulares y tablets): aviso en lugar del juego ---------- */
 
-body.phone #game { aspect-ratio: auto; }
-body.phone #caps-row, body.phone #panel { display: none; }
-.phone-notice {
+body.no-keyboard #game { aspect-ratio: auto; }
+body.no-keyboard #caps-row, body.no-keyboard #panel { display: none; }
+.keyboard-notice {
   background: var(--cream);
   color: var(--ink);
   text-align: center;
   padding: 22px 18px 26px;
 }
-.phone-notice svg { width: 160px; height: 80px; }
-.phone-notice h2 { font-size: 1.5rem; font-weight: normal; margin: 8px 0; color: #b83350; line-height: 1.1; }
-.phone-notice p { margin: 6px 0; font-size: 1.1rem; }
-.phone-share {
+.keyboard-notice svg { width: 160px; height: 80px; }
+.keyboard-notice h2 { font-size: 1.5rem; font-weight: normal; margin: 8px 0; color: #b83350; line-height: 1.1; }
+.keyboard-notice p { margin: 6px 0; font-size: 1.1rem; }
+.keyboard-share {
   margin-top: 10px;
   font: inherit;
   font-size: 1.1rem;
@@ -375,8 +375,10 @@ body.phone #caps-row, body.phone #panel { display: none; }
   padding: 6px 16px;
   cursor: pointer;
 }
-.phone-share:active { border-bottom-width: 3px; transform: translateY(2px); }
-.phone-done { color: var(--ok); }
+.keyboard-share:active { border-bottom-width: 3px; transform: translateY(2px); }
+.keyboard-ready strong { color: #b83350; font-weight: normal; }
+.keyboard-notice .keyboard-pc { max-width: 30em; margin: 10px auto 0; font-size: 0.95rem; color: #6d5f55; }
+.keyboard-done { color: var(--ok); }
 
 /* ---------- Pantalla de carga del juego ---------- */
 
@@ -438,12 +440,16 @@ body.phone #caps-row, body.phone #panel { display: none; }
   display: flex;
   align-items: center;
   justify-content: center;
+  /* El panel se queda arriba de la barra de teclas del juego (40 de 540 px de alto = 4.17 % del
+     ancho, porque el juego es 16:9): así su pie nunca cae sobre el engrane con el que se abrió. */
+  padding: 1.5% 0 4.3%;
   background: rgba(13, 10, 26, 0.55);
   animation: toast-in 0.12s ease-out;
 }
 .settings {
   width: min(92%, 480px);
-  max-height: 94%;
+  max-height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--cream);
@@ -460,7 +466,27 @@ body.phone #caps-row, body.phone #panel { display: none; }
   font: inherit; font-size: 1.1rem; line-height: 1; cursor: pointer;
   background: none; border: 2px solid var(--ink); border-radius: 6px; color: var(--ink); padding: 2px 7px;
 }
-.settings-body { overflow-y: auto; margin: 6px -6px 0; padding: 0 6px; }
+.settings-body { overflow-y: auto; margin: 6px -6px 0; padding: 0 6px; min-height: 2.6em; }
+/* Si no cabe todo (ventanas angostas), la barra de desplazamiento se ve siempre, con el estilo del panel. */
+.settings-body::-webkit-scrollbar { width: 12px; }
+.settings-body::-webkit-scrollbar-track { background: #e6dcc4; border-radius: 6px; }
+.settings-body::-webkit-scrollbar-thumb { background: var(--gold); border: 2px solid var(--ink); border-radius: 6px; }
+/* Firefox no tiene ::-webkit-scrollbar (y en Chrome las propiedades estándar lo anularían). */
+@supports not selector(::-webkit-scrollbar) {
+  .settings-body { scrollbar-width: auto; scrollbar-color: var(--gold) #e6dcc4; }
+}
+/* Aviso de que hay más opciones abajo (solo mientras falta por ver). */
+.settings-more {
+  margin: 0 -6px;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  color: #b83350;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 -10px 10px -4px var(--cream);
+  position: relative;
+}
 .settings-row {
   display: flex;
   align-items: center;
