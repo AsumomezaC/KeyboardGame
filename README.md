@@ -42,6 +42,17 @@ Cualquier cambio a la historia debe mantenerse dentro de esta clasificación. Si
 necesitara algo más fuerte (15+), debe acordarse antes y anotarse aquí. Los personajes, nombres y
 hechos son ficticios; cualquier parecido con personas reales es coincidencia.
 
+## Modos de juego
+
+Después de la pantalla de título se elige el tipo de juego (`ModesScene` en `src/scenes/MenuScenes.js`):
+
+- **Modo Historia:** los capítulos de Sofía (todo lo que se describe abajo). La tarjeta muestra
+  el total de estrellas de todos los capítulos.
+- **Modo Libre:** en construcción; su tarjeta se ve en gris y no se puede entrar.
+
+← → o un clic eligen, Enter (o un clic en la tarjeta ya elegida) entra y Esc vuelve al título.
+Desde la selección de capítulo, Esc regresa a esta pantalla.
+
 ## Capítulos
 
 | # | Nombre | Edad | Teclas |
@@ -85,7 +96,7 @@ hechos son ficticios; cualquier parecido con personas reales es coincidencia.
   rápido, atrás si es más lento. Dani es torpe y a veces se cae. En el secreto del capítulo 2
   corre Dani.
 
-### Modo historia
+### Modo Historia
 
 - Antes y después de cada nivel hay una escena de diálogo con estética de RPG portátil de los 90:
   personajes en escena y caja de texto que se escribe letra por letra (Enter avanza).
@@ -193,7 +204,7 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 | `src/data/` | Capítulos, generador de obstáculos, historia, reparto y climas |
 | `src/audio/` | Sintetizador de 8 bits y pistas de música |
 | `src/art/` | Pixel art provisional generado por código (personajes, perro, obstáculos, fondos) |
-| `src/scenes/` | Escenas de Phaser: título, capítulos, mapa, diálogos, lección, carrera, resultados y climas |
+| `src/scenes/` | Escenas de Phaser: título, modos de juego, capítulos, mapa, diálogos, lección, carrera, resultados y climas |
 | `src/ui/` | Panel HTML: teclado visual, manos, pistas, gráfica del historial y aviso para celulares |
 | `tests/` | Pruebas con `node --test` |
 

@@ -1,4 +1,4 @@
-// Arranque, pantalla de título y selección de capítulo.
+// Arranque, pantalla de título, selección de modo y selección de capítulo.
 import Phaser from 'phaser';
 import { generateArt } from '../art/index.js';
 import { Save } from '../core/save.js';
@@ -39,7 +39,7 @@ export class TitleScene extends Phaser.Scene {
     this.tweens.add({ targets: press, alpha: 0.2, duration: 600, yoyo: true, repeat: -1 });
     Panel.show('none');
     Music.play('titulo');
-    const go = () => this.scene.start('Chapters');
+    const go = () => this.scene.start('Modes');
     keyLegend(this, [['Enter', 'empezar', go], ['M', 'música']]);
     onKeys(this, { Enter: go, ' ': go });
     this.input.on('pointerdown', go);
@@ -48,6 +48,80 @@ export class TitleScene extends Phaser.Scene {
   update(_, delta) {
     this.scrollX += delta * 0.15;
     this.bg.scroll(this.scrollX);
+  }
+}
+
+// Selección del tipo de juego: modo historia (los capítulos) y modo libre (en construcción).
+const MODE_W = 300;
+const MODE_H = 300;
+const MODE_GAP = 60;
+const MODE_Y = 104;
+const MODES = [
+  { id: 'historia', title: 'Modo Historia', ready: true },
+  { id: 'libre', title: 'Modo Libre', ready: false },
+];
+
+export class ModesScene extends Phaser.Scene {
+  constructor() {
+    super('Modes');
+  }
+
+  init(data) {
+    this.startIndex = data?.select ?? 0;
+  }
+
+  create() {
+    backdrop(this, 'barrio').scroll(400);
+    this.add.rectangle(0, 0, W, 540, 0x1d1b33, 0.4).setOrigin(0);
+    text(this, W / 2, 26, 'Elige cómo jugar', 34, '#ffd23f', { ox: 0.5 });
+    const left = (W - MODES.length * MODE_W - (MODES.length - 1) * MODE_GAP) / 2;
+    this.cards = MODES.map((mode, i) => this.drawCard(mode, left + i * (MODE_W + MODE_GAP), i));
+    this.select(Math.min(this.startIndex, this.cards.length - 1));
+    const back = () => this.scene.start('Title');
+    keyLegend(this, [['← →', 'elegir'], ['Enter', 'entrar', () => this.enter()], ['Esc', 'título', back], ['M', 'música']]);
+    Music.play('titulo');
+    onKeys(this, {
+      ArrowRight: () => this.select(Math.min(this.cards.length - 1, this.index + 1)),
+      ArrowLeft: () => this.select(Math.max(0, this.index - 1)),
+      Enter: () => this.enter(),
+      ' ': () => this.enter(),
+      Escape: back,
+    });
+    Panel.show('none');
+  }
+
+  drawCard(mode, x, i) {
+    const y = MODE_Y;
+    const cx = x + MODE_W / 2;
+    box(this, x, y, MODE_W, MODE_H, { fill: mode.ready ? '#fff7e0' : '#d9d4c7' });
+    const frame = this.add.rectangle(x - 6, y - 6, MODE_W + 12, MODE_H + 12).setOrigin(0).setStrokeStyle(6, 0xffd23f).setVisible(false);
+    text(this, cx, y + 26, mode.title, 30, '#2b1d2e', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
+    if (mode.ready) {
+      this.add.sprite(cx, y + 226, 'sofia', 'idle0').setOrigin(0.5, 1).setScale(SCALE).play('sofia-run');
+      const total = PLAYABLE.reduce((n, chap) => n + chapterStars(chap, Save, { includeSecret: true }), 0);
+      text(this, cx, y + 244, `★ ${total}`, 24, '#e8a400', { ox: 0.5 });
+    } else {
+      this.add.image(cx, y + 170, 'sign').setScale(SCALE);
+      text(this, cx, y + 150, 'EN\nCONSTRUCCIÓN', 18, '#2b1d2e', { ox: 0.5, oy: 0.5, align: 'center', stroke: '#c8955c', strokeThickness: 2 });
+    }
+    // Un clic en la tarjeta seleccionada entra; en la otra, solo la selecciona.
+    this.add.zone(x, y, MODE_W, MODE_H).setOrigin(0).setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => (i === this.index ? this.enter() : this.select(i)));
+    return { mode, frame };
+  }
+
+  select(i) {
+    this.index = i;
+    this.cards.forEach((c, k) => c.frame.setVisible(k === i));
+  }
+
+  enter() {
+    const { mode } = this.cards[this.index];
+    if (!mode.ready) {
+      this.cameras.main.shake(150, 0.004);
+      return;
+    }
+    this.scene.start('Chapters');
   }
 }
 
@@ -82,14 +156,14 @@ export class ChaptersScene extends Phaser.Scene {
     this.cards = CHAPTERS.map((chap, i) => this.drawCard(chap, i));
     this.drawArrows();
     this.drawSlider();
-    keyLegend(this, [['← →', 'elegir'], ['Enter', 'entrar', () => this.enter()], ['Esc', 'título', () => this.scene.start('Title')], ['M', 'música']]);
+    keyLegend(this, [['← →', 'elegir'], ['Enter', 'entrar', () => this.enter()], ['Esc', 'modos', () => this.scene.start('Modes')], ['M', 'música']]);
     Music.play('mapa');
     this.select(Math.min(this.startIndex, this.cards.length - 1), false);
     onKeys(this, {
       ArrowRight: () => this.select(Math.min(this.cards.length - 1, this.index + 1)),
       ArrowLeft: () => this.select(Math.max(0, this.index - 1)),
       Enter: () => this.enter(),
-      Escape: () => this.scene.start('Title'),
+      Escape: () => this.scene.start('Modes'),
     });
     this.input.on('wheel', (_p, _o, dx, dy) => this.scrollTo(this.first + Math.sign(dy || dx), true));
     Panel.show('none');
