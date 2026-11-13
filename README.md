@@ -48,10 +48,17 @@ Después de la pantalla de título se elige el tipo de juego (`ModesScene` en `s
 
 - **Modo Historia:** los capítulos de Sofía (todo lo que se describe abajo). La tarjeta muestra
   el total de estrellas de todos los capítulos.
-- **Modo Libre:** en construcción; su tarjeta se ve en gris y no se puede entrar.
+- **Modo Libre:** abre otra pantalla (titulada «Modo Libre», `FreeScene`) con dos opciones,
+  las dos en construcción:
+  - **Todo el Juego:** todos los niveles y teclas, aunque no se hayan desbloqueado.
+  - **Mis Teclas:** solo las teclas ya desbloqueadas en el Modo Historia.
 
-← → o un clic eligen, Enter (o un clic en la tarjeta ya elegida) entra y Esc vuelve al título.
-Desde la selección de capítulo, Esc regresa a esta pantalla.
+  Al pasar el ratón sobre una opción (o elegirla con las flechas) aparece su descripción debajo.
+
+Las dos pantallas comparten el mismo menú de tarjetas (`CardMenuScene`): ← → o un clic eligen,
+Enter (o un clic en la tarjeta ya elegida) entra y Esc regresa (al título desde los modos; a los
+modos desde el Modo Libre). Las tarjetas en construcción se ven en gris y solo tiemblan al entrar.
+Desde la selección de capítulo, Esc regresa a la pantalla de modos.
 
 ## Capítulos
 
@@ -214,7 +221,7 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 | `src/data/` | Capítulos, generador de obstáculos, historia, reparto y climas |
 | `src/audio/` | Sintetizador de 8 bits y pistas de música |
 | `src/art/` | Pixel art provisional generado por código (personajes, perro, obstáculos, fondos) |
-| `src/scenes/` | Escenas de Phaser: título, modos de juego, capítulos, mapa, diálogos, lección, carrera, resultados y climas |
+| `src/scenes/` | Escenas de Phaser: título, modos de juego (y opciones del Modo Libre), capítulos, mapa, diálogos, lección, carrera, resultados y climas |
 | `src/ui/` | Panel HTML: teclado visual, manos, pistas, gráfica del historial y aviso de teclado físico |
 | `tests/` | Pruebas con `node --test` |
 

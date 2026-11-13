@@ -51,35 +51,33 @@ export class TitleScene extends Phaser.Scene {
   }
 }
 
-// Selección del tipo de juego: modo historia (los capítulos) y modo libre (en construcción).
-const MODE_W = 300;
-const MODE_H = 300;
-const MODE_GAP = 60;
-const MODE_Y = 104;
-const MODES = [
-  { id: 'historia', title: 'Modo Historia', ready: true },
-  { id: 'libre', title: 'Modo Libre', ready: false },
-];
+// Menú de tarjetas grandes (selección de modo y opciones del Modo Libre). Cada tarjeta:
+// { title, ready, art(scene, cx, y), desc?, go? }. Las que no están listas se ven en gris con el
+// letrero «EN CONSTRUCCIÓN» y solo tiemblan al intentar entrar. Si la tarjeta tiene desc, aparece
+// debajo al pasar el ratón sobre ella o al elegirla con las flechas.
+const CARD_MENU_W = 300;
+const CARD_MENU_H = 300;
+const CARD_MENU_GAP = 60;
+const CARD_MENU_Y = 104;
+const DESC_Y = 438;
 
-export class ModesScene extends Phaser.Scene {
-  constructor() {
-    super('Modes');
-  }
-
+class CardMenuScene extends Phaser.Scene {
   init(data) {
     this.startIndex = data?.select ?? 0;
   }
 
-  create() {
+  // heading: título de la pantalla; back: [texto de Esc, acción].
+  buildMenu(heading, cards, [backLabel, back]) {
     backdrop(this, 'barrio').scroll(400);
     this.add.rectangle(0, 0, W, 540, 0x1d1b33, 0.4).setOrigin(0);
-    text(this, W / 2, 26, 'Elige cómo jugar', 34, '#ffd23f', { ox: 0.5 });
-    const left = (W - MODES.length * MODE_W - (MODES.length - 1) * MODE_GAP) / 2;
-    this.cards = MODES.map((mode, i) => this.drawCard(mode, left + i * (MODE_W + MODE_GAP), i));
-    this.select(Math.min(this.startIndex, this.cards.length - 1));
-    const back = () => this.scene.start('Title');
-    keyLegend(this, [['← →', 'elegir'], ['Enter', 'entrar', () => this.enter()], ['Esc', 'título', back], ['M', 'música']]);
-    Music.play('titulo');
+    text(this, W / 2, 26, heading, 34, '#ffd23f', { ox: 0.5 });
+    this.drawDescription();
+    const left = (W - cards.length * CARD_MENU_W - (cards.length - 1) * CARD_MENU_GAP) / 2;
+    this.cards = cards.map((card, i) => this.drawCard(card, left + i * (CARD_MENU_W + CARD_MENU_GAP), i));
+    this.select(Math.min(this.startIndex, this.cards.length - 1), false);
+    // Si el ratón sale del juego directo desde una tarjeta, la tarjeta no recibe pointerout.
+    this.input.on('gameout', () => this.showDescription(null));
+    keyLegend(this, [['← →', 'elegir'], ['Enter', 'entrar', () => this.enter()], ['Esc', backLabel, back], ['M', 'música']]);
     onKeys(this, {
       ArrowRight: () => this.select(Math.min(this.cards.length - 1, this.index + 1)),
       ArrowLeft: () => this.select(Math.max(0, this.index - 1)),
@@ -90,38 +88,104 @@ export class ModesScene extends Phaser.Scene {
     Panel.show('none');
   }
 
-  drawCard(mode, x, i) {
-    const y = MODE_Y;
-    const cx = x + MODE_W / 2;
-    box(this, x, y, MODE_W, MODE_H, { fill: mode.ready ? '#fff7e0' : '#d9d4c7' });
-    const frame = this.add.rectangle(x - 6, y - 6, MODE_W + 12, MODE_H + 12).setOrigin(0).setStrokeStyle(6, 0xffd23f).setVisible(false);
-    text(this, cx, y + 26, mode.title, 30, '#2b1d2e', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
-    if (mode.ready) {
-      this.add.sprite(cx, y + 226, 'sofia', 'idle0').setOrigin(0.5, 1).setScale(SCALE).play('sofia-run');
-      const total = PLAYABLE.reduce((n, chap) => n + chapterStars(chap, Save, { includeSecret: true }), 0);
-      text(this, cx, y + 244, `★ ${total}`, 24, '#e8a400', { ox: 0.5 });
+  // Placa oscura debajo de las tarjetas para la descripción; oculta hasta que haga falta.
+  drawDescription() {
+    this.descPlate = this.add.graphics().setVisible(false);
+    this.descText = text(this, W / 2, DESC_Y, '', 20, '#ffffff', { ox: 0.5, oy: 0.5, strokeThickness: 0 }).setVisible(false);
+  }
+
+  showDescription(card) {
+    const desc = card?.spec.desc;
+    this.descPlate.setVisible(!!desc);
+    this.descText.setVisible(!!desc);
+    if (!desc) return;
+    this.descText.setText(desc);
+    const w = this.descText.width + 36;
+    const h = this.descText.height + 14;
+    this.descPlate.clear().fillStyle(0x000000, 0.6).fillRoundedRect(W / 2 - w / 2, DESC_Y - h / 2, w, h, 8)
+      .lineStyle(2, 0xc9a66b, 1).strokeRoundedRect(W / 2 - w / 2, DESC_Y - h / 2, w, h, 8);
+  }
+
+  drawCard(spec, x, i) {
+    const y = CARD_MENU_Y;
+    const cx = x + CARD_MENU_W / 2;
+    box(this, x, y, CARD_MENU_W, CARD_MENU_H, { fill: spec.ready ? '#fff7e0' : '#d9d4c7' });
+    const frame = this.add.rectangle(x - 6, y - 6, CARD_MENU_W + 12, CARD_MENU_H + 12).setOrigin(0).setStrokeStyle(6, 0xffd23f).setVisible(false);
+    text(this, cx, y + 26, spec.title, 30, '#2b1d2e', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
+    if (spec.ready) {
+      spec.art(this, cx, y);
     } else {
       this.add.image(cx, y + 170, 'sign').setScale(SCALE);
       text(this, cx, y + 150, 'EN\nCONSTRUCCIÓN', 18, '#2b1d2e', { ox: 0.5, oy: 0.5, align: 'center', stroke: '#c8955c', strokeThickness: 2 });
     }
     // Un clic en la tarjeta seleccionada entra; en la otra, solo la selecciona.
-    this.add.zone(x, y, MODE_W, MODE_H).setOrigin(0).setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => (i === this.index ? this.enter() : this.select(i)));
-    return { mode, frame };
+    const hit = this.add.zone(x, y, CARD_MENU_W, CARD_MENU_H).setOrigin(0).setInteractive({ useHandCursor: true });
+    hit.on('pointerdown', () => (i === this.index ? this.enter() : this.select(i)));
+    hit.on('pointerover', () => this.showDescription(this.cards[i]));
+    hit.on('pointerout', () => this.showDescription(null));
+    return { spec, frame };
   }
 
-  select(i) {
+  // describe: con las flechas también se muestra la descripción (el teclado no tiene «hover»).
+  select(i, describe = true) {
     this.index = i;
     this.cards.forEach((c, k) => c.frame.setVisible(k === i));
+    if (describe) this.showDescription(this.cards[i]);
   }
 
   enter() {
-    const { mode } = this.cards[this.index];
-    if (!mode.ready) {
+    const { spec } = this.cards[this.index];
+    if (!spec.ready) {
       this.cameras.main.shake(150, 0.004);
       return;
     }
-    this.scene.start('Chapters');
+    spec.go(this);
+  }
+}
+
+// Selección del tipo de juego: Modo Historia (los capítulos) y Modo Libre.
+export class ModesScene extends CardMenuScene {
+  constructor() {
+    super('Modes');
+  }
+
+  create() {
+    this.buildMenu('Elige cómo jugar', [
+      {
+        title: 'Modo Historia',
+        ready: true,
+        art: (scene, cx, y) => {
+          scene.add.sprite(cx, y + 226, 'sofia', 'idle0').setOrigin(0.5, 1).setScale(SCALE).play('sofia-run');
+          const total = PLAYABLE.reduce((n, chap) => n + chapterStars(chap, Save, { includeSecret: true }), 0);
+          text(scene, cx, y + 244, `★ ${total}`, 24, '#e8a400', { ox: 0.5 });
+        },
+        go: scene => scene.scene.start('Chapters'),
+      },
+      {
+        title: 'Modo Libre',
+        ready: true,
+        art: (scene, cx, y) => {
+          scene.add.sprite(cx, y + 240, 'sofia', 'idle0').setOrigin(0.5, 1).setScale(SCALE).play('sofia-cheer');
+        },
+        go: scene => scene.scene.start('Free'),
+      },
+    ], ['título', () => this.scene.start('Title')]);
+    Music.play('titulo');
+  }
+}
+
+// Modo Libre: con todo el contenido del juego o solo con las teclas ya desbloqueadas.
+export class FreeScene extends CardMenuScene {
+  constructor() {
+    super('Free');
+  }
+
+  create() {
+    this.buildMenu('Modo Libre', [
+      { title: 'Todo el Juego', ready: false, desc: 'Todos los niveles y teclas, aunque no los hayas desbloqueado.' },
+      { title: 'Mis Teclas', ready: false, desc: 'Solo las teclas que ya desbloqueaste en el Modo Historia.' },
+    ], ['modos', () => this.scene.start('Modes', { select: 1 })]);
+    Music.play('titulo');
   }
 }
 

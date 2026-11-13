@@ -3,7 +3,7 @@
 import Phaser from 'phaser';
 import { TypeInput } from './core/input.js';
 import { Panel } from './ui/panel.js';
-import { BootScene, TitleScene, ModesScene, ChaptersScene } from './scenes/MenuScenes.js';
+import { BootScene, TitleScene, ModesScene, FreeScene, ChaptersScene } from './scenes/MenuScenes.js';
 import { LevelMapScene } from './scenes/LevelMapScene.js';
 import { LessonScene } from './scenes/LessonScene.js';
 import { RunScene } from './scenes/RunScene.js';
@@ -45,7 +45,7 @@ export function startGame(onReady) {
     pixelArt: true,
     backgroundColor: '#1d1b33',
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_HORIZONTALLY },
-    scene: [BootScene, TitleScene, ModesScene, ChaptersScene, LevelMapScene, DialogueScene, LessonScene, RunScene, ResultsScene],
+    scene: [BootScene, TitleScene, ModesScene, FreeScene, ChaptersScene, LevelMapScene, DialogueScene, LessonScene, RunScene, ResultsScene],
   });
   game.events.once(Phaser.Core.Events.READY, keepPageStill);
   game.events.once('art-ready', () => onReady?.());
