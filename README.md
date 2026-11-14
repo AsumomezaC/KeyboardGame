@@ -140,6 +140,21 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   (p. ej. Sofía buscando a su papá en la primera fila en el nivel 7 del capítulo 1).
 - Sofía tiene el pelo que le tapa la frente y enmarca la oreja, y una trenza de dos tonos con
   listón amarillo en la nuca y en la punta (peinado `braid` en `src/art/kid.js`).
+- El arte puede venir de una hoja PNG: los personajes de `PNG_SHEETS` (`src/art/sprites.js`) cargan
+  `public/assets/sprites/<id>.png` + `.json` al arrancar, y cada cuadro del PNG reemplaza al dibujado
+  por código con el mismo nombre y tamaño; los cuadros que el PNG no trae, o todos si el PNG no
+  carga, se quedan con el dibujo por código. Hoy Sofía y Dani tienen en PNG todos sus
+  cuadros; el muñeco común de los niños está en `art-src/personajes/nino.py` y cada personaje pone su
+  aspecto y su carrera en su script (Dani corre torpe y trae `run4_t`, un cuadro en el que casi
+  tropieza y que la animación usa en uno de cada `STUMBLE_EVERY` ciclos)
+  (`python art-src/personajes/sofia.py <carpeta de previas> --exportar` los regenera; usa la
+  paleta de `art-src/paleta.py`).
+- Retratos en los diálogos: quien está en `PORTRAITS` (`src/art/sprites.js`) muestra un retrato de
+  48×48 a la izquierda de la caja de texto (`public/assets/sprites/<id>-retrato.png` + `.json`). Trae
+  un cuadro por gesto (`idle`, `talk`, `sad`, `angry`, `cry`, `shock`, `happy`, `cheer`), otro con la
+  boca abierta (`_m`), que se alterna mientras se escribe el texto, y el parpadeo (`_b`). Con retrato
+  el texto se recorre a la derecha; el narrador y quien no tiene retrato usan la caja completa. Hoy
+  solo Sofía tiene retrato (`python art-src/retratos/sofia.py <carpeta de previas> --exportar`).
 - Personajes: Sofía; su papá Ramiro, su mamá Leticia y su hermano Tomás (Tomasito); Dani, su mejor
   amigo y vecino; la Tata, abuela de Dani y dueña de Abarrotes La Esperanza; Los Gatos (Kevin, Yesi,
   Chuy, Brayan y Memo); el perro guardián y Don Chema, el panadero del mercado.
@@ -248,7 +263,9 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 | `src/game/` | Lógica de la carrera (sin gráficos), reglas de estrellas/desbloqueo y pistas |
 | `src/data/` | Capítulos, generador de obstáculos, historia, reparto y climas |
 | `src/audio/` | Sintetizador de 8 bits y pistas de música |
-| `src/art/` | Pixel art provisional generado por código (personajes, perro, obstáculos, fondos) |
+| `src/art/` | Pixel art generado por código (personajes, perro, obstáculos, fondos) y carga de las hojas PNG (`sprites.js`) |
+| `art-src/` | Fuente del arte en PNG: paleta maestra (`paleta.py`) y un script de Python + Pillow por personaje |
+| `public/assets/sprites/` | Hojas de sprites PNG + JSON que generan los scripts de `art-src/` |
 | `src/scenes/` | Escenas de Phaser: título, modos de juego (y opciones del Modo Libre), capítulos, mapa, diálogos, lección, carrera, resultados y climas |
 | `src/ui/` | Panel HTML: teclado visual, manos, pistas, gráfica del historial y aviso de teclado físico |
 | `tests/` | Pruebas con `node --test` |

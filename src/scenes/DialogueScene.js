@@ -2,12 +2,15 @@
 // personajes de pie en el escenario y una caja de texto blanca de doble borde que se escribe
 // letra por letra, con ▼ cuando puedes continuar. Cada personaje «balbucea» con su propia voz,
 // marca sus emociones con el cuerpo y, cuando escucha, parpadea y reacciona sin robar atención.
+// Quien tiene retrato lo muestra a la izquierda de la caja: cambia con el gesto, mueve la boca
+// mientras se escribe el texto y parpadea.
 // La cámara solo se mueve en los momentos marcados con fx (temblor, destello, zoom).
 import Phaser from 'phaser';
 import { Music } from '../audio/music.js';
 import { Panel } from '../ui/panel.js';
 import { ROOM } from '../art/backgrounds.js';
 import { RUNNERS } from '../art/index.js';
+import { PORTRAITS, PORTRAIT_SIZE, PORTRAIT_MOODS, portraitKey } from '../art/sprites.js';
 import { CAST, NARRATOR_VOICE } from '../data/cast.js';
 import { BLINKABLE } from '../art/kid.js';
 import { addWeather } from './weather.js';
@@ -21,6 +24,11 @@ const AGE_SCALE = { 8: 3.6, 9: 3.7, 10: 4, 11: 4.15, 12: 4.3 };
 const ROOMS = { casa: 'room-casa', tienda: 'room-tienda' };
 const MOOD_FRAME = { idle: null, talk: 'talk', sad: 'sad', angry: 'angry', cry: 'cry', shock: 'shock', happy: 'cheer0', cheer: null };
 const BLINK_MS = 130;
+const PORTRAIT_SCALE = 2;
+const PORTRAIT = { x: BOX.x + 14, y: BOX.y + 12, size: PORTRAIT_SIZE * PORTRAIT_SCALE };
+const TEXT_X = BOX.x + 26;                        // texto sin retrato
+const TEXT_X_PORTRAIT = PORTRAIT.x + PORTRAIT.size + 14;
+const MOUTH_EVERY = 3;                           // la boca del retrato cambia cada tantas letras
 const BLINK_EVERY = [2200, 5200]; // cada cuánto parpadea alguien que escucha (al azar en este rango)
 
 export class DialogueScene extends Phaser.Scene {
@@ -151,6 +159,12 @@ export class DialogueScene extends Phaser.Scene {
       fontFamily: FONT, fontSize: px(23), color: '#303030', lineSpacing: 2,
       wordWrap: { width: w - 70, useAdvancedWrap: true },
     }));
+    // retrato de quien habla (oculto hasta que hable alguien que tenga uno)
+    this.portraitG = fixed(this.add.graphics()).setVisible(false);
+    this.portraitG.fillStyle(0x8890a8, 1).fillRect(PORTRAIT.x - 2, PORTRAIT.y - 2, PORTRAIT.size + 4, PORTRAIT.size + 4);
+    this.portraitG.fillStyle(0xe9e4ee, 1).fillRect(PORTRAIT.x, PORTRAIT.y, PORTRAIT.size, PORTRAIT.size);
+    this.portrait = fixed(this.add.image(PORTRAIT.x, PORTRAIT.y, '__DEFAULT')).setOrigin(0).setScale(PORTRAIT_SCALE).setVisible(false);
+    this.portraitBase = null;
     this.arrow = fixed(this.add.text(x + w - 40, y + h - 38, '▼', { fontFamily: FONT, fontSize: px(20), color: '#303048' })).setVisible(false);
     this.tweens.add({ targets: this.arrow, y: this.arrow.y + 5, duration: 350, yoyo: true, repeat: -1 });
   }
@@ -163,6 +177,30 @@ export class DialogueScene extends Phaser.Scene {
     const w = this.nameText.width + 30;
     this.nameG.fillStyle(0x303048, 1).fillRect(x + 12, y - 36, w, 40);
     this.nameG.fillStyle(0xe94f64, 1).fillRect(x + 15, y - 33, w - 6, 34);
+  }
+
+  // Muestra el retrato de quien habla con su gesto, o lo quita (narrador y personajes sin retrato).
+  // Con retrato el texto se recorre a la derecha.
+  showPortrait(id, mood) {
+    const key = id ? portraitKey(CAST[id].sprite || id) : null;
+    const has = !!key && PORTRAITS.includes(CAST[id].sprite || id) && this.textures.exists(key);
+    this.portrait.setVisible(has);
+    this.portraitG.setVisible(has);
+    this.portraitBase = null;
+    this.body.setX(has ? TEXT_X_PORTRAIT : TEXT_X);
+    this.body.setWordWrapWidth(BOX.w - 70 - (has ? TEXT_X_PORTRAIT - TEXT_X : 0), true);
+    if (!has) return;
+    this.portraitBase = PORTRAIT_MOODS.includes(mood) ? mood : 'idle';
+    this.portrait.setTexture(key, this.portraitBase);
+    this.portraitBlink = this.time.now + Phaser.Math.Between(...BLINK_EVERY);
+  }
+
+  // Cuadro del retrato: '' reposo, '_m' boca abierta, '_b' parpadeo (si el gesto no lo tiene, reposo).
+  portraitFrame(suffix = '') {
+    if (!this.portraitBase) return;
+    const tex = this.textures.get(this.portrait.texture.key);
+    const name = `${this.portraitBase}${suffix}`;
+    this.portrait.setFrame(tex.has(name) ? name : this.portraitBase);
   }
 
   // Escribe la línea letra por letra con la voz de quien habla: una sílaba cada dos letras
@@ -185,6 +223,7 @@ export class DialogueScene extends Phaser.Scene {
         shown++;
         this.body.setText(chars.slice(0, shown).join(''));
         if (shown % every === 1) Music.voice(voice, ch, mood);
+        this.portraitFrame(Math.floor(shown / MOUTH_EVERY) % 2 ? '' : '_m');
         if (shown >= chars.length) this.finishTyping(str);
       },
     });
@@ -194,6 +233,7 @@ export class DialogueScene extends Phaser.Scene {
     this.typing?.remove();
     this.typing = null;
     this.body.setText(str);
+    this.portraitFrame();
     this.arrow.setVisible(true);
   }
 
@@ -246,6 +286,7 @@ export class DialogueScene extends Phaser.Scene {
     this.fx(line.fx, speaker);
     this.react(line, speaker);
     this.showName(line.s ? CAST[line.s].name : null);
+    this.showPortrait(line.s, line.m || speaker?.mood);
     this.type(line.t, line.s, speaker ? speaker.mood : null);
   }
 
@@ -385,6 +426,12 @@ export class DialogueScene extends Phaser.Scene {
 
   update(time, delta) {
     this.weather?.update(delta);
+    // El retrato parpadea cuando ya terminó de hablar.
+    if (this.portraitBase && !this.typing && time > this.portraitBlink) {
+      this.portraitBlink = time + Phaser.Math.Between(...BLINK_EVERY);
+      this.portraitFrame('_b');
+      this.time.delayedCall(BLINK_MS, () => { if (!this.typing) this.portraitFrame(); });
+    }
     // Quien no está hablando parpadea de vez en cuando.
     for (const a of Object.values(this.actors)) {
       if (a === this.speaker || a.id === 'perro' || time < a.nextBlink) continue;

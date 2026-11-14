@@ -374,6 +374,13 @@ function frame(name, joints, pal, build = BUILDS.kid) {
   return { name, canvas: c };
 }
 
+// Todos los nombres de cuadro de una hoja de personaje (los que piden las escenas).
+export const FRAME_NAMES = [
+  ...Array.from({ length: RUN_FRAMES }, (_, i) => `run${i}`),
+  ...Object.keys(POSES),
+  ...BLINKABLE.map(name => `${name}_b`),
+];
+
 // Cuadros de carrera sueltos (canvas), para dibujarlos fuera de Phaser (pantalla de carga).
 export function runFrames(pal) {
   return Array.from({ length: RUN_FRAMES }, (_, i) => frame(`run${i}`, runPose(i / RUN_FRAMES), pal).canvas);

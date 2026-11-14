@@ -15,7 +15,8 @@ El **código** del juego sigue bajo la licencia MIT (archivo [`LICENSE`](LICENSE
 - **Historia:** el guion, los diálogos y las frases de cada nivel (`src/data/story1.js`, `story2.js` y `story3.js`).
 - **Arte:** los dibujos en pixel art de personajes, perro, fondos, detalles, obstáculos (incluidos sus grafitis)
   e íconos (`src/art/kid.js`, `sofia.js`, `rig.js`, `dog.js`, `backgrounds.js`, `details.js`, `props.js` e
-  `icons.js`), y las
+  `icons.js`), la paleta de colores y los scripts de dibujo de `art-src/`, las hojas de sprites de
+  `public/assets/sprites/`, y las
   imágenes de `public/` (`vista-previa.jpg` y `favicon.svg`).
 - **Música:** las melodías y pistas de `src/audio/tracks.js`.
 

@@ -1,6 +1,7 @@
 // Arranque, pantalla de título, selección de modo y selección de capítulo.
 import Phaser from 'phaser';
 import { generateArt } from '../art/index.js';
+import { preloadSprites } from '../art/sprites.js';
 import { Save } from '../core/save.js';
 import { chapterStars, chapterMaxStars, chapterUnlocked } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
@@ -12,6 +13,10 @@ import { Music } from '../audio/music.js';
 export class BootScene extends Phaser.Scene {
   constructor() {
     super('Boot');
+  }
+
+  preload() {
+    preloadSprites(this);
   }
 
   async create() {

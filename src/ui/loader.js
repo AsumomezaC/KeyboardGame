@@ -1,7 +1,8 @@
 // Pantalla de carga del recuadro del juego: Sofía corre sobre la barra mientras se descarga el
 // juego. El navegador no dice cuánto falta de un import(), así que la barra avanza por tiempo
 // (cada vez más lento, sin llegar al final) y salta cuando de verdad termina cada parte.
-import { PALETTES, runFrames } from '../art/kid.js';
+import { PALETTES, runFrames, RUN_FRAMES } from '../art/kid.js';
+import { loadRunFrames } from '../art/sprites.js';
 
 const FRAME_MS = 90;
 const TAU_MS = 2500; // a los 2.5 s la barra va en ~57 %
@@ -27,6 +28,8 @@ export function showLoader() {
 
   let frames = [];
   try { frames = runFrames(PALETTES.sofia); } catch { sofia.hidden = true; }
+  // Si la hoja PNG de Sofía carga, se usa esa; mientras tanto (o si falla) corre el dibujo por código.
+  loadRunFrames('sofia', RUN_FRAMES).then(png => { if (png) frames = png; });
   const ctx = sofia.getContext('2d');
 
   const start = performance.now();

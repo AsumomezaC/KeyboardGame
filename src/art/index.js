@@ -6,6 +6,7 @@ import { buildBackgrounds } from './backgrounds.js';
 import { buildDetails } from './details.js';
 import { buildIcons } from './icons.js';
 import { buildStageSheets } from './sofia.js';
+import { applySprites, runSequence } from './sprites.js';
 
 // Complexión de cada personaje. Todos pueden correr (la Tata y la mamá persiguen a Sofía).
 export const CAST_BUILDS = {
@@ -16,7 +17,10 @@ export const CAST_BUILDS = {
 export const RUNNERS = Object.keys(CAST_BUILDS);
 
 export function generateArt(scene) {
-  for (const [key, build] of Object.entries(CAST_BUILDS)) buildBuildSheet(scene, key, PALETTES[key], build);
+  for (const [key, build] of Object.entries(CAST_BUILDS)) {
+    buildBuildSheet(scene, key, PALETTES[key], build);
+    applySprites(scene, key); // los cuadros que ya existen en PNG reemplazan a los dibujados por código
+  }
   buildKidHead(scene, 'sofia-head', PALETTES.sofia);
   buildStageSheets(scene); // Sofía de adolescente, joven y adulta, con sus animaciones
   buildDogSheet(scene);
@@ -31,7 +35,7 @@ export function generateArt(scene) {
     scene.anims.create({ key: `${key}-cheer`, frames: frames(key, ['cheer0', 'cheer1']), frameRate: 4, repeat: -1 });
     scene.anims.create({
       key: `${key}-run`,
-      frames: frames(key, Array.from({ length: RUN_FRAMES }, (_, i) => `run${i}`)),
+      frames: runSequence(scene, key, Array.from({ length: RUN_FRAMES }, (_, i) => `run${i}`)),
       frameRate: 12,
       repeat: -1,
     });
