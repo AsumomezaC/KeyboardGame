@@ -34,7 +34,7 @@ export function startLevel(scene, chapter, level, { story = !Save.level(level.id
 }
 
 // Al terminar una carrera: el diálogo final sale al superar el nivel por primera vez o al ver la
-// historia (nunca con «sin diálogos» del modo desarrollador).
+// historia (nunca con «Jugar sin diálogos» de Configuración).
 export function finishLevel(scene, chapter, level, result, { story }) {
   const { key, data } = finishTarget(chapter, level, result, { story });
   scene.scene.start(key, data);

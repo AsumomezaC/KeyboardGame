@@ -2,7 +2,8 @@
 // impreso en ella y, en color, lo que escribe la distribución latina cuando es distinto.
 // Se dibuja dos veces: completo (pantallas angostas) y partido en mitad izquierda y derecha (a
 // los lados del texto en pantallas normales). El CSS muestra uno u otro; resaltar una tecla
-// marca todas sus copias.
+// marca todas sus copias. En los niveles con códigos Alt (< >) se agrega el teclado numérico a la
+// derecha, si cabe (showNumpad).
 import * as Layout from '../core/layout.js';
 import { fingerOf, oppositeShift } from '../core/fingers.js';
 
@@ -35,6 +36,14 @@ const SPECIAL = {
   MetaLeft: 'Win', MetaRight: 'Win', AltLeft: 'Alt', AltRight: 'AltGr', ContextMenu: 'Menú', Space: '',
 };
 const HOME_KEYS = ['KeyF', 'KeyJ'];
+// Teclado numérico: [código, texto, columna, fila, columnas, filas].
+const NUMPAD = [
+  ['NumLock', 'Bloq Num', 1, 1], ['NumpadDivide', '/', 2, 1], ['NumpadMultiply', '*', 3, 1], ['NumpadSubtract', '-', 4, 1],
+  ['Numpad7', '7', 1, 2], ['Numpad8', '8', 2, 2], ['Numpad9', '9', 3, 2], ['NumpadAdd', '+', 4, 2, 1, 2],
+  ['Numpad4', '4', 1, 3], ['Numpad5', '5', 2, 3], ['Numpad6', '6', 3, 3],
+  ['Numpad1', '1', 1, 4], ['Numpad2', '2', 2, 4], ['Numpad3', '3', 3, 4], ['NumpadEnter', 'Enter', 4, 4, 1, 2],
+  ['Numpad0', '0', 1, 5, 2, 1], ['NumpadDecimal', '.', 3, 5],
+];
 const BROKEN_HTML = '<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">' +
   '<polyline points="18,0 26,14 21,19 34,40"/><polyline points="62,0 57,11 68,22 61,40"/>' +
   '<polyline points="26,14 44,17 57,11"/><polyline points="68,22 86,26 100,21"/></svg>' +
@@ -93,13 +102,36 @@ function buildRows(container, rows, keys, split) {
   container.appendChild(broken);
 }
 
-// containers: { full, left, right, info }. info recibe la nota (códigos Alt) y la leyenda de colores.
-export function createKeyboard({ full, left, right, info }) {
+function buildNumpad(container, keys) {
+  container.innerHTML = '';
+  container.classList.add('keyboard', 'kb-numpad');
+  const title = document.createElement('div');
+  title.className = 'np-title';
+  title.textContent = 'Teclado numérico';
+  container.appendChild(title);
+  for (const [code, label, col, row, cols = 1, rows = 1] of NUMPAD) {
+    const key = document.createElement('div');
+    key.className = 'kb-key' + (/^Num(Lock|padEnter)/.test(code) ? ' special' : '');
+    key.style.gridColumn = `${col} / span ${cols}`;
+    key.style.gridRow = `${row + 1} / span ${rows}`;
+    key.dataset.code = code;
+    key.textContent = label;
+    container.appendChild(key);
+    (keys[code] ||= []).push(key);
+  }
+}
+
+// containers: { full, left, right, info, numpads }. info recibe la nota (códigos Alt) y la leyenda
+// de colores; numpads, los lugares del teclado numérico (junto al completo y junto a la mitad derecha).
+export function createKeyboard({ full, left, right, info, numpads = [] }) {
   const keys = {};
-  const boards = [full, left, right];
+  const boards = [full, left, right, ...numpads];
   buildRows(full, ROWS, keys, false);
   buildRows(left, LEFT_ROWS, keys, true);
   buildRows(right, RIGHT_ROWS, keys, true);
+  for (const np of numpads) buildNumpad(np, keys);
+  numpads[0]?.classList.add('np-full');
+  numpads[1]?.classList.add('np-side');
   full.classList.add('kb-full');
   left.classList.add('kb-side', 'left');
   right.classList.add('kb-side', 'right');
@@ -142,8 +174,11 @@ export function createKeyboard({ full, left, right, info }) {
       const combo = Layout.comboFor(ch);
       if (!combo) return;
       if (combo.altCode) {
+        // En el teclado solo Alt (los números de arriba no sirven para el código); los números se
+        // marcan en orden (1, 2…) en el teclado numérico, si se ve.
         mark('AltLeft');
-        note.textContent = `Alt + ${combo.altCode.split('').join(' ')} (teclado numérico)`;
+        Array.from(combo.altCode).forEach((d, i) => mark(`Numpad${d}`, String(i + 1)));
+        note.textContent = `Mantén Alt izquierdo, teclea ${combo.altCode.split('').join(' ')} en el teclado numérico y suelta Alt`;
         return;
       }
       const multi = combo.steps.length > 1;
@@ -170,6 +205,11 @@ export function createKeyboard({ full, left, right, info }) {
         void key.offsetWidth; // reinicia la animación
         key.classList.add('pressed');
       }
+    },
+
+    // Muestra el teclado numérico (si cabe en la pantalla) en los niveles con códigos Alt.
+    showNumpad(on) {
+      for (const np of numpads) np.classList.toggle('np-on', on);
     },
 
     showFingers(on) {

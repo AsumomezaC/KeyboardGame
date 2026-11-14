@@ -14,6 +14,9 @@ const FINISH_GAP = 360;
 const FINISH_SPEED = 2.2;
 
 // w: ancho del obstáculo; pre/post: distancia del movimiento antes y después de él.
+// Obstáculos por etapas (stages): Sofía avanza por ellos mientras se escribe. Al terminar cada
+// tramo del texto llega a la siguiente parada (holds: fracción del recorrido, de start a end);
+// con un traspié se queda donde iba, y si se acaba el tiempo se cae y vuelve al principio.
 export const OBSTACLE_TYPES = {
   flat: { w: 30, pre: 12, post: 12 },
   puddle: { w: 84, pre: 45, post: 30 },
@@ -22,6 +25,12 @@ export const OBSTACLE_TYPES = {
   table: { w: 138, pre: 50, post: 40 },  // 9-10: se desliza sobre una mesa larga
   wall: { w: 150, pre: 50, post: 60 },   // 11-12: corre a lo largo de la pared (el piso tiene cemento fresco)
   hole: { w: 150, pre: 80, post: 50 },   // 13-14: brinca un hoyo enorme
+  container: { w: 138, pre: 90, post: 70 }, // 15-17: salto de gato sobre un contenedor alto
+  alley: { w: 156, pre: 60, post: 70 },     // 18-20: tic-tac entre las paredes de un callejón
+  highwall: { w: 156, pre: 50, post: 110, stages: 3, holds: [0.13, 0.36] },          // 21-24: barda alta
+  rail: { w: 306, pre: 70, post: 70, stages: 3, holds: [0.2, 0.74] },                // 25-28: barandal largo
+  bus: { w: 366, pre: 50, post: 120, stages: 3, holds: [0.17, 0.72] },               // 29-33: microbús
+  stalls: { w: 456, pre: 50, post: 120, stages: 4, holds: [0.2, 0.44, 0.67] },       // 34-40: tianguis
 };
 
 export function obstacleType(len) {
@@ -31,7 +40,35 @@ export function obstacleType(len) {
   if (len <= 8) return 'chair';
   if (len <= 10) return 'table';
   if (len <= 12) return 'wall';
-  return 'hole';
+  if (len <= 14) return 'hole';
+  if (len <= 17) return 'container';
+  if (len <= 20) return 'alley';
+  if (len <= 24) return 'highwall';
+  if (len <= 28) return 'rail';
+  if (len <= 33) return 'bus';
+  return 'stalls';
+}
+
+// Dónde termina cada tramo de un obstáculo por etapas (índices de carácter, sin contar el último,
+// que es el final del texto). Se cortan en partes casi iguales, de preferencia después de un espacio.
+export function stageMarks(chars, stages) {
+  const marks = [];
+  for (let k = 1; k < stages; k++) {
+    let m = Math.round((k * chars.length) / stages);
+    for (let d = 0; d <= 3; d++) {
+      if (chars[m + d - 1] === ' ') { m += d; break; }
+      if (chars[m - d - 1] === ' ') { m -= d; break; }
+    }
+    marks.push(Math.max(marks.at(-1) + 1 || 1, Math.min(chars.length - 1, m)));
+  }
+  return marks;
+}
+
+// Hasta dónde puede avanzar Sofía en un obstáculo que aún no termina de escribir.
+export function holdX(o) {
+  if (!o.marks) return o.start;
+  const k = o.marks.filter(m => o.typed >= m).length;
+  return k ? o.start + (o.end - o.start) * o.holds[k - 1] : o.start;
 }
 
 export const cps = ppm => ppm * 5 / 60;
@@ -53,6 +90,7 @@ export function buildCourse(level) {
       x: start + t.pre, w: t.w, end: start + t.pre + t.w + t.post,
       windowMs: win, typed: 0, done: false, passed: false, timerStart: null,
     };
+    if (t.stages) Object.assign(o, { marks: stageMarks(chars, t.stages), holds: t.holds });
     prevEnd = o.end;
     return o;
   });
@@ -143,16 +181,18 @@ export class Runner {
 
     const s = dt / 1000;
     let desired = BASE_SPEED;
+    const hold = o && !o.done ? holdX(o) : null;
     if (!o) desired = BASE_SPEED * FINISH_SPEED;
     else if (o.done) desired = clamp((o.end - this.x) / SPRINT_S, BASE_SPEED, BASE_SPEED * MAX_SPRINT);
+    else if (hold > o.start) desired = clamp((hold - this.x) / SPRINT_S, BASE_SPEED, BASE_SPEED * MAX_SPRINT);
     if (this.clock < this.stumbleUntil) desired *= 0.25;
     this.v += (desired - this.v) * Math.min(1, s * 8);
 
     let nx = this.x + this.v * s;
     this.holding = false;
-    if (o && !o.done && nx >= o.start) {
-      nx = Math.max(this.x, o.start);
-      this.holding = true;
+    if (o && !o.done && nx >= hold) {
+      nx = Math.max(this.x, hold);
+      this.holding = hold === o.start;
       this.v = 0;
     }
     this.x = nx;
@@ -196,6 +236,8 @@ export class Runner {
   trip(o) {
     this.falls++;
     o.typed = 0;
+    // en un obstáculo por etapas se cae y vuelve al principio
+    if (this.x > o.start) this.x = o.start;
     this.phase = 'fallen';
     this.fallUntil = this.clock + this.getupMs;
     this.trippedAt = this.clock;

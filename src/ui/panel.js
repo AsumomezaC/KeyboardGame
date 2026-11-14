@@ -22,9 +22,9 @@ root.innerHTML = `
         </div>
         <div id="hands-wrap" class="hands-wrap" hidden></div>
       </div>
-      <div id="kb-right"></div>
+      <div class="kb-right-col"><div id="kb-right"></div><div id="np-side"></div></div>
     </div>
-    <div id="kb-wrap"></div>
+    <div class="kb-full-row"><div id="kb-wrap"></div><div id="np-full"></div></div>
     <div id="kb-info"></div>
   </section>
   <section class="pv" data-view="info" hidden>
@@ -36,11 +36,19 @@ root.innerHTML = `
     <div class="box" id="res-weak"></div>
   </section>`;
 
-const keyboard = createKeyboard({ full: $('kb-wrap'), left: $('kb-left'), right: $('kb-right'), info: $('kb-info') });
+const keyboard = createKeyboard({
+  full: $('kb-wrap'), left: $('kb-left'), right: $('kb-right'), info: $('kb-info'), numpads: [$('np-full'), $('np-side')],
+});
 const hands = createHands($('hands-wrap'));
 
+let numpadNote = '';
+
+// Los avisos de Bloq Mayús y del teclado numérico solo se ven mientras se escribe (lección o carrera).
 function updateCaps() {
   $('caps-warning').classList.toggle('on', capsContext && capsOn);
+  const np = $('numpad-warning');
+  np.textContent = numpadNote;
+  np.classList.toggle('on', capsContext && !!numpadNote);
 }
 
 export const Panel = {
@@ -81,6 +89,12 @@ export const Panel = {
   setHints(main, alt = '') {
     $('hint').textContent = main;
     $('hint-alt').textContent = alt;
+  },
+
+  // Aviso del teclado numérico en niveles con < >: junto al de Bloq Mayús, debajo del juego.
+  setNumpadNote(text) {
+    numpadNote = text;
+    updateCaps();
   },
 
   setTip(text, ms = 3500) {

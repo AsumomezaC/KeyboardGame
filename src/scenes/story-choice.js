@@ -9,7 +9,7 @@ import { W, H, text, box } from './common.js';
 
 // ¿Hay que preguntar? Solo si el nivel ya se superó y tiene diálogos.
 export function shouldAsk(chapter, level) {
-  if (Dev.noDialogues) return false; // modo desarrollador «sin diálogos»: nunca se pregunta
+  if (Dev.noDialogues) return false; // «Jugar sin diálogos» de Configuración: nunca se pregunta
   return Save.level(level.id).passed && !!storyFor(chapter, level);
 }
 

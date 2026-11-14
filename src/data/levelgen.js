@@ -64,7 +64,7 @@ export function wordsFor(letters, maxLen) {
 
 // Combinación de teclas sin tres iguales seguidas (alterna las manos y los dedos). Si el espacio
 // está permitido, a veces separa grupos («dk kd»), nunca al principio, al final ni doble.
-function drill(letters, len, rand) {
+export function drill(letters, len, rand) {
   const keys = letters.filter(ch => ch !== ' ');
   const space = letters.includes(' ');
   let s = '';
@@ -90,7 +90,7 @@ function withCaps(text, rand) {
 
 // Largos a pedir: siempre hay obstáculos cortos (1-3 caracteres) para que el nivel tenga ritmo,
 // algunos al máximo y el resto en medio.
-function lengthPlan(count, maxLen, rand) {
+export function lengthPlan(count, maxLen, rand) {
   const plan = [];
   const shortMax = Math.min(3, maxLen);
   const nShort = maxLen <= 3 ? count : Math.max(3, Math.round(count * 0.3));

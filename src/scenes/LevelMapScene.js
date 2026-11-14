@@ -5,10 +5,11 @@ import { Save } from '../core/save.js';
 import { levelRules, levelStatus, chapterStars, chapterMaxStars, canFail, accuracyTarget, chapterUnlocked } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
 import { escapeHTML } from '../ui/keyboard-view.js';
-import { levelName, PLAYABLE } from '../data/chapters.js';
+import { levelName, STORY_CHAPTERS } from '../data/chapters.js';
 import { CAST } from '../data/cast.js';
 import { WEATHER_NAMES } from '../data/weathers.js';
 import { Music } from '../audio/music.js';
+import { Numpad } from '../core/numpad.js';
 import { startLevel, storyFor } from './flow.js';
 import { askStory, shouldAsk } from './story-choice.js';
 import { W, H, text, box, backdrop, onKeys, stars, formatTime, keyLegend } from './common.js';
@@ -27,6 +28,7 @@ const BOSS_TEXT = {
   race: (rules, names) => `Jefe: carrera contra ${names}. Debes llegar en <b>1.er lugar</b> (antes de ${formatTime(rules.limitMs)}).`,
   chase: (rules, names) => `Jefe: ${names} te persigue${names.includes(' y ') ? 'n' : ''}. Llega a la meta antes de ${formatTime(rules.limitMs)}.`,
   catch: (rules, names) => `Jefe: alcanza a ${names} antes de que llegue a la meta (${formatTime(rules.limitMs)}).`,
+  trial: rules => `Jefe: contrarreloj. Llega a la meta antes de ${formatTime(rules.limitMs)}.`,
 };
 
 function crewNames(level, modes) {
@@ -50,16 +52,18 @@ export function levelInfoHtml(chapter, level) {
   const best = Save.level(level.id);
   const story = storyFor(chapter, level);
   const keys = level.newKeys.length
-    ? `Teclas nuevas: <b>${level.newKeys.map(k => (k === ' ' ? 'espacio' : k)).join(' ')}</b>`
+    ? `Teclas nuevas: <b>${escapeHTML(level.newKeys.map(k => (k === ' ' ? 'espacio' : k)).join(' '))}</b>`
     : 'Sin teclas nuevas';
   const rows = [];
   if (level.boss) {
-    const modes = { race: ['rival'], chase: ['chase'], catch: ['pace'] }[level.boss.type];
+    const modes = { race: ['rival'], chase: ['chase'], catch: ['pace'], trial: [] }[level.boss.type];
     rows.push(BOSS_TEXT[level.boss.type](rules, crewNames(level, modes)));
     rows.push(`Pierdes con más de <b>${rules.maxErrors} traspiés</b> o más de <b>${rules.maxFalls} caídas</b>.`);
   } else if (level.kind === 'secret') rows.push(`Nivel secreto con mayúsculas. Límite: <b>${formatTime(rules.limitMs)}</b>.`);
   else if (rules.limitMs) rows.push(`Límite de tiempo: <b>${formatTime(rules.limitMs)}</b>. Si no lo logras, no avanzas.`);
   else rows.push('Aquí no se pierde: solo cuenta para tus estrellas.');
+  // < > sin teclado numérico: el nivel ya viene sin ellas; se dice por qué
+  if (level.numpadKeys && !Numpad.has) rows.push(`Las teclas <b>${escapeHTML(level.numpadKeys.join(' '))}</b> solo se pueden jugar con teclado numérico: este nivel no las usa (Configuración, tecla M).`);
   rows.push(`Cada estrella se gana aparte: ★ terminar${canFail(level) ? ' a tiempo' : ''} · ★ velocidad: ${formatTime(rules.fastMs)} o menos · ★ precisión: ${Math.round(accuracyTarget(level) * 100)} % o más`);
   return `<h2>${escapeHTML(levelName(level))} <span class="stars">${'★'.repeat(best.stars)}${'☆'.repeat(3 - best.stars)}</span></h2>` +
     `<p>${keys}${level.requiresStars && level.kind !== 'secret' ? ` · Requiere ${level.requiresStars} ★` : ''}` +
@@ -119,7 +123,7 @@ export class LevelMapScene extends Phaser.Scene {
     for (const e of this.entries) this.drawNode(e);
     this.legend = null;
     Music.play('mapa');
-    this.marker = this.add.image(0, 0, 'sofia-head').setScale(3);
+    this.marker = this.add.image(0, 0, `${ch.hero || 'sofia'}-head`).setScale(3);
     this.tweens.add({ targets: this.marker, y: '-=8', duration: 450, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
 
     let index = this.entries.findIndex(e => e.level.id === this.selectId);
@@ -158,7 +162,7 @@ export class LevelMapScene extends Phaser.Scene {
       else this.select(i);
     });
     if (level.boss && level.crew.some(m => m.id === 'perro')) this.add.image(x, y, 'dog-head').setScale(3);
-    else if (level.boss?.type === 'race') this.add.image(x, y, 'trophy').setScale(3);
+    else if (level.boss?.type === 'race' || level.boss?.type === 'trial') this.add.image(x, y, 'trophy').setScale(3);
     else if (level.kind === 'secret') this.add.image(x, y, 'mystery').setScale(3);
     else text(this, x, y, level.label, 22, '#2b1d2e', { ox: 0.5, oy: 0.5, stroke: '#fff7e0', strokeThickness: 2 });
     if (!status.unlocked) this.add.image(x + r - 6, y - r + 6, 'padlock').setScale(2);
@@ -189,8 +193,8 @@ export class LevelMapScene extends Phaser.Scene {
   // primero del siguiente).
   changeChapter(d) {
     const i = this.chapter.index + d;
-    const next = PLAYABLE[i];
-    if (!next || !chapterUnlocked(PLAYABLE, i, Save)) return;
+    const next = STORY_CHAPTERS[i];
+    if (!next || !chapterUnlocked(STORY_CHAPTERS, i, Save)) return;
     const level = d < 0 ? next.levels.at(-1) : next.levels[0];
     this.scene.start('LevelMap', { chapter: next, select: level.id });
   }

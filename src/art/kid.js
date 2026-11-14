@@ -158,7 +158,7 @@ function drawArm(p, shoulder, elbow, hand, pal, back, limb = 2) {
 
 // Trenza de Sofía: sale de la nuca con un listón, cae hacia atrás (más extendida al correr) y
 // termina con otro listón y una puntita. Los pixeles alternan dos tonos para que se lea trenzada.
-function drawBraid(p, h, pal, swing, len = 7) {
+export function drawBraid(p, h, pal, swing, len = 7) {
   const tx = h.x - 6, ty = h.y + 1;
   const a = 1.15 - 0.3 * swing; // ángulo bajo la horizontal, hacia atrás
   const pts = [];
@@ -174,10 +174,16 @@ function drawBraid(p, h, pal, swing, len = 7) {
   return { tx, ty };
 }
 
-function drawHead(p, h, pal, face, swing, blink = false) {
+export function drawHead(p, h, pal, face, swing, blink = false) {
   // Cabello atrás, cara adelante (mira a la derecha).
   let tie = null;
-  if (pal.hairStyle === 'braid') tie = drawBraid(p, h, pal, swing);
+  if (pal.hairStyle === 'braid') tie = drawBraid(p, h, pal, swing, pal.braidLen || 7);
+  if (pal.hairStyle === 'ponyHigh') {
+    // coleta alta: se amarra arriba con una liga y cae hacia atrás
+    p.line(h.x - 4, h.y - 5, h.x - 9, h.y - 3 + swing, pal.hair, 2);
+    p.line(h.x - 9, h.y - 3 + swing, h.x - 11, h.y + 2 + swing * 2, pal.hair, 2);
+    p.px(h.x - 10, h.y - 2 + swing, pal.hairLight); p.px(h.x - 11, h.y + 1 + swing * 2, pal.hairLight);
+  }
   if (pal.hairStyle === 'pony') {
     p.line(h.x - 4, h.y - 3, h.x - 8, h.y - 1 + swing, pal.hair, 2);
     p.line(h.x - 8, h.y - 1 + swing, h.x - 9, h.y + 2 + swing * 2, pal.hair, 2);
@@ -197,6 +203,11 @@ function drawHead(p, h, pal, face, swing, blink = false) {
     p.rect(h.x - 1, h.y - 4, 5, 2, pal.hair); // fleco
     p.px(h.x - 2, h.y - 4, pal.hairLight);
   }
+  if (pal.hairStyle === 'ponyHigh') {
+    const rib = pal.ribbon || pal.accent;
+    p.px(h.x - 4, h.y - 5, rib); p.px(h.x - 5, h.y - 5, rib); p.px(h.x - 4, h.y - 6, rib);
+  }
+  if (pal.band) p.rect(h.x - 3, h.y - 5, 7, 1, pal.band); // banda deportiva
   if (pal.hairStyle === 'messy') {
     p.px(h.x - 3, h.y - 6, pal.hair); p.px(h.x, h.y - 6, pal.hair); p.px(h.x + 3, h.y - 5, pal.hair);
   }
@@ -239,6 +250,8 @@ function drawHead(p, h, pal, face, swing, blink = false) {
     else if (face === 'sad') { p.px(ex - 1, ey + 4, m); p.px(ex, ey + 3, m); }
     else { p.px(ex, ey + 3, m); p.px(ex + 1, ey + 3, m); }
   }
+  // pestañas (Sofía ya grande): un pixel arriba del ojo
+  if (pal.lash && !blink && ['smile', 'open', 'grit', 'sad', 'happy'].includes(face)) p.px(ex + 1, ey - 1, pal.eye);
   // Parpadeo: el ojo se vuelve una rayita (la boca del gesto se queda igual).
   if (blink) {
     p.rect(ex - 1, ey - 1, 3, 3, pal.skin);

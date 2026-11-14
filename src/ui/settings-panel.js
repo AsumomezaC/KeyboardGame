@@ -1,11 +1,16 @@
-// Menú de Configuración (tecla M o el engrane de la barra de teclas): volúmenes y modo desarrollador.
+// Menú de Configuración (tecla M o el engrane de la barra de teclas): volúmenes, jugar sin diálogos,
+// teclado numérico y modo desarrollador.
 //  · Volumen general, de la música y de los diálogos (el general multiplica a los otros dos).
+//  · Jugar sin diálogos: siempre disponible, con o sin modo desarrollador.
+//  · Cuento con teclado numérico: al decir que no, avisa qué caracteres ya no se podrán escribir.
 //  · Modo desarrollador: pide confirmación (desbloquea todo con ★★★ en la partida guardada). Ya
-//    activo, muestra sus opciones: jugar sin diálogos, solo cinemáticas y modo Dios.
+//    activo, muestra sus opciones: solo cinemáticas y modo Dios.
 // Es un panel HTML sobre el juego. Mientras está abierto, las teclas son suyas y no llegan a la escena:
 // ↑ ↓ eligen opción, ← → ajustan (o prenden y apagan), Enter cambia, M o Esc cierran.
 import { Music } from '../audio/music.js';
 import { Dev, disableDev, setDevOption } from '../core/dev.js';
+import { Numpad } from '../core/numpad.js';
+import { altCodeChars } from '../core/layout.js';
 import { volumeSvg } from './volume-icon.js';
 import { gearSvg } from './gear-icon.js';
 import { showDevToast } from './music-toast.js';
@@ -18,11 +23,22 @@ const VOLUMES = [
   { id: 'music', label: 'Música' },
   { id: 'voice', label: 'Diálogos', hint: 'Las voces de los personajes al hablar.' },
 ];
-const DEV_OPTIONS = [
+// Opciones de juego que están siempre (no hace falta el modo desarrollador).
+const PLAY_OPTIONS = [
   { id: 'noDialogues', label: 'Jugar sin diálogos', hint: 'Los niveles empiezan y terminan sin escenas.' },
+];
+const DEV_OPTIONS = [
   { id: 'cinematics', label: 'Solo cinemáticas', hint: 'Al entrar a un nivel solo ves sus escenas (también con Tab).' },
   { id: 'god', label: 'Modo Dios', hint: 'Al entrar a un nivel lo superas solo con ★★★.' },
 ];
+
+const NUMPAD_HINT = 'Los caracteres con código Alt (< >) solo se escriben con él.';
+
+// Fila del interruptor del modo desarrollador: después de los volúmenes, las opciones de juego y la
+// del teclado numérico.
+const NUMPAD_ROW = VOLUMES.length + PLAY_OPTIONS.length;
+const DEV_ROW = NUMPAD_ROW + 1;
+const escapeHTML = s => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
 let panel = null; // { close }
 
@@ -71,6 +87,7 @@ function open({ enableDev, confirmDev }) {
   const devAnchor = devLink.querySelector('a');
 
   let confirming = confirmDev && !Dev.enabled;
+  let numpadAlert = false; // alerta al apagar «Cuento con teclado numérico»
   let rows = [];  // [{ el, kind: 'volume' | 'toggle' | 'button', id, act }]
   let focus = 0;
 
@@ -79,6 +96,27 @@ function open({ enableDev, confirmDev }) {
     body.innerHTML = '';
     devLink.classList.remove('focused');
     devLink.onpointermove = null;
+    if (numpadAlert) {
+      const list = altCodeChars().map(({ ch, code }) => `<b>${escapeHTML(ch)}</b> (Alt + ${code})`).join(' y ');
+      body.innerHTML = `
+        <div class="settings-warning" role="alert">
+          <p><strong>⚠ Sin teclado numérico</strong></p>
+          <p>Entonces no podrás escribir: ${list}. Solo se escriben con su código Alt en el teclado numérico.
+          Los niveles que los usan se ajustan a tu configuración: no se enseñan ni salen en los obstáculos.</p>
+        </div>
+        <div class="settings-actions"></div>`;
+      const ok = document.createElement('button');
+      ok.type = 'button';
+      ok.className = 'settings-btn';
+      ok.textContent = 'Entendido';
+      const act = () => { numpadAlert = false; build(); focusRow(NUMPAD_ROW); };
+      ok.addEventListener('click', act);
+      body.querySelector('.settings-actions').appendChild(ok);
+      rows.push({ el: ok, kind: 'button', act });
+      keysHint.textContent = 'Enter o Esc cerrar el aviso';
+      focusRow(0);
+      return;
+    }
     if (confirming) {
       body.innerHTML = `
         <div class="settings-warning" role="alert">
@@ -98,12 +136,12 @@ function open({ enableDev, confirmDev }) {
         actions.appendChild(b);
         rows.push({ el: b, kind: 'button', act });
       };
-      mk('Cancelar', () => { confirming = false; build(); focusRow(3); }, '');
+      mk('Cancelar', () => { confirming = false; build(); focusRow(DEV_ROW); }, '');
       mk('Activar', () => {
         confirming = false;
         enableDev?.();
         build();
-        focusRow(4);
+        focusRow(DEV_ROW + 1);
       }, 'danger');
       keysHint.textContent = '← → elegir · Enter confirmar · Esc cancelar';
       focusRow(0);
@@ -124,9 +162,24 @@ function open({ enableDev, confirmDev }) {
       addRow(row, { kind: 'volume', id: v.id, hint: v.hint || '' });
     }
 
-    const sep = document.createElement('div');
-    sep.className = 'settings-sep';
-    body.appendChild(sep);
+    const addSep = () => {
+      const sep = document.createElement('div');
+      sep.className = 'settings-sep';
+      body.appendChild(sep);
+    };
+    addSep();
+    for (const o of PLAY_OPTIONS) {
+      addToggle(o.id, o.label, o.hint, Dev[o.id], () => {
+        setDevOption(o.id, !Dev[o.id]);
+        update();
+      });
+    }
+    addToggle('numpad', 'Cuento con teclado numérico', NUMPAD_HINT, Numpad.has, () => {
+      Numpad.set(!Numpad.has);
+      if (Numpad.has) update();
+      else { numpadAlert = true; build(); }
+    });
+    addSep();
     addToggle('dev', 'Modo desarrollador', Dev.enabled
       ? 'Activo. Al apagarlo, tu progreso desbloqueado se queda.'
       : 'Para probar el juego: desbloquea todo.', Dev.enabled, () => {
@@ -134,7 +187,7 @@ function open({ enableDev, confirmDev }) {
         disableDev();
         showDevToast('Modo desarrollador desactivado');
         build();
-        focusRow(3);
+        focusRow(DEV_ROW);
       } else {
         confirming = true;
         build();
@@ -195,7 +248,7 @@ function open({ enableDev, confirmDev }) {
         r.el.querySelector('output').textContent = `${pct} %`;
         r.el.querySelector('.settings-icon').innerHTML = volumeSvg(r.id === 'general' ? vols.general : vols.general && vols[r.id]);
       } else if (r.kind === 'toggle' && r.id !== 'dev') {
-        const on = !!Dev[r.id];
+        const on = r.id === 'numpad' ? Numpad.has : !!Dev[r.id];
         const btn = r.el.querySelector('.settings-toggle');
         btn.setAttribute('aria-checked', String(on));
         btn.querySelector('span').textContent = on ? 'Sí' : 'No';
@@ -207,8 +260,9 @@ function open({ enableDev, confirmDev }) {
     focus = Math.max(0, Math.min(rows.length - 1, i));
     rows.forEach((r, k) => r.el.classList.toggle('focused', k === focus));
     // la explicación de la opción elegida va abajo, en una sola línea (así todo cabe sin desplazar)
-    if (!confirming) desc.textContent = rows[focus]?.hint || '';
-    desc.hidden = confirming;
+    const alert = confirming || numpadAlert;
+    if (!alert) desc.textContent = rows[focus]?.hint || '';
+    desc.hidden = alert;
     if (scroll) rows[focus]?.el.scrollIntoView({ block: 'nearest' });
     updateMore();
   }
@@ -222,6 +276,10 @@ function open({ enableDev, confirmDev }) {
     e.preventDefault();
     e.stopPropagation();
     const r = rows[focus];
+    if (numpadAlert) {
+      if ((k === 'Enter' || k === ' ' || k === 'Escape') && !e.repeat) rows[0].act();
+      return;
+    }
     if (confirming) {
       if (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'Tab') focusRow(focus ? 0 : 1);
       else if ((k === 'Enter' || k === ' ') && !e.repeat) r?.act();
@@ -234,7 +292,7 @@ function open({ enableDev, confirmDev }) {
       const d = k === 'ArrowRight' ? 1 : -1;
       if (r.kind === 'volume') Music.setVolume(r.id, Music.volumes[r.id] + d * STEP);
       else if (r.kind === 'toggle') {
-        const on = r.id === 'dev' ? Dev.enabled : !!Dev[r.id];
+        const on = r.id === 'dev' ? Dev.enabled : r.id === 'numpad' ? Numpad.has : !!Dev[r.id];
         if (on !== (d > 0)) r.act();
       }
     } else if ((k === 'Enter' || k === ' ') && !e.repeat) {

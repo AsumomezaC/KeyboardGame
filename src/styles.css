@@ -118,10 +118,10 @@ body {
 }
 
 /* Espacio siempre reservado bajo la carrera: el aviso aparece sin mover nada. */
-#caps-row { height: 34px; display: flex; align-items: center; justify-content: center; }
+#caps-row { min-height: 36px; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; justify-content: center; }
 /* Sin panel debajo (título, capítulos, diálogos) no se escribe, así que el aviso de Bloq Mayús no
    necesita su espacio: así «Conoce al desarrollador» queda cerca del juego. */
-body.panel-empty #caps-row { height: 12px; }
+body.panel-empty #caps-row { height: 12px; min-height: 0; }
 #caps-warning {
   visibility: hidden;
   background: #4a3b12;
@@ -132,6 +132,21 @@ body.panel-empty #caps-row { height: 12px; }
   font-weight: 700;
 }
 #caps-warning.on { visibility: visible; }
+/* Aviso del teclado numérico (niveles con < >): igual que el de Bloq Mayús, en azul claro. */
+#numpad-warning {
+  display: none;
+  background: #123447;
+  color: #8fd8ff;
+  border: 2px solid #8fd8ff;
+  border-radius: 6px;
+  padding: 3px 14px;
+  font-weight: 700;
+  font-size: 0.85rem; /* en una línea, como el de Bloq Mayús (en ventanas angostas se parte) */
+  text-align: center;
+}
+#numpad-warning.on { display: block; }
+/* Si los dos se ven, el de Bloq Mayús (que reserva su lugar) solo ocupa espacio cuando está activo. */
+#caps-row:has(#numpad-warning.on) #caps-warning:not(.on) { display: none; }
 
 /* ---------- Cajas estilo consola portátil ---------- */
 
@@ -243,6 +258,16 @@ body.panel-empty #caps-row { height: 12px; }
 .keyboard.fingers .kb-key[class*="f-"]:not(.hl) {
   background: color-mix(in srgb, var(--fc) 45%, var(--key));
 }
+
+/* Teclado numérico (niveles con códigos Alt): a la derecha del teclado, solo si cabe. */
+.kb-full-row, .kb-right-col { display: flex; gap: 8px; align-items: flex-start; }
+#kb-wrap { flex: 1; min-width: 0; }
+.kb-numpad { display: none; grid-template-columns: repeat(4, 38px); grid-template-rows: 18px repeat(5, 46px); gap: 5px; flex: none; }
+.kb-numpad .np-title { grid-column: 1 / -1; align-self: center; text-align: center; color: #cbbfa8; font-size: 0.8rem; font-weight: 700; }
+.kb-numpad .kb-key { font-size: 0.95rem; color: var(--ink); font-weight: 700; }
+.kb-numpad .kb-key.special { font-size: 0.7rem; color: var(--cap); }
+@media (min-width: 760px) and (max-width: 1099px) { .np-full.np-on { display: grid; } }
+@media (min-width: 1300px) { .np-side.np-on { display: grid; } }
 
 /* Teclado partido: en pantallas angostas solo se ve el completo (debajo del texto). */
 .kb-side { display: none; }

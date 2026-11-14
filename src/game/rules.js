@@ -1,5 +1,6 @@
 // Reglas de cada nivel: tiempos objetivo, estrellas y desbloqueos.
 import { simulate } from './runner.js';
+import { Dev } from '../core/dev.js';
 
 const DEFAULT_GETUP_MS = 1200;
 // Dificultad progresiva: al principio se piden ritmos más lentos (más tiempo para el límite y
@@ -73,8 +74,10 @@ export function chapterMaxStars(chapter, save) {
   return levelStatus(chapter, chapter.secret, save).visible ? base + 3 : base;
 }
 
-// Un capítulo se abre al superar el nivel 10 del anterior.
+// Un capítulo se abre al superar el nivel 10 del anterior. Los que están en construcción solo se
+// abren con el modo desarrollador.
 export function chapterUnlocked(chapters, index, save) {
+  if (chapters[index]?.dev) return Dev.enabled;
   if (index === 0) return true;
   const prev = chapters[index - 1];
   return !!prev && save.level(prev.levels.at(-1).id).passed;
@@ -82,6 +85,8 @@ export function chapterUnlocked(chapters, index, save) {
 
 // { visible, unlocked, reason }: reason explica por qué está bloqueado.
 export function levelStatus(chapter, level, save) {
+  // capítulos en construcción: todos sus niveles abiertos para probarlos
+  if (chapter.dev) return { visible: true, unlocked: true, reason: null };
   const stars = chapterStars(chapter, save);
   if (level.kind === 'secret') {
     const visible = stars >= level.requiresStars;

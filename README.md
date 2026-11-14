@@ -69,6 +69,13 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
 | 3 | «El día de mi suerte» | 12 | `o w`, `p q`, `t y` |
 | 4-10 | En construcción | | |
 
+- Los capítulos 4-10 están en construcción. Con el modo desarrollador activo se puede entrar a sus
+  niveles base (`DEV_CHAPTERS` en `src/data/chapters.js`), todos abiertos: fondo neutro (tema
+  `neutro`, sin detalles al fondo), sin escenas de historia, solo el calentamiento de teclas y la
+  carrera. Sus frases las arma `src/data/frases.js` con palabras y frases reales que usan solo lo
+  ya enseñado (signos, acentos, números y símbolos) y se juegan con otros modelos de Sofía, también
+  en construcción (`src/art/sofia.js`, sobre el esqueleto de poses de `src/art/rig.js`). Sus jefes
+  son contrarreloj: llegar a la meta a tiempo, con un máximo de traspiés y caídas.
 - Cada capítulo tiene 10 niveles y un secreto. Se abre al superar el nivel 10 del anterior. En el
   menú, las tarjetas se deslizan: flechas, rueda del ratón, la barra, los puntos o un clic llevan a
   cualquier capítulo.
@@ -84,7 +91,14 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
 - Obstáculos según su largo: 1-2 tramo plano, 3-4 charco (salto), 5-6 barrera (deslizarse por
   debajo), 7-8 silla (salto con giro), 9-10 mesa larga (se desliza encima), 11-12 barda con cemento
   fresco al pie (corre a lo largo de la pared, con estela, y se impulsa con una voltereta), 13-14
-  hoyo enorme (lo brinca como si volara).
+  hoyo enorme (lo brinca como si volara). En los niveles en construcción hay obstáculos más
+  largos: 15-17 contenedor (salto de gato), 18-20 callejón con portón (rebota de pared en pared),
+  21-24 barda alta, 25-28 barandal, 29-33 microbús y 34-40 puestos de un tianguis (de toldo en
+  toldo). Su coreografía está en `src/scenes/choreo.js`.
+- Los obstáculos de 21 caracteres o más se pasan por etapas: su texto se parte en tramos
+  (`stageMarks` en `src/game/runner.js`) y Sofía avanza a la siguiente parada al terminar cada
+  tramo (por ejemplo, se cuelga de la barda, sube, se agacha arriba y luego baja). Si se acaba el
+  tiempo, se cae y vuelve al principio del obstáculo, con el texto desde cero.
 - Cada obstáculo tiene un temporizador. Si se acaba, Sofía tropieza, se levanta (el reloj sigue) y
   vuelves a escribirlo. Solo se escribe el obstáculo actual: al terminarlo aparece una frase de
   ánimo («¡Corre!» es la más común) hasta que Sofía lo supera.
@@ -96,8 +110,8 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
 - Dificultad progresiva a lo largo de los 30 niveles, en curva: sube despacio al principio y cada
   vez más rápido (`DIFFICULTY_CURVE` en `chapters.js`). El primero pide el 75 % del ritmo y 90 % de
   precisión; el último, el ritmo completo y 97 %. Los niveles 1-3 del capítulo 1 no se pierden.
-  La curva se reparte sobre los capítulos jugables (`TOTAL` en `chapters.js`): al agregar uno, los
-  anteriores se vuelven más fáciles si no se fija.
+  La curva está fija sobre los 30 niveles de los capítulos 1-3 (`TOTAL` en `chapters.js`); los
+  niveles en construcción siguen subiendo a partir de ahí con `lateTuning()` (valores provisionales).
 - Jefes en los niveles 7 (requiere 10 ★) y 10 (requiere 20 ★). Se pierden por tiempo, por más de
   cierto número de traspiés o por más de cierto número de caídas; cada jefe es más estricto que el
   anterior. Pueden ser una carrera contra rivales, una persecución o alcanzar a alguien.
@@ -168,17 +182,29 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
     con el que se abrió. Si no cabe todo (ventanas angostas), las opciones tienen una barra de
     desplazamiento visible y el aviso «▼ Desliza para ver más opciones». El ratón solo elige una
     opción si de verdad se mueve sobre ella.
+  - **Jugar sin diálogos:** los niveles empiezan y terminan sin escenas (ni la primera vez). Está
+    siempre, sin necesidad del modo desarrollador, y apagar el modo desarrollador no la apaga.
+  - **Cuento con teclado numérico** (sí por omisión; `src/core/numpad.js`): `<` y `>` solo se
+    escriben con su código Alt en el teclado numérico (Windows no lo acepta con los números de
+    arriba). Al decir que no, una alerta dice qué caracteres ya no se podrán escribir, y los niveles
+    que los usan se ajustan: no se enseñan ni salen en los obstáculos (`numpadAware` en
+    `src/data/chapters.js` guarda las dos versiones de esos niveles). En esos niveles, debajo del
+    juego (donde sale el aviso de Bloq Mayús, en azul claro) se explica por qué. Con la opción en sí, el teclado de ayuda marca Alt y dibuja el teclado
+    numérico a la derecha (si cabe) con los números del código en orden, y debajo del juego aparece
+    «¿No cuentas con teclado numérico?…» hasta que se escribe `<` o `>`. Si la opción cambia a
+    medio nivel, el nivel vuelve a empezar ya ajustado (`src/scenes/numpad-note.js`).
   - Modo desarrollador: al activarlo avisa que podría modificar la progresión con la que fue creado
     el juego, porque marca todos los niveles, incluso los secretos, como superados con ★★★ y abre
-    todos los capítulos. Para volver a empezar, borra los datos del sitio en el navegador. La tecla
+    todos los capítulos (también los niveles base de los capítulos en construcción, que no se
+    marcan). Para volver a empezar, borra los datos del sitio en el navegador. La tecla
     `|` (a la izquierda del 1 en la distribución latina) abre directo esa advertencia.
   - Con el modo desarrollador activo aparecen sus opciones (`src/core/dev.js`):
-    - **Jugar sin diálogos:** los niveles empiezan y terminan sin escenas.
     - **Solo cinemáticas** (también con Tab): al entrar a un nivel se ven el diálogo de inicio y el
       de final, sin carrera, y se vuelve al mapa. No se puede junto con «sin diálogos».
     - **Modo Dios:** al entrar a un nivel (o reintentarlo) se supera solo con ★★★; si se entra con
       historia, primero se ven sus escenas.
-  - El modo desarrollador y sus opciones no se guardan: al recargar la página se apagan.
+  - El modo desarrollador, sus opciones y «Jugar sin diálogos» no se guardan: al recargar la página
+    se apagan.
 - El juego necesita un teclado físico (`src/ui/keyboard-notice.js`). En celulares y tablets (puntero
   principal táctil y sin ratón ni trackpad) no se carga de inmediato: aparece un aviso de que hace
   falta un teclado físico, con un botón para compartir o copiar el enlace, y el juego arranca en
@@ -196,8 +222,8 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
 ### Progreso guardado
 
 El avance (niveles, estrellas, historial) se guarda en el `localStorage` del navegador con la
-clave `parkourTecla.save.v2`, y los volúmenes con `parkourTecla.volume`, `parkourTecla.volume.music` y
-`parkourTecla.volume.voice`. No se envía a ningún servidor:
+clave `parkourTecla.save.v2`, los volúmenes con `parkourTecla.volume`, `parkourTecla.volume.music` y
+`parkourTecla.volume.voice`, y `parkourTecla.numpad` = `no` si se dijo que no hay teclado numérico. No se envía a ningún servidor:
 se conserva al cerrar la página, pero es de cada navegador y dispositivo, y se pierde en modo
 incógnito o al borrar los datos del sitio. El aviso de privacidad está en `public/privacidad.html`
 (enlazado en el pie de página).

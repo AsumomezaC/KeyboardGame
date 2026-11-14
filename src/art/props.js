@@ -171,9 +171,134 @@ function chalk(v) {
   return c;
 }
 
+// ---- Obstáculos largos (15 caracteres o más) ----
+
+// Contenedor de basura alto: se pasa con salto de gato (manos al frente, rodillas entre los brazos).
+const BINS = [['#2f7d4a', '#3f9a5c', '#1f5a34'], ['#2a5fa8', '#3c78c8', '#1c4378'], ['#c8553d', '#e0704f', '#963d2b']];
+function container(v) {
+  const [main, light, dark] = BINS[v];
+  const { c, p } = makeCanvas(46, 36);
+  p.rect(2, 8, 42, 22, main);
+  p.rect(2, 8, 42, 2, light);
+  for (let x = 8; x < 42; x += 8) p.rect(x, 12, 1, 16, dark); // costillas de lámina
+  p.rect(1, 4, 44, 4, dark); // tapa
+  p.rect(3, 3, 40, 1, light);
+  p.rect(38, 14, 4, 2, '#cfd8dc'); // agarradera
+  p.rect(5, 30, 4, 4, '#2b2b2b'); p.rect(37, 30, 4, 4, '#2b2b2b'); // ruedas
+  if (v === 1) { p.rect(12, 16, 10, 6, '#f4f1e8'); p.rect(14, 18, 6, 2, main); } // letrero de reciclaje
+  if (v === 2) { p.px(6, 2, '#9aa0a6'); p.px(7, 1, '#9aa0a6'); p.rect(30, 1, 6, 3, '#6d4c41'); } // bolsa encima
+  outline(c, INK);
+  return c;
+}
+
+// Callejón angosto cerrado por un portón: Sofía rebota de una pared a la otra (tic-tac) para subir.
+// Las paredes del callejón se ven en perspectiva a los lados; al fondo, el portón.
+function alley(v) {
+  const W = 52, H = 64;
+  const { c, p } = makeCanvas(W, H);
+  p.rect(10, 2, 32, H - 2, '#2a2433'); // fondo oscuro del callejón
+  for (let y = 4; y < H - 22; y += 7) p.rect(12, y, 28, 1, '#352e40');
+  // paredes en perspectiva: más anchas abajo
+  for (let y = 0; y < H; y++) {
+    const w = 6 + Math.round((y / H) * 6);
+    const brick = Math.floor(y / 4) % 2;
+    p.rect(1, y, w, 1, brick ? '#a8483a' : '#b5523b');
+    p.rect(W - 1 - w, y, w, 1, brick ? '#a8483a' : '#b5523b');
+    if (y % 4 === 0) { p.rect(1, y, w, 1, '#8c3d2b'); p.rect(W - 1 - w, y, w, 1, '#8c3d2b'); }
+  }
+  // portón de lámina
+  const gate = ['#5b6b7a', '#7a5b8a', '#4f7a5a'][v];
+  p.rect(13, 22, 26, H - 22, gate);
+  for (let x = 15; x < 38; x += 4) p.rect(x, 24, 1, H - 26, '#3d4752');
+  p.rect(13, 22, 26, 2, '#9aa7b3');
+  for (let x = 14; x < 38; x += 3) { p.px(x, 20, '#9aa7b3'); p.px(x + 1, 21, '#9aa7b3'); } // púas
+  if (v === 1) p.rect(22, 38, 8, 5, '#ffd23f'); // letrero
+  outline(c, INK);
+  return c;
+}
+
+// Barda alta: se cuelga del borde, sube y baja rodando. Cada una con su grafiti.
+function highwall(v) {
+  const W = 52, H = 66;
+  const { c, p } = makeCanvas(W, H);
+  p.rect(2, 4, W - 4, H - 4, '#b9b2a6');
+  for (let y = 6; y < H; y += 6) p.rect(2, y, W - 4, 1, '#a39b8e');
+  for (let y = 6; y < H; y += 12) for (let x = 10; x < W - 2; x += 16) p.rect(x, y + 1, 1, 5, '#a39b8e');
+  p.rect(0, 0, W, 5, '#8d8579'); // remate
+  p.rect(0, 0, W, 1, '#cfc8bc');
+  if (v === 0) {
+    pixelText(p, Math.round((W - textWidth('LOS GATOS')) / 2), 26, 'LOS GATOS', '#2a9d8f', '#1d1b33');
+  } else if (v === 1) {
+    p.disc(26, 30, 9, '#ffd23f'); p.disc(26, 30, 6, '#e94f64'); p.disc(26, 30, 3, '#3d5aa8'); // diana de aerosol
+  } else {
+    pixelText(p, Math.round((W - textWidth('ZONA')) / 2), 24, 'ZONA', '#f4f1e8', '#1d1b33');
+    p.line(8, 36, 44, 34, '#e94f64'); p.line(8, 37, 44, 35, '#e94f64');
+  }
+  outline(c, INK);
+  return c;
+}
+
+// Barandal largo sobre postes: salta a él, cruza en equilibrio y baja.
+function rail(v) {
+  const W = 102, H = 24;
+  const metal = ['#9aa0a6', '#e9c46a', '#5aa9c9'][v];
+  const { c, p } = makeCanvas(W, H);
+  p.rect(1, 2, W - 2, 2, metal);
+  p.rect(1, 2, W - 2, 1, '#e8edf1');
+  for (let x = 3; x < W - 2; x += 20) p.rect(x, 4, 2, H - 4, '#6d747a');
+  p.rect(1, 12, W - 2, 1, '#7d838b');
+  outline(c, INK);
+  return c;
+}
+
+// Microbús estacionado (de frente hacia Sofía): sube por el cofre, corre por el techo y baja con mortal.
+const BUS = [['#f4f1e8', '#2f9a5a'], ['#f4f1e8', '#3d6ec2'], ['#fff3b0', '#c8553d']];
+function bus(v) {
+  const [body, stripe] = BUS[v];
+  const W = 122, H = 48;
+  const { c, p } = makeCanvas(W, H);
+  p.rect(1, 24, 22, 16, body); // cofre (la parte baja de enfrente)
+  p.rect(1, 24, 22, 1, '#ffffff');
+  p.rect(16, 4, W - 18, 36, body); // caja
+  p.rect(16, 4, W - 18, 2, '#ffffff');
+  p.rect(1, 32, W - 3, 4, stripe);
+  p.rect(18, 8, 8, 14, '#6fa8c9'); p.rect(19, 9, 2, 6, '#cfe8ff'); // parabrisas
+  for (let x = 30; x < W - 8; x += 14) p.rect(x, 9, 11, 10, '#6fa8c9');
+  p.rect(2, 27, 3, 3, '#ffd23f'); // faro
+  p.rect(1, 38, 6, 2, '#5b5b66'); // defensa
+  for (const x of [12, W - 22]) { p.disc(x, 41, 5, '#2b2b2b'); p.disc(x, 41, 2, '#9aa0a6'); }
+  pixelText(p, 36, 23, 'RUTA 5', '#2b1d2e');
+  outline(c, INK);
+  return c;
+}
+
+// Puestos del tianguis: rebota en los toldos, pasa de puesto en puesto y cae con doble giro.
+const AWNINGS = [['#e94f64', '#f4f1e8'], ['#3d5aa8', '#f4f1e8'], ['#2a9d8f', '#fff3b0'], ['#f77f00', '#f4f1e8']];
+const STALL_TOPS = [18, 10, 14]; // altura de cada toldo (desde arriba del cuadro)
+function stalls(v) {
+  const W = 152, H = 52;
+  const { c, p } = makeCanvas(W, H);
+  STALL_TOPS.forEach((top, i) => {
+    const x = 2 + i * 50;
+    const [a, b] = AWNINGS[(v + i) % AWNINGS.length];
+    p.rect(x + 3, top + 4, 2, H - top - 4, '#6d4c41'); p.rect(x + 41, top + 4, 2, H - top - 4, '#6d4c41');
+    for (let k = 0; k < 46; k += 6) p.rect(x + k, top, 3, 5, a), p.rect(x + k + 3, top, 3, 5, b);
+    for (let k = 0; k < 46; k += 3) p.px(x + k + 1, top + 5, k % 6 ? b : a); // flecos
+    p.rect(x + 4, H - 14, 38, 3, '#a0764a'); // mesa
+    p.rect(x + 5, H - 11, 2, 11, '#6d4c41'); p.rect(x + 39, H - 11, 2, 11, '#6d4c41');
+    const fruit = [['#e5383b', '#f4b400'], ['#7cc65a', '#f77f00'], ['#9b5de5', '#ffd23f']][i];
+    for (let k = 0; k < 9; k++) p.disc(x + 9 + k * 4, H - 16, 1, fruit[k % 2]);
+  });
+  outline(c, INK);
+  return c;
+}
+
 // Cuántas versiones hay de cada obstáculo: la 0 usa la clave simple ('chair'), las demás 'chair-1'…
-export const OBSTACLE_VARIANTS = { chalk: 3, puddle: 2, fence: 3, chair: 5, table: 4, wall: 5, hole: 2 };
-const OBSTACLE_ART = { chalk, puddle, fence, chair, table, wall, hole };
+export const OBSTACLE_VARIANTS = {
+  chalk: 3, puddle: 2, fence: 3, chair: 5, table: 4, wall: 5, hole: 2,
+  container: 3, alley: 3, highwall: 3, rail: 3, bus: 3, stalls: 4,
+};
+const OBSTACLE_ART = { chalk, puddle, fence, chair, table, wall, hole, container, alley, highwall, rail, bus, stalls };
 
 function finish() {
   const { c, p } = makeCanvas(46, 48);

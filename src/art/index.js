@@ -5,6 +5,7 @@ import { buildProps } from './props.js';
 import { buildBackgrounds } from './backgrounds.js';
 import { buildDetails } from './details.js';
 import { buildIcons } from './icons.js';
+import { buildStageSheets } from './sofia.js';
 
 // Complexión de cada personaje. Todos pueden correr (la Tata y la mamá persiguen a Sofía).
 export const CAST_BUILDS = {
@@ -17,6 +18,7 @@ export const RUNNERS = Object.keys(CAST_BUILDS);
 export function generateArt(scene) {
   for (const [key, build] of Object.entries(CAST_BUILDS)) buildBuildSheet(scene, key, PALETTES[key], build);
   buildKidHead(scene, 'sofia-head', PALETTES.sofia);
+  buildStageSheets(scene); // Sofía de adolescente, joven y adulta, con sus animaciones
   buildDogSheet(scene);
   buildProps(scene);
   buildBackgrounds(scene);

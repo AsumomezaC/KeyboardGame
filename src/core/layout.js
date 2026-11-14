@@ -63,6 +63,11 @@ export function comboFor(ch) {
   return combos[ch] || null;
 }
 
+// Caracteres que solo se escriben con código Alt (en el teclado numérico), con su código.
+export function altCodeChars() {
+  return Object.entries(combos).filter(([, c]) => c.altCode).map(([ch, c]) => ({ ch, code: c.altCode }));
+}
+
 export function keycap(code) {
   if (US_KEYCAP[code]) return US_KEYCAP[code];
   if (code.startsWith('Key')) return [code.slice(3), ''];

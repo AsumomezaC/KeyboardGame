@@ -4,6 +4,7 @@
 // Mientras practicas, Sofía calienta (estira, hace zancadas y se pone en posición de salida);
 // al terminar sale corriendo y arranca la carrera sola, con su cuenta regresiva.
 import Phaser from 'phaser';
+import { watchNumpad } from './numpad-note.js';
 import { TypeInput } from '../core/input.js';
 import { fingerOf, fingerLabel } from '../core/fingers.js';
 import * as Layout from '../core/layout.js';
@@ -57,6 +58,7 @@ export class LessonScene extends Phaser.Scene {
     Panel.show('play');
     Panel.setCapsContext(true);
     Panel.setTip('');
+    this.numpadTyped = watchNumpad(this, this.level);
     this.showKey();
     TypeInput.start({
       onKey: e => {
@@ -99,8 +101,11 @@ export class LessonScene extends Phaser.Scene {
   showKey() {
     const ch = this.key;
     const combo = Layout.comboFor(ch);
-    const code = ch === ' ' ? 'Space' : combo.steps[0].code;
+    // < y > no tienen tecla: se escriben con Alt y su código (números de arriba o teclado numérico)
+    const code = ch === ' ' ? 'Space' : combo?.steps ? combo.steps[0].code : 'AltLeft';
     const finger = fingerOf(code);
+    // Mayúsculas, AltGr, acentos y códigos Alt: se explica la combinación completa.
+    const complex = !!combo && (!!combo.altCode || combo.steps.length > 1 || combo.steps[0].shift || combo.steps[0].altGr);
     if (this.isWarmup) {
       // tal como se escriben: cuando el calentamiento incluya mayúsculas, se distinguirán
       this.stepTexts.forEach((t, i) => t.setText(this.step[i])
@@ -108,14 +113,14 @@ export class LessonScene extends Phaser.Scene {
     } else {
       this.keyText.setText(ch === ' ' ? 'ESPACIO' : ch).setFontSize(px(ch === ' ' ? 64 : 110));
     }
-    this.fingerText.setText(`Usa el ${fingerLabel(code)}`);
+    this.fingerText.setText(combo?.altCode ? `Alt izquierdo + ${combo.altCode}` : `Usa el ${fingerLabel(code)}`);
     if (this.count === 0) this.pips.forEach(p => p.setFillStyle(0xd8c3a5));
     Panel.setTarget(this.step, this.count);
-    const where = ch === ' ' ? 'la barra espaciadora' : `la tecla ${Layout.usLegend(code)}`;
+    const where = ch === ' ' ? 'la barra espaciadora' : complex ? `«${ch}» (${Layout.describe(ch)})` : `la tecla ${Layout.usLegend(code)}`;
     const home = finger && finger.finger !== 'thumb' && ['KeyF', 'KeyJ'].includes(code) ? ' Tiene un relieve para encontrarla sin mirar.' : '';
     Panel.setHints(this.isWarmup
-      ? `Calienta con teclas que ya conoces: escribe ${this.step.join(' ')}. Ahora ${where} con el ${fingerLabel(code)}.${home}`
-      : `Presiona ${where} ${this.reps} veces con el ${fingerLabel(code)}.${home}`,
+      ? `Calienta con teclas que ya conoces: escribe ${this.step.join(' ')}. Ahora ${where}${complex ? '' : ` con el ${fingerLabel(code)}`}.${home}`
+      : complex ? `Escribe ${where} ${this.reps} veces.` : `Presiona ${where} ${this.reps} veces con el ${fingerLabel(code)}.${home}`,
       'Deja los demás dedos descansando sobre la fila central: A S D F · J K L Ñ.');
     Panel.showHands(true, fingersFor(ch));
     Panel.keyboard.showFingers(true);
@@ -123,6 +128,7 @@ export class LessonScene extends Phaser.Scene {
   }
 
   onChar(ch) {
+    this.numpadTyped(ch);
     if (this.finished) return;
     if (ch !== this.key) {
       Panel.setTip(`Esa fue «${ch === ' ' ? 'espacio' : ch}». Busca la tecla resaltada.`, 2000);

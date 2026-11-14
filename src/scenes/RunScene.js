@@ -2,6 +2,7 @@
 // También mueve a quien corre con Sofía (crew): quien la acompaña, quien la persigue, los rivales
 // y a quien hay que alcanzar. Todos saltan los mismos obstáculos al pasar por ellos.
 import Phaser from 'phaser';
+import { watchNumpad } from './numpad-note.js';
 import { Runner, BASE_SPEED } from '../game/runner.js';
 import { levelRules, scheduledMs } from '../game/rules.js';
 import { hintFor } from '../game/hints.js';
@@ -15,6 +16,7 @@ import { rng } from '../data/rng.js';
 import { OBSTACLE_VARIANTS } from '../art/props.js';
 import { W, SCALE, FEET_Y, FONT, INK, px, text, backdrop, formatTime } from './common.js';
 import { addWeather } from './weather.js';
+import { LONG_TYPES, LONG_PROPS, longPose } from './choreo.js';
 import { storyFor, finishLevel } from './flow.js';
 import { Music } from '../audio/music.js';
 
@@ -36,6 +38,7 @@ const PROPS = {
   table: { key: 'table', y: 2, h: 60 },
   wall: { key: 'wall', y: 8, h: 130 },
   hole: { key: 'hole', y: 30, h: 0 },
+  ...LONG_PROPS,
 };
 const LABEL_STYLE = size => ({ fontFamily: FONT, fontSize: px(size), fontStyle: 'normal', stroke: INK, strokeThickness: 5 });
 const DOT_COLORS = [0x4cc9f0, 0x80ed99, 0xb388ff, 0xf4a261];
@@ -128,6 +131,7 @@ export class RunScene extends Phaser.Scene {
     Panel.setCapsContext(true);
     Panel.showHands(true);
     Panel.keyboard.showFingers(true);
+    this.numpadTyped = watchNumpad(this, level);
     this.refreshTarget();
 
     TypeInput.start({
@@ -187,6 +191,7 @@ export class RunScene extends Phaser.Scene {
   // ---------- entrada ----------
 
   onChar(ch) {
+    this.numpadTyped(ch);
     if (this.countdownLeft > 0 || this.ended) return;
     const res = this.runner.type(ch);
     if (res.ignored) return;
@@ -324,7 +329,7 @@ export class RunScene extends Phaser.Scene {
     const banner = text(this, W / 2, 210, msg, 60, result.passed ? '#ffd23f' : '#ff6b6b', { ox: 0.5, oy: 0.5, strokeThickness: 10 });
     banner.setScale(0.2);
     this.tweens.add({ targets: banner, scale: 1, duration: 300, ease: 'Back.out' });
-    this.player.setAngle(0).setY(FEET_Y);
+    this.player.setAngle(0).setOrigin(0.5, 1).setFlipX(false).setPosition(PLAYER_X, FEET_Y);
     if (result.passed) this.player.play(`${this.hero}-cheer`);
     else this.player.setTexture(this.hero, result.failReason === 'falls' ? 'down' : 'sad');
     for (const m of this.crew) {
@@ -382,8 +387,9 @@ export class RunScene extends Phaser.Scene {
       const h = parts[0].height || size * 1.4;
       v.plate.clear().fillStyle(0x1d1b33, 0.55).fillRoundedRect(-8, -2, x + 16, h + 4, 8);
     }
-    label.x = sx + (o.w - v.labelW) / 2;
-    label.y = FEET_Y - v.prop.h - 54;
+    // en los obstáculos largos, el texto no se sale por la izquierda mientras Sofía avanza por ellos
+    label.x = Math.max(8, sx + (o.w - v.labelW) / 2);
+    label.y = Math.max(52, FEET_Y - v.prop.h - (v.prop.clear || 0) - 54);
   }
 
   drawTimerBar() {
@@ -394,8 +400,8 @@ export class RunScene extends Phaser.Scene {
     const left = r.timeLeftMs(o);
     if (left == null || r.phase !== 'run') return;
     const frac = left / o.windowMs;
-    const x = this.screenX(o.x) + o.w / 2 - 40;
-    const y = FEET_Y - PROPS[o.type].h - 16;
+    const x = Math.max(16, this.screenX(o.x) + o.w / 2 - 40);
+    const y = Math.max(90, FEET_Y - PROPS[o.type].h - (PROPS[o.type].clear || 0) - 16);
     const color = frac > 0.5 ? 0x7bd389 : frac > 0.25 ? 0xffd23f : 0xff6b6b;
     g.fillStyle(0x2b1d2e, 0.8).fillRect(x - 2, y - 2, 84, 10);
     g.fillStyle(color, 1).fillRect(x, y, 80 * frac, 6);
@@ -403,7 +409,9 @@ export class RunScene extends Phaser.Scene {
 
   // Aplica la pose de un obstáculo a un sprite. Devuelve false si no está pasando ninguno.
   applyObstaclePose(sprite, o, x, baseY, runKey, dustX) {
-    const pose = obstaclePose(o.type, Phaser.Math.Clamp((x - o.start) / (o.end - o.start), 0, 1));
+    const pose = LONG_TYPES.has(o.type)
+      ? longPose(o.type, Phaser.Math.Clamp(x - o.start, 0, o.end - o.start), sprite.texture.key)
+      : obstaclePose(o.type, Phaser.Math.Clamp((x - o.start) / (o.end - o.start), 0, 1));
     if (!pose) return false;
     if (pose.run) {
       if (sprite.anims.currentAnim?.key !== runKey || !sprite.anims.isPlaying) sprite.play(runKey);
@@ -413,6 +421,13 @@ export class RunScene extends Phaser.Scene {
     }
     sprite.y = baseY + pose.dy;
     sprite.angle = pose.angle || 0;
+    sprite.x += pose.dx || 0;
+    sprite.setFlipX(!!pose.flip);
+    // volteretas y rodadas: gira sobre el centro del cuerpo, no sobre los pies
+    if (pose.pivot) {
+      sprite.setOrigin(0.5, 1 - pose.pivot / sprite.frame.height);
+      sprite.y -= pose.pivot * SCALE;
+    }
     if (pose.dust && dustX != null && Math.random() < 0.3) this.dust.explode(1, dustX, FEET_Y);
     // Solo Sofía (dustX) deja estela y chispas de polvo al correr por la pared.
     if (dustX != null && pose.trail) this.wallTrail(sprite);
@@ -434,7 +449,7 @@ export class RunScene extends Phaser.Scene {
   drawPlayer() {
     const r = this.runner;
     const p = this.player;
-    p.y = FEET_Y;
+    p.setPosition(PLAYER_X, FEET_Y).setOrigin(0.5, 1).setFlipX(false);
     p.angle = 0;
     if (r.phase === 'fallen') {
       p.anims.stop();
@@ -444,7 +459,8 @@ export class RunScene extends Phaser.Scene {
       return;
     }
     const o = r.timedObstacle;
-    if (o && o.done && r.x >= o.start && this.applyObstaclePose(p, o, r.x, FEET_Y, `${this.hero}-run`, PLAYER_X - 20)) return;
+    // Dentro del obstáculo: ya lo escribió o, si es por etapas, va en uno de sus tramos.
+    if (o && r.x >= o.start && (o.done || r.x > o.start) && this.applyObstaclePose(p, o, r.x, FEET_Y, `${this.hero}-run`, PLAYER_X - 20)) return;
     if (r.holding) {
       p.anims.stop();
       p.setFrame('ready');
@@ -507,7 +523,7 @@ export class RunScene extends Phaser.Scene {
     s.x = sx;
     s.y = baseY;
     s.angle = 0;
-    s.setFlipX(false);
+    s.setFlipX(false).setOrigin(0.5, 1);
     s.setVisible(sx > -80 && sx < W + 80);
     if (this.ended && !m.dog && m.def.mode === 'follow') return;
     if (m.dog) {

@@ -4,7 +4,8 @@ import { generateArt } from '../art/index.js';
 import { Save } from '../core/save.js';
 import { chapterStars, chapterMaxStars, chapterUnlocked } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
-import { CHAPTERS, PLAYABLE } from '../data/chapters.js';
+import { CHAPTERS, PLAYABLE, STORY_CHAPTERS, STAGES } from '../data/chapters.js';
+import { Dev } from '../core/dev.js';
 import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, keyLegend } from './common.js';
 import { Music } from '../audio/music.js';
 
@@ -236,7 +237,9 @@ export class ChaptersScene extends Phaser.Scene {
   drawCard(chap, i) {
     const x = i * CARD_STEP;
     const y = CARD_Y;
-    const unlocked = !!chap.data && chapterUnlocked(PLAYABLE, i, Save);
+    // con el modo desarrollador se puede entrar a los capítulos en construcción (sus niveles base)
+    const devData = chap.dev && Dev.enabled ? chap.dev : null;
+    const unlocked = !!(chap.data || devData) && chapterUnlocked(STORY_CHAPTERS, i, Save);
     const items = [];
     items.push(box(this, x, y, CARD_W, 300, { fill: unlocked ? '#fff7e0' : '#d9d4c7' }));
     const frame = this.add.rectangle(x - 6, y - 6, CARD_W + 12, 312).setOrigin(0).setStrokeStyle(6, 0xffd23f).setVisible(false);
@@ -255,6 +258,10 @@ export class ChaptersScene extends Phaser.Scene {
         items.push(this.add.image(x + 200, y + 110, 'padlock').setScale(3));
         items.push(text(this, x + 120, y + 236, `Supera el capítulo ${i}`, 18, '#5a4a3a', { ox: 0.5, stroke: '#d9d4c7', strokeThickness: 2 }));
       }
+    } else if (devData) {
+      items.push(text(this, x + 120, y + 64, `En construcción · ${STAGES[devData.stage].name}`, 18, '#b83350', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2, align: 'center', wrap: 220 }));
+      items.push(this.add.sprite(x + 120, y + 218, devData.hero, 'idle0').setOrigin(0.5, 1).setScale(2.6).play(`${devData.hero}-idle`));
+      items.push(text(this, x + 120, y + 236, 'Solo modo desarrollador', 18, '#5a4a3a', { ox: 0.5, stroke: '#fff7e0', strokeThickness: 2 }));
     } else {
       items.push(this.add.image(x + 120, y + 170, 'sign').setScale(SCALE));
       items.push(text(this, x + 120, y + 150, 'EN\nCONSTRUCCIÓN', 18, '#2b1d2e', { ox: 0.5, oy: 0.5, align: 'center', stroke: '#c8955c', strokeThickness: 2 }));
@@ -267,7 +274,7 @@ export class ChaptersScene extends Phaser.Scene {
       else this.select(i);
     });
     this.row.add(items);
-    return { chap, frame, unlocked };
+    return { chap, frame, unlocked, data: chap.data || devData };
   }
 
   drawArrows() {
@@ -338,6 +345,6 @@ export class ChaptersScene extends Phaser.Scene {
       this.cameras.main.shake(150, 0.004);
       return;
     }
-    this.scene.start('LevelMap', { chapter: card.chap.data });
+    this.scene.start('LevelMap', { chapter: card.data });
   }
 }

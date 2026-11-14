@@ -32,6 +32,12 @@ export const THEMES = {
     sky: ['#8ad1f5', '#eaf7d8'], far: '#8fbf8a', farDark: '#76a872',
     walk: '#c9a36b', walkLine: '#b08d58', curb: '#5f8f4a', street: '#6fa35a', streetLine: null,
   },
+  // Fondo neutro de los niveles en construcción: cielo liso, sin casas ni detalles, y un piso
+  // con juntas regulares para que se note el avance.
+  neutro: {
+    sky: ['#b8c2cc', '#e4e8ec'], plain: true,
+    walk: '#9ea5ad', walkLine: '#8a9199', curb: '#7f868e', street: '#6f767e', streetLine: null,
+  },
   mercado: {
     sky: ['#ffb38a', '#ffe8c2'], far: '#d9a07b', farDark: '#c48a66',
     walk: '#a39182', walkLine: '#8c7b6d', curb: '#7d6d60', street: '#8c7b6d', streetLine: null,
@@ -43,6 +49,7 @@ const wrap = (x, w) => ((x % w) + w) % w;
 function far(theme) {
   const t = THEMES[theme];
   const { c, p } = makeCanvas(FAR.w, FAR.h);
+  if (t.plain) return c;
   const r = rng(theme.length * 97);
   if (theme === 'prohibida') {
     // Fábricas con chimeneas.
@@ -218,6 +225,7 @@ function trees(p, r) {
 function mid(theme) {
   const t = THEMES[theme];
   const { c, p } = makeCanvas(MID.w, MID.h);
+  if (t.plain) return c;
   const r = rng(theme.length * 131 + 7);
   if (theme === 'prohibida') chainFence(p);
   else if (theme === 'carrera') bleachers(p, r);

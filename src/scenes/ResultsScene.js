@@ -5,12 +5,12 @@ import * as Layout from '../core/layout.js';
 import { starsFor, starBreakdown, levelRules, levelStatus, nextLevel, canFail, accuracyTarget, chapterUnlocked } from '../game/rules.js';
 import { Panel } from '../ui/panel.js';
 import { escapeHTML } from '../ui/keyboard-view.js';
-import { levelName, PLAYABLE } from '../data/chapters.js';
+import { levelName, STORY_CHAPTERS } from '../data/chapters.js';
 import { goalLines } from './LevelMapScene.js';
 import { startLevel, storyFor } from './flow.js';
 import { askStory, shouldAsk } from './story-choice.js';
 import { Music } from '../audio/music.js';
-import { W, SCALE, FEET_Y, text, box, backdrop, onKeys, formatTime, button, buttonRow, openSettings } from './common.js';
+import { W, SCALE, FEET_Y, px, text, box, backdrop, onKeys, formatTime, button, buttonRow, openSettings } from './common.js';
 import { Dev } from '../core/dev.js';
 
 // Por qué no se superó el nivel, según el tipo de jefe.
@@ -44,8 +44,8 @@ export class ResultsScene extends Phaser.Scene {
     }
     const next = nextLevel(chapter, level);
     if (next) return open(chapter, next) ? { chapter, level: next, label: 'Siguiente nivel' } : null;
-    const nextChapter = PLAYABLE[chapter.index + 1];
-    if (result.passed && nextChapter && chapterUnlocked(PLAYABLE, nextChapter.index, Save)) {
+    const nextChapter = STORY_CHAPTERS[chapter.index + 1];
+    if (result.passed && nextChapter && chapterUnlocked(STORY_CHAPTERS, nextChapter.index, Save)) {
       return { chapter: nextChapter, level: nextChapter.levels[0], label: 'Siguiente capítulo' };
     }
     return null;
@@ -113,7 +113,11 @@ export class ResultsScene extends Phaser.Scene {
     const secretNow = level.kind !== 'secret' && levelStatus(chapter, chapter.secret, Save).visible &&
       !Save.level(chapter.secret.id).passed;
     if (secretNow) lines.push('¡Apareció un nivel secreto en el mapa!');
-    text(this, 590, 230, lines.join('\n'), 20, '#2b1d2e', { ox: 0.5, align: 'center', stroke: '#fff7e0', strokeThickness: 2, wrap: 560, lineSpacing: 10 });
+    // Siempre dentro de la caja (que termina en y = 420): si al fallar el texto es largo, se achica.
+    const summary = text(this, 590, 226, lines.join('\n'), 20, '#2b1d2e', { ox: 0.5, align: 'center', stroke: '#fff7e0', strokeThickness: 2, wrap: 580, lineSpacing: 10 });
+    for (let size = 19, gap = 8; summary.height > 184 && size >= 14; size--, gap = Math.max(3, gap - 2)) {
+      summary.setFontSize(px(size)).setLineSpacing(gap);
+    }
 
     // Un solo «Siguiente»: al siguiente nivel, al nivel 1 del siguiente capítulo (al terminar el
     // último) o, después de un secreto, al nivel que sigue en la historia. Si ese nivel ya está
