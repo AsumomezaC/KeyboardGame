@@ -1,5 +1,6 @@
 # Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
-"""Muñeco de niño (24×32) que comparten los personajes de complexión «kid». Con `complexion("teen")`
+"""Muñeco de niño (24×32) que comparten los personajes de complexión «kid». Con `complexion("toddler")`
+se encoge a niño chiquito (20×26): piernas y torso cortos, misma cabeza. Con `complexion("teen")`
 el mismo muñeco se estira a adolescente (24×36): piernas, torso y brazos más largos, misma cabeza.
 Con `complexion("adult")` pasa a adulto (28×46): más alto todavía, con el torso y las extremidades
 más gruesos.
@@ -30,6 +31,7 @@ ANCHO = 5         # ancho del torso
 CORRE_X = 0       # las poses se escriben para un cuadro de 24 de ancho; esto las centra en uno más ancho
 
 COMPLEXIONES = {
+    "toddler": dict(W=20, H=26, ESTIRA=(0.7, 0.75, 0.65), GRUESO=2, ANCHO=5, CORRE_X=-2),
     "kid": dict(W=24, H=32, ESTIRA=None, GRUESO=2, ANCHO=5, CORRE_X=0),
     "teen": dict(W=24, H=36, ESTIRA=(1.3, 1.2, 1.2), GRUESO=2, ANCHO=5, CORRE_X=0),
     "adult": dict(W=28, H=46, ESTIRA=(1.75, 1.55, 1.5), GRUESO=3, ANCHO=7, CORRE_X=2),
@@ -57,7 +59,8 @@ LAGRIMA = R["azul"][3]
 LENGUA = R["rojo"][2]
 ACENTO = R["rojo"][2]      # franja del tenis
 # "trenza" (Sofía), "cola" (cola de caballo alta), "revuelto" (pelo corto con picos), "gorra" (al
-# revés) o "rapado"
+# revés), "rapado", "corto", "peinado" (de raya al lado, bien relamido) o "chongo" (pelo recogido en
+# un chongo alto)
 PEINADO = "trenza"
 ARETE = None               # color del arete, o None
 GORRA, GORRA_S, GORRA_L = R["rojo"][2], R["rojo"][1], R["rojo"][3]
@@ -66,12 +69,18 @@ MANGA_LARGA = False        # sudadera: todo el brazo del color de la playera, so
 LENTES = None              # color del armazón, o None
 BIGOTE = False             # bigote del color del pelo
 BARBA = None               # color de la barba de días, o None
+JUGUETE = None             # (color, claro, sombra): dinosaurio de juguete en la mano cercana, o None
+OJERAS = False             # ojeras: un pixel de sombra bajo cada ojo
 SIN_MANGA = False          # camiseta de tirantes: el brazo entero es piel
 PANZA = False              # barriga: el torso sale un pixel al frente
 BOTELLA = None             # (vidrio, brillo, etiqueta): botella en la mano cercana, o None
 # Personaje que no corre en ningún nivel: su hoja solo trae los cuadros de pie que usan los diálogos
 # (idle, cheer y los gestos, con sus parpadeos). Sin carrera, obstáculos, caída ni calentamiento.
 SOLO_PARADO = False
+# Personaje que solo corre para perseguir: su hoja trae los cuadros de pie, la carrera, la salida y
+# las poses de obstáculo que usa el juego al perseguir. Sin caída ni calentamiento.
+PERSIGUE = False
+PERSECUCION = ("ready", "hop", "slide", "tuck", "fly")
 PARADO = ("idle0", "idle1", "cheer0", "cheer1", "talk", "sad", "angry", "cry", "shock")
 CRISTAL = R["neutros"][4]  # cristal de los lentes
 
@@ -175,6 +184,29 @@ def cabeza(L, h, cara, parpadeo=False):
         L.px(hx + 5, hy - 2, PIEL_S)
         L.px(hx - 2, hy - 2, PELO); L.px(hx - 2, hy - 1, PELO); L.px(hx - 2, hy, PELO)   # patilla
         L.px(hx - 2, hy + 1, PIEL_S); L.px(hx - 2, hy + 2, PIEL_S)  # oreja
+    elif PEINADO == "peinado":
+        L.elipse(hx - 5, hy - 6, hx + 3, hy + 2, PELO)             # casquete liso, sin picos
+        L.rect(hx - 3, hy + 2, 3, 3, PIEL_S)                       # nuca
+        L.elipse(hx - 2, hy - 3, hx + 5, hy + 5, PIEL)             # cara
+        L.rect(hx - 2, hy - 4, 7, 2, PELO)                         # fleco peinado de lado, parejo
+        L.px(hx + 5, hy - 3, PELO); L.px(hx + 5, hy - 2, PELO)
+        L.px(hx - 2, hy - 2, PELO); L.px(hx - 2, hy - 1, PELO)     # patilla corta
+        L.px(hx - 2, hy, PIEL_S); L.px(hx - 2, hy + 1, PIEL_S)     # oreja
+        for x, y in ((hx - 3, hy - 6), (hx - 2, hy - 5), (hx - 1, hy - 4)):
+            L.px(x, y, PELO_L)                                     # la raya
+        for x, y in ((hx + 1, hy - 5), (hx + 2, hy - 5), (hx + 3, hy - 4)):
+            L.px(x, y, PELO_L)                                     # brillo de pelo relamido
+    elif PEINADO == "chongo":
+        L.elipse(hx - 5, hy - 6, hx + 3, hy + 2, PELO)             # pelo recogido, pegado a la cabeza
+        L.elipse(hx - 8, hy - 7, hx - 5, hy - 4, PELO)             # chongo alto, atrás
+        L.px(hx - 7, hy - 6, PELO_L)
+        L.px(hx - 3, hy - 5, PELO_L); L.px(hx - 2, hy - 5, PELO_L); L.px(hx - 4, hy - 3, PELO_L)
+        L.rect(hx - 3, hy + 2, 3, 3, PIEL_S)                       # nuca
+        L.elipse(hx - 2, hy - 3, hx + 5, hy + 5, PIEL)             # cara
+        L.rect(hx - 2, hy - 4, 7, 2, PELO)                         # pelo estirado hacia atrás
+        L.px(hx + 4, hy - 3, PIEL); L.px(hx + 5, hy - 2, PIEL_S)
+        L.px(hx - 2, hy - 2, PELO); L.px(hx - 2, hy - 1, PELO); L.px(hx - 2, hy, PELO)   # patilla
+        L.px(hx - 2, hy + 1, PIEL_S); L.px(hx - 2, hy + 2, PIEL_S)  # oreja
     elif PEINADO == "rapado":
         L.elipse(hx - 5, hy - 5, hx + 3, hy + 2, PELO)             # cráneo rapado, pegado a la cabeza
         L.px(hx - 3, hy - 4, PELO_L); L.px(hx - 2, hy - 5, PELO_L)
@@ -247,6 +279,10 @@ def cabeza(L, h, cara, parpadeo=False):
             L.px(x, y, T)                                          # > <
     else:
         L.rect(ex, ey, 1, 2, T); L.rect(ex2, ey, 1, 2, T)
+    if OJERAS:
+        for x in (ex, ex2):
+            if L.p.get((x, ey + 2)) in (PIEL, RUBOR):
+                L.px(x, ey + 2, PIEL_S)
     # boca
     if cara == "feliz":
         L.rect(hx + 2, hy + 3, 2, 2, BOCA); L.px(hx + 2, hy + 4, LENGUA)
@@ -363,6 +399,24 @@ def botella(L, codo, mano):
     L.rect(x, y + 3, 3, 2, etiqueta)
 
 
+DINO = ("...XX", "..XXX", "XXXX.", ".S.S.")   # X cuerpo, S patas (en sombra)
+
+
+def juguete(L, mano, cabeza_y):
+    """Dinosaurio de juguete en la mano cercana: cabeza arriba a la derecha, cola a la izquierda.
+    Nunca sube más allá de la barbilla (no tapa la cara) ni se sale del cuadro."""
+    color, claro, sombra = JUGUETE
+    x0 = min(round(mano[0]) - 1, W - 7)
+    y0 = max(round(mano[1]) - 2, round(cabeza_y) + 7)
+    for j, fila in enumerate(DINO):
+        for i, c in enumerate(fila):
+            if c != ".":
+                L.px(x0 + i, y0 + j, color if c == "X" else sombra)
+    L.px(x0 + 4, y0, TINTA)                                        # ojo
+    L.px(x0 + 2, y0 + 1, claro); L.px(x0 + 1, y0 + 2, claro)       # lomo
+    L.px(x0, y0 + 2, sombra)                                       # punta de la cola
+
+
 def torso(L, hombro, cadera):
     sx, sy, cx, cy = round(hombro[0]), round(hombro[1]), round(cadera[0]), round(cadera[1])
     if abs(cy - sy) >= abs(cx - sx):                               # de pie o inclinada: por filas
@@ -439,7 +493,7 @@ def estirar(j):
         if min(n[k][1] for k in PUNTOS) + dy >= 1 or eb <= 0.8:
             break
         eb -= 0.05                                                 # las manos se salían por arriba
-    atras = 10 if PEINADO == "gorra" else 7                        # la visera sale por detrás
+    atras = 10 if PEINADO in ("gorra", "chongo") else 7            # la visera o el chongo salen por detrás
     x0 = min(min(n[k][0] for k in PUNTOS) - 1, n["cabeza"][0] - atras)
     x1 = max(max(n[k][0] for k in PUNTOS) + 3, n["cabeza"][0] + 6)
     k = min(1, (W - 2) / (x1 - x0))                                # aprieta a lo ancho si no cabe
@@ -453,6 +507,8 @@ def estirar(j):
         dx = W - 1 - x1
     for q in PUNTOS:
         n[q] = (round(medio + (n[q][0] - medio) * k + dx), round(n[q][1] + dy))
+    if n["cabeza"][1] < 8:                                         # el pelo no se sale por arriba: hunde el cuello
+        n["cabeza"] = (n["cabeza"][0], 8)
     for lado in "cl":                                              # el pie que pisaba sigue pisando
         if j[f"pie_{lado}"][1] >= SUELO_NINO:
             n[f"pie_{lado}"] = (n[f"pie_{lado}"][0], SUELO)
@@ -481,6 +537,8 @@ def figura(pose, parpadeo=False):
         brazo(L, j["hom_c"], j["codo_c"], j["mano_c"], False)
     if BOTELLA:
         botella(L, j["codo_c"], j["mano_c"])
+    if JUGUETE:
+        juguete(L, j["mano_c"], h[1])
     L.contorno(TINTA)
     return L.imagen()
 
@@ -581,6 +639,11 @@ PARPADEAN = ["idle0", "idle1", "cheer0", "talk", "sad", "angry", "shock"]
 def cuadros():
     if SOLO_PARADO:
         out = [(n, figura(POSES[n])) for n in PARADO]
+        out += [(f"{n}_b", figura(POSES[n], parpadeo=True)) for n in PARPADEAN]
+        return out
+    if PERSIGUE:
+        out = [(f"run{i}", figura(CARRERA(i))) for i in range(6)]
+        out += [(n, figura(POSES[n])) for n in PARADO + PERSECUCION]
         out += [(f"{n}_b", figura(POSES[n], parpadeo=True)) for n in PARPADEAN]
         return out
     out = [(f"run{i}", figura(CARRERA(i))) for i in range(6)]
@@ -685,7 +748,11 @@ def main(nombre, titulo):
     hoja_de_contacto(cs, previas / f"{nombre}-contacto.png", titulo)
     gif(cs, ["idle0", "idle1"], previas / f"{nombre}-idle.gif", 500, FONDO_APAGADO)
     gif(cs, ["cheer0", "cheer1"], previas / f"{nombre}-cheer.gif", 250, FONDO_VIVO)
-    if not SOLO_PARADO:
+    if PERSIGUE:
+        gif(cs, [f"run{i}" for i in range(6)], previas / f"{nombre}-run.gif", 83, FONDO_VIVO)
+        gif(cs, ["run0", "run1", "hop", "hop", "run3", "run4", "slide", "slide", "run0", "tuck", "tuck", "run3", "fly", "fly"],
+            previas / f"{nombre}-obstaculos.gif", 160, FONDO_VIVO)
+    elif not SOLO_PARADO:
         ciclo = [f"run{i}" for i in range(6)]
         if any(n.endswith("_t") for n in EXTRAS):   # tres ciclos normales y uno con el tropiezo, como en el juego
             ciclo = ciclo * 3 + [f"run{i}_t" if f"run{i}_t" in EXTRAS else f"run{i}" for i in range(6)]

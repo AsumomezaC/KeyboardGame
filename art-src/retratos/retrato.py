@@ -41,6 +41,7 @@ PELO_DELANTE = None                        # f(L, dy): fleco (deja sombra sobre 
 PELO_ENCIMA = None                         # f(L, dy): mechones y brillos, después de la sombra
 COLGANTE = None                            # f(L, dy): lo que cae por delante del busto (trenza)
 REMATE = None                              # f(L, dy, gesto, parpadeo): detalles sobre la cara (pestañas…)
+ADORNO_EXTRA = None                        # f(L, gesto): adornos propios, sin contorno (después de los comunes)
 NARIZ = None                               # puntos de la nariz con la cabeza en dy=0; None = la de siempre
 
 
@@ -121,6 +122,9 @@ def cejas(L, tipo, dy):
         L.linea((18, y), (25, y + 3), TINTA, 2); L.linea((32, y + 3), (37, y), TINTA, 2)
     elif tipo == "altas":
         L.rect(20, y - 2, 4, 1, PELO); L.rect(34, y - 2, 3, 1, PELO)
+    elif tipo == "fruncidas":                     # ceño leve: bajan hacia el centro, sin llegar al enojo
+        L.linea((19, y), (24, y + 2), PELO); L.rect(22, y + 2, 3, 1, PELO)
+        L.linea((33, y + 2), (37, y), PELO); L.rect(33, y + 2, 2, 1, PELO)
     elif tipo in ("galan", "galan_ceja"):         # gruesas y bajas, cerca del ojo; «_ceja»: una levantada
         L.rect(19, y + 1, 6, 2, PELO); L.px(19, y + 2, PIEL); L.px(24, y + 1, PIEL)
         sube = 2 if tipo == "galan_ceja" else 0
@@ -278,6 +282,8 @@ def retrato(nombre, parpadeo=False, habla=False):
     L.contorno(TINTA)
     if "adorno" in g:
         adorno(L, g["adorno"], dy)                # los adornos van sin contorno
+    if ADORNO_EXTRA:
+        ADORNO_EXTRA(L, g)
     return L.imagen()
 
 
