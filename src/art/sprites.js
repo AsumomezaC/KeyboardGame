@@ -3,11 +3,11 @@
 // como estaba. Si el PNG no carga, el juego sigue con el dibujo por código.
 
 // Personajes que tienen hoja PNG.
-export const PNG_SHEETS = ['sofia', 'dani'];
+export const PNG_SHEETS = ['sofia', 'dani', 'kevin', 'yesi', 'chuy', 'brayan', 'memo', 'ramiro'];
 
 // Personajes con retrato para la caja de diálogo (hoja <id>-retrato.png + .json): un cuadro por
 // gesto, más «_m» (boca al hablar) y «_b» (parpadeo, solo en los gestos con los ojos abiertos).
-export const PORTRAITS = ['sofia'];
+export const PORTRAITS = ['sofia', 'dani', 'kevin', 'yesi', 'chuy', 'brayan', 'memo'];
 export const PORTRAIT_SIZE = 48;
 export const PORTRAIT_MOODS = ['idle', 'talk', 'sad', 'angry', 'cry', 'shock', 'happy', 'cheer'];
 export const portraitKey = id => `retrato-${id}`;
