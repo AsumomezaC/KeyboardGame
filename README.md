@@ -194,10 +194,18 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   barrera (tablón de obra, mecate con papel picado y pluma de tránsito), la mesa (de fonda, de
   fiesta, de tianguis y de parque), la barda (de block, de tabique, aplanada de rosa, de lámina y de
   añil, cada una con su grafiti o cartel y, al pie, algo que no se pisa: cemento fresco con conos,
-  una zanja, un registro sin tapa, nopales o una jardinera) y el hoyo (un bache gigante y un
-  socavón con el tubo del drenaje roto, sin contorno;
-  `python art-src/obstaculos/silla.py <carpeta de previas> --exportar`, igual con `gis.py`, `charco.py`, `barrera.py`, `mesa.py`, `barda.py` y `hoyo.py`; lo común a los obstáculos
-  está en `art-src/obstaculos/comun.py`).
+  una zanja, un registro sin tapa, nopales o una jardinera), el hoyo (un bache gigante y un
+  socavón con el tubo del drenaje roto, sin contorno), y de los niveles en construcción el
+  contenedor (contenedor de basura de lámina, congelador de paletas de la tiendita y gabinete de
+  teléfonos grafiteado, todos con la cara de arriba plana para el salto de gato), el callejón (de
+  vecindad, de mercado y de baldío: dos paredes del mismo material en perspectiva, donde Sofía apoya
+  el pie en cada rebote, y al fondo un portón más bajo sin púas) y la barda alta (encalada con
+  rótulo de baile sonidero, de escuela con el mural de los niños despintado y de piedra braza con
+  bugambilia: un remate que sobresale para colgarse, la cara de arriba plana para avanzar agachada y
+  el pie en la guarnición, porque tapa toda la banqueta; por eso mide 52×71 y se dibuja 17 px bajo
+  los pies). Se exportan con
+  `python art-src/obstaculos/silla.py <carpeta de previas> --exportar`, igual con `gis.py`, `charco.py`, `barrera.py`, `mesa.py`, `barda.py`, `hoyo.py`, `contenedor.py`, `callejon.py` y `barda_alta.py`; lo común a los obstáculos
+  está en `art-src/obstaculos/comun.py`.
 
 ### Controles y modo desarrollador
 

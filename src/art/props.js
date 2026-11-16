@@ -220,7 +220,7 @@ function alley(v) {
 
 // Barda alta: se cuelga del borde, sube y baja rodando. Cada una con su grafiti.
 function highwall(v) {
-  const W = 52, H = 66;
+  const W = 52, H = 71;
   const { c, p } = makeCanvas(W, H);
   p.rect(2, 4, W - 4, H - 4, '#b9b2a6');
   for (let y = 6; y < H; y += 6) p.rect(2, y, W - 4, 1, '#a39b8e');
@@ -303,7 +303,7 @@ export const OBSTACLE_VARIANTS = {
 // él salen el lugar que ocupa en pantalla y lo que mide para quien lo pasa.
 export const OBSTACLE_SIZES = {
   chalk: [14, 5], puddle: [30, 8], fence: [32, 27], chair: [18, 22], table: [46, 20], wall: [50, 46], hole: [50, 14],
-  container: [46, 36], alley: [52, 64], highwall: [52, 66], rail: [102, 24], bus: [122, 48], stalls: [152, 52],
+  container: [46, 36], alley: [52, 64], highwall: [52, 71], rail: [102, 24], bus: [122, 48], stalls: [152, 52],
 };
 const OBSTACLE_ART = { chalk, puddle, fence, chair, table, wall, hole, container, alley, highwall, rail, bus, stalls };
 

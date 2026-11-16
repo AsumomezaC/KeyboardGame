@@ -1,0 +1,37 @@
+{
+ "frames": {
+  "v0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 52,
+    "h": 64
+   }
+  },
+  "v1": {
+   "frame": {
+    "x": 52,
+    "y": 0,
+    "w": 52,
+    "h": 64
+   }
+  },
+  "v2": {
+   "frame": {
+    "x": 104,
+    "y": 0,
+    "w": 52,
+    "h": 64
+   }
+  }
+ },
+ "meta": {
+  "image": "obst-alley.png",
+  "size": {
+   "w": 156,
+   "h": 64
+  },
+  "scale": "1",
+  "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md)."
+ }
+}

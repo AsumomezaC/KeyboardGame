@@ -23,7 +23,7 @@ const TOP = { container: 97, gate: 130, alleyWalls: 190, highwall: 196, rail: 64
 export const LONG_PROPS = {
   container: { key: 'container', y: 2, h: TOP.container },
   alley: { key: 'alley', y: 2, h: TOP.alleyWalls },
-  highwall: { key: 'highwall', y: 2, h: TOP.highwall, clear: 120 },
+  highwall: { key: 'highwall', y: 17, h: TOP.highwall, clear: 120 }, // y: baja hasta la guarnición (cubre la banqueta)
   rail: { key: 'rail', y: 2, h: TOP.rail, clear: 120 },
   bus: { key: 'bus', y: 2, h: TOP.roof, clear: 120 },
   stalls: { key: 'stalls', y: 2, h: TOP.stalls[1], clear: 150 },
