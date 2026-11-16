@@ -1,0 +1,37 @@
+{
+ "frames": {
+  "v0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 122,
+    "h": 48
+   }
+  },
+  "v1": {
+   "frame": {
+    "x": 122,
+    "y": 0,
+    "w": 122,
+    "h": 48
+   }
+  },
+  "v2": {
+   "frame": {
+    "x": 244,
+    "y": 0,
+    "w": 122,
+    "h": 48
+   }
+  }
+ },
+ "meta": {
+  "image": "obst-bus.png",
+  "size": {
+   "w": 366,
+   "h": 48
+  },
+  "scale": "1",
+  "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md)."
+ }
+}

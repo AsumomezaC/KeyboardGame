@@ -10,6 +10,7 @@ archivos fondo-far-<ambiente>.png, fondo-mid-<ambiente>.png y fondo-ground-<ambi
 capas del juego a tamaño real). Si no están, se usa un fondo liso.
 """
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -105,6 +106,64 @@ def hoja_de_contacto(titulo, variantes, ruta, previas, prop_y, paso=None, vuelo=
             nombre, altura, giro = vuelo
             poner(escena, cuadro_de("sofia", nombre), x + w * ESC / 2, PIES_Y - altura, centro=True, giro=giro)
     im.paste(escena.crop(corte).convert("RGB"), (12, arriba + 18))
+    im.save(ruta)
+
+
+def sofia_teen(previas, nombre, respaldo="ready"):
+    """Cuadro de Sofía adolescente sacado del juego (sofia-teen-<nombre>.png en las previas); si no
+    está, uno de Sofía niña."""
+    for carpeta in (previas, previas.parent):
+        ruta = carpeta / f"sofia-teen-{nombre}.png"
+        if ruta.exists():
+            return Image.open(ruta).convert("RGBA")
+    return cuadro_de("sofia", respaldo)
+
+
+def pose_larga(claves, xs):
+    """Lo mismo que longPose de choreo.js. `claves`: lista de (x, altura, cuadro, arco, giro).
+    Devuelve (cuadro, altura de los pies, grados girados)."""
+    i = max(k for k, c in enumerate(claves) if c[0] <= xs + 0.5)
+    a, b = claves[i], claves[min(i + 1, len(claves) - 1)]
+    q = 0 if a is b else min(1, max(0, (xs - a[0]) / (b[0] - a[0])))
+    return a[2], a[1] + (b[1] - a[1]) * q + a[3] * math.sin(math.pi * q), a[4] * q
+
+
+def hoja_pasos(titulo, variantes, ruta, previas, prop_y, pre, claves, pasos, esc=5, corte_y=(190, 486), x0=200):
+    """Hoja de contacto de un obstáculo largo: cada variante ampliada, una sobre otra, y cada una
+    dentro del juego a ×3 con Sofía adolescente haciendo la maniobra paso a paso (`pasos`: las x del
+    recorrido que se enseñan). Sofía niña va quieta a la izquierda, para comparar tamaños."""
+    w, h = variantes[0][1].size
+    corte = (0, corte_y[0], ANCHO, corte_y[1])
+    alto_v, alto_e = h * esc + 30, corte[3] - corte[1] + 30
+    im = Image.new("RGB", (ANCHO + 24, 48 + len(variantes) * (alto_v + alto_e)), "#211624")
+    d = ImageDraw.Draw(im)
+    d.text((12, 8), f"{titulo} · {len(variantes)} variantes ({w}×{h}, ×{esc})", fill="#f4ecd8", font=fuente(18))
+    for k, (nombre, cuadro, texto) in enumerate(variantes):
+        y = 40 + k * alto_v
+        d.rectangle([12, y, 12 + w * esc - 1, y + h * esc - 1], fill=R["neutros"][3])
+        g = cuadro.resize((w * esc, h * esc), Image.NEAREST)
+        im.paste(g, (12, y), g)
+        tx = 12 + w * esc + 14
+        d.text((tx, y + 4), nombre, fill="#ffd23f", font=fuente(14))
+        renglon, n = "", 0
+        for p in texto.split() + [None]:
+            if p is None or (len(renglon) + len(p)) * 6.4 > ANCHO + 12 - tx:
+                d.text((tx, y + 26 + n * 16), renglon, fill="#a898ad", font=fuente(12))
+                renglon, n = "", n + 1
+            if p:
+                renglon = (renglon + " " + p).strip()
+    y = 44 + len(variantes) * alto_v
+    for nombre, cuadro, _ in variantes:
+        d.text((12, y), f"{nombre} dentro del juego (×3, fondo del barrio), la maniobra paso a paso con Sofía adolescente:",
+               fill="#f4ecd8", font=fuente(13))
+        escena = fondo(previas)
+        poner(escena, cuadro_de("sofia", "idle0"), 60, PIES_Y, centro=True)
+        poner(escena, cuadro, x0 + pre, PIES_Y + prop_y)
+        for xs in pasos:
+            cuadro_s, alto, giro = pose_larga(claves, xs)
+            poner(escena, sofia_teen(previas, "run1" if cuadro_s == "run" else cuadro_s), x0 + xs, PIES_Y - alto, centro=True, giro=-giro)
+        im.paste(escena.crop(corte).convert("RGB"), (12, y + 22))
+        y += alto_e
     im.save(ruta)
 
 

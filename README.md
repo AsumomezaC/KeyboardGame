@@ -189,7 +189,7 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   Un obstáculo también puede venir de una hoja PNG: los de `OBSTACLE_SHEETS` (`src/art/sprites.js`)
   cargan `public/assets/sprites/obst-<clave>.png` + `.json`, una tira con un cuadro por versión (`v0`,
   `v1`…) del mismo tamaño que el dibujo por código (`OBSTACLE_SIZES`), y cada cuadro reemplaza a su
-  versión; así no cambia lo que mide el obstáculo. Hoy tienen hoja la silla, el gis de la banqueta
+  versión; así no cambia lo que mide el obstáculo. Hoy tienen hoja los 13 obstáculos: la silla, el gis de la banqueta
   (una flecha, un avioncito y garabatos), el charco (dos baches, uno con agua y otro con lodo), la
   barrera (tablón de obra, mecate con papel picado y pluma de tránsito), la mesa (de fonda, de
   fiesta, de tianguis y de parque), la barda (de block, de tabique, aplanada de rosa, de lámina y de
@@ -199,12 +199,18 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   contenedor (contenedor de basura de lámina, congelador de paletas de la tiendita y gabinete de
   teléfonos grafiteado, todos con la cara de arriba plana para el salto de gato), el callejón (de
   vecindad, de mercado y de baldío: dos paredes del mismo material en perspectiva, donde Sofía apoya
-  el pie en cada rebote, y al fondo un portón más bajo sin púas) y la barda alta (encalada con
+  el pie en cada rebote, y al fondo un portón más bajo sin púas), la barda alta (encalada con
   rótulo de baile sonidero, de escuela con el mural de los niños despintado y de piedra braza con
   bugambilia: un remate que sobresale para colgarse, la cara de arriba plana para avanzar agachada y
   el pie en la guarnición, porque tapa toda la banqueta; por eso mide 52×71 y se dibuja 17 px bajo
-  los pies). Se exportan con
-  `python art-src/obstaculos/silla.py <carpeta de previas> --exportar`, igual con `gis.py`, `charco.py`, `barrera.py`, `mesa.py`, `barda.py`, `hoyo.py`, `contenedor.py`, `callejon.py` y `barda_alta.py`; lo común a los obstáculos
+  los pies), el barandal (amarillo de banqueta, oxidado y con barrotes doblados; vallas de
+  contención enganchadas con una lona; y de herrería del parque: en los tres el tubo de arriba es
+  recto y corrido de orilla a orilla, porque Sofía lo cruza en equilibrio), el microbús (microbús de ruta verde y blanco, camión
+  guajolotero rojo y crema y camioneta de fletes: los tres con el cofre bajo y plano al frente y el
+  techo plano y libre, por donde corre Sofía) y los puestos del tianguis (de frutas y verduras,
+  de antojitos, de piñatas y juguetes y de flores: tres toldos planos y sin nada encima, a las
+  alturas de `STALL_TOPS`, por donde rebota Sofía). Se exportan con
+  `python art-src/obstaculos/silla.py <carpeta de previas> --exportar`, igual con `gis.py`, `charco.py`, `barrera.py`, `mesa.py`, `barda.py`, `hoyo.py`, `contenedor.py`, `callejon.py`, `barda_alta.py`, `barandal.py`, `microbus.py` y `puestos.py`; lo común a los obstáculos
   está en `art-src/obstaculos/comun.py`.
 
 ### Controles y modo desarrollador

@@ -1,0 +1,45 @@
+{
+ "frames": {
+  "v0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 152,
+    "h": 52
+   }
+  },
+  "v1": {
+   "frame": {
+    "x": 152,
+    "y": 0,
+    "w": 152,
+    "h": 52
+   }
+  },
+  "v2": {
+   "frame": {
+    "x": 304,
+    "y": 0,
+    "w": 152,
+    "h": 52
+   }
+  },
+  "v3": {
+   "frame": {
+    "x": 456,
+    "y": 0,
+    "w": 152,
+    "h": 52
+   }
+  }
+ },
+ "meta": {
+  "image": "obst-stalls.png",
+  "size": {
+   "w": 608,
+   "h": 52
+  },
+  "scale": "1",
+  "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md)."
+ }
+}
