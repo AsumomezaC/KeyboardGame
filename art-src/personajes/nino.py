@@ -60,13 +60,14 @@ LENGUA = R["rojo"][2]
 ACENTO = R["rojo"][2]      # franja del tenis
 # "trenza" (Sofía), "cola" (cola de caballo alta), "revuelto" (pelo corto con picos), "gorra" (al
 # revés), "rapado", "corto", "peinado" (de raya al lado, bien relamido) o "chongo" (pelo recogido en
-# un chongo alto)
+# un chongo alto) o "chef" (pelo corto bajo un gorro de cocinero, con los colores de la gorra)
 PEINADO = "trenza"
 ARETE = None               # color del arete, o None
 GORRA, GORRA_S, GORRA_L = R["rojo"][2], R["rojo"][1], R["rojo"][3]
 PANTALON = False           # pantalón largo: toda la pierna del color del short
 MANGA_LARGA = False        # sudadera: todo el brazo del color de la playera, solo la mano de piel
 LENTES = None              # color del armazón, o None
+CENO_ALTO = False          # con lentes: el ceño de enojo se dibuja encima del armazón, para que se vea
 BIGOTE = False             # bigote del color del pelo
 BARBA = None               # color de la barba de días, o None
 JUGUETE = None             # (color, claro, sombra): dinosaurio de juguete en la mano cercana, o None
@@ -74,6 +75,7 @@ OJERAS = False             # ojeras: un pixel de sombra bajo cada ojo
 SIN_MANGA = False          # camiseta de tirantes: el brazo entero es piel
 PANZA = False              # barriga: el torso sale un pixel al frente
 BOTELLA = None             # (vidrio, brillo, etiqueta): botella en la mano cercana, o None
+MANDIL = None              # (color, sombra): mandil de cocina sobre la ropa, o None
 # Personaje que no corre en ningún nivel: su hoja solo trae los cuadros de pie que usan los diálogos
 # (idle, cheer y los gestos, con sus parpadeos). Sin carrera, obstáculos, caída ni calentamiento.
 SOLO_PARADO = False
@@ -216,6 +218,20 @@ def cabeza(L, h, cara, parpadeo=False):
         L.px(hx - 2, hy - 3, PELO); L.px(hx + 4, hy - 3, PELO); L.px(hx + 5, hy - 2, PIEL_S)
         L.px(hx - 2, hy - 2, PELO); L.px(hx - 2, hy - 1, PELO)     # patilla
         L.px(hx - 2, hy, PIEL_S); L.px(hx - 2, hy + 1, PIEL_S)     # oreja
+    elif PEINADO == "chef":
+        L.elipse(hx - 5, hy - 5, hx + 3, hy + 2, PELO)             # pelo corto bajo el gorro
+        L.rect(hx - 3, hy + 2, 3, 3, PIEL_S)                       # nuca
+        L.elipse(hx - 2, hy - 3, hx + 5, hy + 5, PIEL)             # cara
+        # gorro de cocinero: copa esponjada y una banda que ciñe la frente
+        L.elipse(hx - 7, hy - 13, hx + 6, hy - 6, GORRA)
+        L.rect(hx - 5, hy - 7, 10, 4, GORRA)
+        L.rect(hx - 5, hy - 4, 10, 1, GORRA_S)                     # borde de la banda
+        for x, y in ((hx + 5, hy - 10), (hx + 5, hy - 9), (hx + 4, hy - 8), (hx + 4, hy - 7), (hx + 4, hy - 6), (hx + 4, hy - 5),
+                     (hx - 3, hy - 8), (hx - 3, hy - 9), (hx, hy - 8), (hx, hy - 9), (hx, hy - 10), (hx + 2, hy - 8), (hx + 2, hy - 9)):
+            L.px(x, y, GORRA_S)                                    # lado en sombra y pliegues
+        L.px(hx + 5, hy - 2, PIEL_S)
+        L.px(hx - 2, hy - 3, PELO); L.px(hx - 2, hy - 2, PELO); L.px(hx - 2, hy - 1, PELO); L.px(hx - 2, hy, PELO)   # patilla
+        L.px(hx - 2, hy + 1, PIEL_S); L.px(hx - 2, hy + 2, PIEL_S)  # oreja
     elif PEINADO == "gorra":
         L.elipse(hx - 5, hy - 5, hx + 3, hy + 2, PELO)             # pelo corto bajo la gorra
         L.rect(hx - 3, hy + 2, 3, 3, PIEL_S)                       # nuca
@@ -317,6 +333,9 @@ def cabeza(L, h, cara, parpadeo=False):
                     if L.p.get((x, y)) != TINTA:
                         L.px(x, y, CRISTAL)
         L.rect(hx - 2, ey - 1, 8, 1, LENTES)
+        if CENO_ALTO and cara == "enojo" and not parpadeo:
+            for x, y in ((ex - 1, ey - 2), (ex, ey - 1), (ex2, ey - 1), (ex2 + 1, ey - 2)):
+                L.px(x, y, TINTA)
 
 
 def trenza(L, h, puntos):
@@ -444,6 +463,43 @@ def torso(L, hombro, cadera):
             L.px(x, y + m, SHORT_S if short else PLAYERA_S)        # panza en sombra
 
 
+def mandil(L, hombro, cadera):
+    """Mandil de cocina: peto al frente del torso, cinta en la cintura y un faldón que tapa el
+    arranque de las piernas. Va después de la pierna cercana y antes de los brazos."""
+    color, sombra = MANDIL
+    sx, sy, cx, cy = round(hombro[0]), round(hombro[1]), round(cadera[0]), round(cadera[1])
+    m = ANCHO // 2
+    if abs(cy - sy) >= abs(cx - sx):                               # de pie o inclinada: por filas
+        y0, y1 = sy, cy + 1
+        peto = y0 + round((y1 - y0) * 0.3)
+        cinta = y1 - 3
+        bajo = y1 + max(3, round((y1 - y0) * 0.45))
+        for y in range(peto, bajo + 1):
+            x = round(sx + (cx - sx) * min(1, (y - y0) / max(1, y1 - y0)))
+            atras = 2 if y < cinta else 1                          # el peto es más angosto que el faldón
+            L.rect(x - m + atras, y, ANCHO - atras, 1, color)
+            L.px(x + m, y, sombra)                                 # lado en sombra (derecha)
+            if y == cinta:
+                L.rect(x - m, y, ANCHO, 1, sombra)                 # la cinta, que da la vuelta
+            if y == bajo:
+                L.rect(x - m + atras, y, ANCHO - atras, 1, sombra)  # dobladillo
+        x = round(sx + (cx - sx) * (peto - y0) / max(1, y1 - y0))
+        for y in range(y0, peto):
+            L.px(x + m - 1, y, color)                              # tirante al cuello
+    else:                                                          # acostada: por columnas
+        paso = 1 if cx > sx else -1
+        cols = list(range(sx, cx + paso * 4, paso))
+        n = abs(cx - sx)
+        for k, x in enumerate(cols):
+            if k < round(n * 0.3):
+                continue
+            y = round(sy + (cy - sy) * min(1, k / max(1, n)))
+            L.rect(x, y - m + 2, 1, ANCHO - 2, color)
+            L.px(x, y + m, sombra)
+            if k == n - 2 or k == len(cols) - 1:
+                L.rect(x, y - m + 1, 1, ANCHO - 1, sombra)
+
+
 def articulaciones(pose):
     """Completa la pose: acepta ángulos ("pierna_c": (muslo, pantorrilla)) o puntos ("rod_c", "pie_c"…)."""
     c, s = pose["cadera"], pose["hombro"]
@@ -507,8 +563,9 @@ def estirar(j):
         dx = W - 1 - x1
     for q in PUNTOS:
         n[q] = (round(medio + (n[q][0] - medio) * k + dx), round(n[q][1] + dy))
-    if n["cabeza"][1] < 8:                                         # el pelo no se sale por arriba: hunde el cuello
-        n["cabeza"] = (n["cabeza"][0], 8)
+    tope = 15 if PEINADO == "chef" else 8                          # el pelo (o el gorro) no se sale por arriba: hunde el cuello
+    if n["cabeza"][1] < tope:
+        n["cabeza"] = (n["cabeza"][0], tope)
     for lado in "cl":                                              # el pie que pisaba sigue pisando
         if j[f"pie_{lado}"][1] >= SUELO_NINO:
             n[f"pie_{lado}"] = (n[f"pie_{lado}"][0], SUELO)
@@ -526,6 +583,8 @@ def figura(pose, parpadeo=False):
     pierna(L, j["cad_l"], j["rod_l"], j["pie_l"], True)
     torso(L, j["hombro"], j["cadera"])
     pierna(L, j["cad_c"], j["rod_c"], j["pie_c"], False)
+    if MANDIL:
+        mandil(L, j["hombro"], j["cadera"])
     if detras:
         brazo(L, j["hom_c"], j["codo_c"], j["mano_c"], False)
     if PEINADO in ("trenza", "cola"):

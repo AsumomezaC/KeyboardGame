@@ -3,11 +3,15 @@
 // como estaba. Si el PNG no carga, el juego sigue con el dibujo por código.
 
 // Personajes que tienen hoja PNG.
-export const PNG_SHEETS = ['sofia', 'dani', 'kevin', 'yesi', 'chuy', 'brayan', 'memo', 'ramiro', 'leticia', 'tomasito', 'tomas'];
+export const PNG_SHEETS = ['sofia', 'dani', 'kevin', 'yesi', 'chuy', 'brayan', 'memo', 'ramiro', 'leticia', 'tomasito', 'tomas', 'tata', 'panadero'];
+
+// Hojas PNG que no son de un personaje del reparto: el perro guardián (textura `dog`, 32×20, con
+// los cuadros run0…run3 y bark).
+export const OTHER_SHEETS = ['dog'];
 
 // Personajes con retrato para la caja de diálogo (hoja <id>-retrato.png + .json): un cuadro por
 // gesto, más «_m» (boca al hablar) y «_b» (parpadeo, solo en los gestos con los ojos abiertos).
-export const PORTRAITS = ['sofia', 'dani', 'kevin', 'yesi', 'chuy', 'brayan', 'memo', 'ramiro', 'leticia', 'tomasito', 'tomas'];
+export const PORTRAITS = ['sofia', 'dani', 'kevin', 'yesi', 'chuy', 'brayan', 'memo', 'ramiro', 'leticia', 'tomasito', 'tomas', 'tata', 'panadero'];
 export const PORTRAIT_SIZE = 48;
 export const PORTRAIT_MOODS = ['idle', 'talk', 'sad', 'angry', 'cry', 'shock', 'happy', 'cheer'];
 export const portraitKey = id => `retrato-${id}`;
@@ -17,7 +21,7 @@ const pngKey = id => `png-${id}`;
 
 // Se llama en el preload de la escena de arranque.
 export function preloadSprites(scene) {
-  for (const id of PNG_SHEETS) scene.load.atlas(pngKey(id), spriteUrl(id, 'png'), spriteUrl(id, 'json'));
+  for (const id of [...PNG_SHEETS, ...OTHER_SHEETS]) scene.load.atlas(pngKey(id), spriteUrl(id, 'png'), spriteUrl(id, 'json'));
   for (const id of PORTRAITS) scene.load.atlas(portraitKey(id), spriteUrl(`${id}-retrato`, 'png'), spriteUrl(`${id}-retrato`, 'json'));
 }
 
@@ -37,7 +41,7 @@ export function runSequence(scene, key, names) {
 // Copia sobre la hoja dibujada por código (`key`) los cuadros que existan en el PNG con el mismo
 // nombre y tamaño. Devuelve cuántos cuadros reemplazó.
 export function applySprites(scene, key) {
-  if (!PNG_SHEETS.includes(key) || !scene.textures.exists(pngKey(key)) || !scene.textures.exists(key)) return 0;
+  if (!(PNG_SHEETS.includes(key) || OTHER_SHEETS.includes(key)) || !scene.textures.exists(pngKey(key)) || !scene.textures.exists(key)) return 0;
   const png = scene.textures.get(pngKey(key));
   const tex = scene.textures.get(key);
   const ctx = tex.getContext();

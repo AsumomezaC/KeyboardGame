@@ -24,6 +24,7 @@ export function generateArt(scene) {
   buildKidHead(scene, 'sofia-head', PALETTES.sofia);
   buildStageSheets(scene); // Sofía de adolescente, joven y adulta, con sus animaciones
   buildDogSheet(scene);
+  applySprites(scene, 'dog');
   buildProps(scene);
   buildBackgrounds(scene);
   buildDetails(scene);

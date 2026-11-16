@@ -144,9 +144,9 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   `public/assets/sprites/<id>.png` + `.json` al arrancar, y cada cuadro del PNG reemplaza al dibujado
   por código con el mismo nombre y tamaño; los cuadros que el PNG no trae, o todos si el PNG no
   carga, se quedan con el dibujo por código. Hoy Sofía, Dani, Kevin, Yesenia, Chuy, Brayan y Memo tienen en PNG todos sus
-  cuadros, Ramiro, Tomasito y Tomás, que no corren en ningún nivel, solo los de pie que usan los diálogos (quieto,
-  festejo y gestos), y Leticia, que solo corre para perseguir, los de pie, su carrera y las poses de
-  obstáculo; el muñeco común está en `art-src/personajes/nino.py` (niño de 24×32; encogido, niño chiquito de 20×26; estirado,
+  cuadros, Ramiro, Tomasito, Tomás y Don Chema, que no corren en ningún nivel, solo los de pie que usan los diálogos (quieto,
+  festejo y gestos), y Leticia y la Tata, que solo corren para perseguir, los de pie, su carrera y las poses de
+  obstáculo; el perro guardián también tiene hoja (`dog.png`, de `art-src/personajes/perro.py`, en `OTHER_SHEETS`); el muñeco común está en `art-src/personajes/nino.py` (niño de 24×32; encogido, niño chiquito de 20×26; estirado,
   adolescente de 24×36 y adulto de 28×46) y cada personaje pone su
   aspecto y su carrera en su script (Dani corre torpe y trae `run4_t`, un cuadro en el que casi
   tropieza y que la animación usa en uno de cada `STUMBLE_EVERY` ciclos)
@@ -157,7 +157,7 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   un cuadro por gesto (`idle`, `talk`, `sad`, `angry`, `cry`, `shock`, `happy`, `cheer`), otro con la
   boca abierta (`_m`), que se alterna mientras se escribe el texto, y el parpadeo (`_b`). Con retrato
   el texto se recorre a la derecha; el narrador y quien no tiene retrato usan la caja completa. Hoy
-  tienen retrato Sofía, Dani, Kevin, Yesenia, Chuy, Brayan, Memo, Ramiro, Leticia, Tomasito y Tomás (`python art-src/retratos/<id>.py <carpeta de previas> --exportar`;
+  tienen retrato Sofía, Dani, Kevin, Yesenia, Chuy, Brayan, Memo, Ramiro, Leticia, Tomasito, Tomás, la Tata y Don Chema (`python art-src/retratos/<id>.py <carpeta de previas> --exportar`;
   lo común a todos los retratos está en `art-src/retratos/retrato.py`).
 - Personajes: Sofía; su papá Ramiro, su mamá Leticia y su hermano Tomás (Tomasito); Dani, su mejor
   amigo y vecino; la Tata, abuela de Dani y dueña de Abarrotes La Esperanza; Los Gatos (Kevin, Yesi,
