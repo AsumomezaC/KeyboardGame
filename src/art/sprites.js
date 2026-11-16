@@ -11,7 +11,7 @@ export const OTHER_SHEETS = ['dog'];
 
 // Obstáculos con hoja PNG (obst-<clave>.png + .json): una tira con un cuadro por variante, «v0»,
 // «v1»…, del mismo tamaño que el obstáculo dibujado por código (OBSTACLE_SIZES de props.js).
-export const OBSTACLE_SHEETS = ['chair', 'chalk', 'puddle', 'fence'];
+export const OBSTACLE_SHEETS = ['chair', 'chalk', 'puddle', 'fence', 'table', 'wall', 'hole'];
 export const obstacleSheet = key => `obst-${key}`;
 
 // Personajes con retrato para la caja de diálogo (hoja <id>-retrato.png + .json): un cuadro por

@@ -183,16 +183,20 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   (`THEME_DETAILS` en `src/art/details.js`). Salen pocos y se apoyan en la base de las casas
   (nunca en la banqueta); en lugar de contorno negro llevan una orilla de su mismo color más
   oscuro y colores apagados, con la misma estética del fondo, para no confundirse con los obstáculos.
-- Los obstáculos tienen versiones: sillas de barrio (de plástico, de madera con asiento de tule, plegable de lámina, Acapulco de cuerda y pupitre de escuela), manteles de la mesa (sin nada encima: por ahí se desliza Sofía),
-  baches con agua o con lodo, barreras de obra, de fiesta y de tránsito, y bardas con grafitis («LOS GATOS», «ASUMOMEZAC»,
+- Los obstáculos tienen versiones: sillas de barrio (de plástico, de madera con asiento de tule, plegable de lámina, Acapulco de cuerda y pupitre de escuela), mesas de barrio (de fonda con mantel de hule, de fiesta, tablón de tianguis y de concreto del parque; sin nada encima: por ahí se desliza Sofía),
+  baches con agua o con lodo, hoyos (bache gigante y socavón), barreras de obra, de fiesta y de tránsito, y bardas de distintos materiales con grafitis (el gato, «LOS GATOS», «ASUMOMEZAC»,
   «RÁFAGA») o el cartel de la carrera. La lista está en `OBSTACLE_VARIANTS` de `src/art/props.js`.
   Un obstáculo también puede venir de una hoja PNG: los de `OBSTACLE_SHEETS` (`src/art/sprites.js`)
   cargan `public/assets/sprites/obst-<clave>.png` + `.json`, una tira con un cuadro por versión (`v0`,
   `v1`…) del mismo tamaño que el dibujo por código (`OBSTACLE_SIZES`), y cada cuadro reemplaza a su
   versión; así no cambia lo que mide el obstáculo. Hoy tienen hoja la silla, el gis de la banqueta
-  (una flecha, un avioncito y garabatos), el charco (dos baches, uno con agua y otro con lodo) y la
-  barrera (tablón de obra, mecate con papel picado y pluma de tránsito;
-  `python art-src/obstaculos/silla.py <carpeta de previas> --exportar`, igual con `gis.py`, `charco.py` y `barrera.py`; lo común a los obstáculos
+  (una flecha, un avioncito y garabatos), el charco (dos baches, uno con agua y otro con lodo), la
+  barrera (tablón de obra, mecate con papel picado y pluma de tránsito), la mesa (de fonda, de
+  fiesta, de tianguis y de parque), la barda (de block, de tabique, aplanada de rosa, de lámina y de
+  añil, cada una con su grafiti o cartel y, al pie, algo que no se pisa: cemento fresco con conos,
+  una zanja, un registro sin tapa, nopales o una jardinera) y el hoyo (un bache gigante y un
+  socavón con el tubo del drenaje roto, sin contorno;
+  `python art-src/obstaculos/silla.py <carpeta de previas> --exportar`, igual con `gis.py`, `charco.py`, `barrera.py`, `mesa.py`, `barda.py` y `hoyo.py`; lo común a los obstáculos
   está en `art-src/obstaculos/comun.py`).
 
 ### Controles y modo desarrollador

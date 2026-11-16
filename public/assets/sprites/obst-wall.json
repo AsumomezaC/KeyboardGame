@@ -1,0 +1,53 @@
+{
+ "frames": {
+  "v0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 50,
+    "h": 46
+   }
+  },
+  "v1": {
+   "frame": {
+    "x": 50,
+    "y": 0,
+    "w": 50,
+    "h": 46
+   }
+  },
+  "v2": {
+   "frame": {
+    "x": 100,
+    "y": 0,
+    "w": 50,
+    "h": 46
+   }
+  },
+  "v3": {
+   "frame": {
+    "x": 150,
+    "y": 0,
+    "w": 50,
+    "h": 46
+   }
+  },
+  "v4": {
+   "frame": {
+    "x": 200,
+    "y": 0,
+    "w": 50,
+    "h": 46
+   }
+  }
+ },
+ "meta": {
+  "image": "obst-wall.png",
+  "size": {
+   "w": 250,
+   "h": 46
+  },
+  "scale": "1",
+  "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md)."
+ }
+}
