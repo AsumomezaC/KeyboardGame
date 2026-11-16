@@ -1,0 +1,37 @@
+{
+ "frames": {
+  "v0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 27
+   }
+  },
+  "v1": {
+   "frame": {
+    "x": 32,
+    "y": 0,
+    "w": 32,
+    "h": 27
+   }
+  },
+  "v2": {
+   "frame": {
+    "x": 64,
+    "y": 0,
+    "w": 32,
+    "h": 27
+   }
+  }
+ },
+ "meta": {
+  "image": "obst-fence.png",
+  "size": {
+   "w": 96,
+   "h": 27
+  },
+  "scale": "1",
+  "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md)."
+ }
+}

@@ -1,0 +1,29 @@
+{
+ "frames": {
+  "v0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 8
+   }
+  },
+  "v1": {
+   "frame": {
+    "x": 30,
+    "y": 0,
+    "w": 30,
+    "h": 8
+   }
+  }
+ },
+ "meta": {
+  "image": "obst-puddle.png",
+  "size": {
+   "w": 60,
+   "h": 8
+  },
+  "scale": "1",
+  "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md)."
+ }
+}

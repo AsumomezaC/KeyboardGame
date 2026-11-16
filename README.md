@@ -183,9 +183,17 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   (`THEME_DETAILS` en `src/art/details.js`). Salen pocos y se apoyan en la base de las casas
   (nunca en la banqueta); en lugar de contorno negro llevan una orilla de su mismo color más
   oscuro y colores apagados, con la misma estética del fondo, para no confundirse con los obstáculos.
-- Los obstáculos tienen versiones: sillas de varios colores, manteles de la mesa (sin nada encima: por ahí se desliza Sofía),
-  charcos de lodo, barreras de colores y bardas con grafitis («LOS GATOS», «ASUMOMEZAC»,
+- Los obstáculos tienen versiones: sillas de barrio (de plástico, de madera con asiento de tule, plegable de lámina, Acapulco de cuerda y pupitre de escuela), manteles de la mesa (sin nada encima: por ahí se desliza Sofía),
+  baches con agua o con lodo, barreras de obra, de fiesta y de tránsito, y bardas con grafitis («LOS GATOS», «ASUMOMEZAC»,
   «RÁFAGA») o el cartel de la carrera. La lista está en `OBSTACLE_VARIANTS` de `src/art/props.js`.
+  Un obstáculo también puede venir de una hoja PNG: los de `OBSTACLE_SHEETS` (`src/art/sprites.js`)
+  cargan `public/assets/sprites/obst-<clave>.png` + `.json`, una tira con un cuadro por versión (`v0`,
+  `v1`…) del mismo tamaño que el dibujo por código (`OBSTACLE_SIZES`), y cada cuadro reemplaza a su
+  versión; así no cambia lo que mide el obstáculo. Hoy tienen hoja la silla, el gis de la banqueta
+  (una flecha, un avioncito y garabatos), el charco (dos baches, uno con agua y otro con lodo) y la
+  barrera (tablón de obra, mecate con papel picado y pluma de tránsito;
+  `python art-src/obstaculos/silla.py <carpeta de previas> --exportar`, igual con `gis.py`, `charco.py` y `barrera.py`; lo común a los obstáculos
+  está en `art-src/obstaculos/comun.py`).
 
 ### Controles y modo desarrollador
 
@@ -268,7 +276,7 @@ Los tiempos de cada nivel se calculan simulando a alguien que escribe al ritmo e
 | `src/data/` | Capítulos, generador de obstáculos, historia, reparto y climas |
 | `src/audio/` | Sintetizador de 8 bits y pistas de música |
 | `src/art/` | Pixel art generado por código (personajes, perro, obstáculos, fondos) y carga de las hojas PNG (`sprites.js`) |
-| `art-src/` | Fuente del arte en PNG: paleta maestra (`paleta.py`) y un script de Python + Pillow por personaje |
+| `art-src/` | Fuente del arte en PNG: paleta maestra (`paleta.py`) y un script de Python + Pillow por personaje y por obstáculo |
 | `public/assets/sprites/` | Hojas de sprites PNG + JSON que generan los scripts de `art-src/` |
 | `src/scenes/` | Escenas de Phaser: título, modos de juego (y opciones del Modo Libre), capítulos, mapa, diálogos, lección, carrera, resultados y climas |
 | `src/ui/` | Panel HTML: teclado visual, manos, pistas, gráfica del historial y aviso de teclado físico |

@@ -1,6 +1,7 @@
 // Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Obstáculos, íconos y efectos.
 import { makeCanvas, outline, addImage } from './pixel.js';
+import { applyObstacleSheet } from './sprites.js';
 
 const INK = '#2b1d2e';
 
@@ -298,6 +299,12 @@ export const OBSTACLE_VARIANTS = {
   chalk: 3, puddle: 2, fence: 3, chair: 5, table: 4, wall: 5, hole: 2,
   container: 3, alley: 3, highwall: 3, rail: 3, bus: 3, stalls: 4,
 };
+// Tamaño en pixeles de cada obstáculo (el de su `makeCanvas`). Las hojas PNG deben respetarlo: de
+// él salen el lugar que ocupa en pantalla y lo que mide para quien lo pasa.
+export const OBSTACLE_SIZES = {
+  chalk: [14, 5], puddle: [30, 8], fence: [32, 27], chair: [18, 22], table: [46, 20], wall: [50, 46], hole: [50, 14],
+  container: [46, 36], alley: [52, 64], highwall: [52, 66], rail: [102, 24], bus: [122, 48], stalls: [152, 52],
+};
 const OBSTACLE_ART = { chalk, puddle, fence, chair, table, wall, hole, container, alley, highwall, rail, bus, stalls };
 
 function finish() {
@@ -382,6 +389,7 @@ function dot(color, size) {
 export function buildProps(scene) {
   for (const [key, n] of Object.entries(OBSTACLE_VARIANTS)) {
     for (let v = 0; v < n; v++) addImage(scene, v ? `${key}-${v}` : key, OBSTACLE_ART[key](v));
+    applyObstacleSheet(scene, key, n); // las variantes que ya existen en PNG reemplazan a las dibujadas por código
   }
   addImage(scene, 'finish', finish());
   addImage(scene, 'star-on', star('#ffd23f', '#e8a400'));

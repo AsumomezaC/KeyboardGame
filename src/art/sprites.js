@@ -9,6 +9,11 @@ export const PNG_SHEETS = ['sofia', 'dani', 'kevin', 'yesi', 'chuy', 'brayan', '
 // los cuadros run0…run3 y bark).
 export const OTHER_SHEETS = ['dog'];
 
+// Obstáculos con hoja PNG (obst-<clave>.png + .json): una tira con un cuadro por variante, «v0»,
+// «v1»…, del mismo tamaño que el obstáculo dibujado por código (OBSTACLE_SIZES de props.js).
+export const OBSTACLE_SHEETS = ['chair', 'chalk', 'puddle', 'fence'];
+export const obstacleSheet = key => `obst-${key}`;
+
 // Personajes con retrato para la caja de diálogo (hoja <id>-retrato.png + .json): un cuadro por
 // gesto, más «_m» (boca al hablar) y «_b» (parpadeo, solo en los gestos con los ojos abiertos).
 export const PORTRAITS = ['sofia', 'dani', 'kevin', 'yesi', 'chuy', 'brayan', 'memo', 'ramiro', 'leticia', 'tomasito', 'tomas', 'tata', 'panadero'];
@@ -22,6 +27,7 @@ const pngKey = id => `png-${id}`;
 // Se llama en el preload de la escena de arranque.
 export function preloadSprites(scene) {
   for (const id of [...PNG_SHEETS, ...OTHER_SHEETS]) scene.load.atlas(pngKey(id), spriteUrl(id, 'png'), spriteUrl(id, 'json'));
+  for (const key of OBSTACLE_SHEETS) scene.load.atlas(pngKey(obstacleSheet(key)), spriteUrl(obstacleSheet(key), 'png'), spriteUrl(obstacleSheet(key), 'json'));
   for (const id of PORTRAITS) scene.load.atlas(portraitKey(id), spriteUrl(`${id}-retrato`, 'png'), spriteUrl(`${id}-retrato`, 'json'));
 }
 
@@ -56,6 +62,29 @@ export function applySprites(scene, key) {
     n++;
   }
   if (n) tex.refresh();
+  return n;
+}
+
+// Copia cada variante de la hoja PNG de un obstáculo sobre su textura dibujada por código (`chair`,
+// `chair-1`…) si mide lo mismo: así no cambian ni el tamaño ni la zona de choque. Las variantes que
+// la hoja no traiga se quedan con el dibujo por código. Devuelve cuántas reemplazó.
+export function applyObstacleSheet(scene, key, variants) {
+  const sheet = pngKey(obstacleSheet(key));
+  if (!OBSTACLE_SHEETS.includes(key) || !scene.textures.exists(sheet)) return 0;
+  const png = scene.textures.get(sheet);
+  const src = png.getSourceImage();
+  let n = 0;
+  for (let v = 0; v < variants; v++) {
+    const texKey = v ? `${key}-${v}` : key;
+    if (!png.has(`v${v}`) || !scene.textures.exists(texKey)) continue;
+    const a = png.get(`v${v}`), tex = scene.textures.get(texKey);
+    if (a.cutWidth !== tex.width || a.cutHeight !== tex.height) continue;
+    const ctx = tex.getContext();
+    ctx.clearRect(0, 0, tex.width, tex.height);
+    ctx.drawImage(src, a.cutX, a.cutY, a.cutWidth, a.cutHeight, 0, 0, tex.width, tex.height);
+    tex.refresh();
+    n++;
+  }
   return n;
 }
 

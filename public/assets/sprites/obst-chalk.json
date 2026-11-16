@@ -1,0 +1,37 @@
+{
+ "frames": {
+  "v0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 14,
+    "h": 5
+   }
+  },
+  "v1": {
+   "frame": {
+    "x": 14,
+    "y": 0,
+    "w": 14,
+    "h": 5
+   }
+  },
+  "v2": {
+   "frame": {
+    "x": 28,
+    "y": 0,
+    "w": 14,
+    "h": 5
+   }
+  }
+ },
+ "meta": {
+  "image": "obst-chalk.png",
+  "size": {
+   "w": 42,
+   "h": 5
+  },
+  "scale": "1",
+  "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md)."
+ }
+}
