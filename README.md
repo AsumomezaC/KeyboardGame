@@ -180,16 +180,22 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   (se hace para atrás) a las sacudidas y destellos.
 - El fondo tiene tres capas que se repiten con paralaje (`src/art/backgrounds.js`): lejana (320×80),
   media (384×90) y piso (64×32). Un ambiente puede venir de una hoja PNG: los de `BACKGROUND_SHEETS`
-  (`src/art/sprites.js`; hoy el barrio, la noche y la zona prohibida) cargan `public/assets/sprites/fondo-<ambiente>.png` + `.json`
+  (`src/art/sprites.js`; hoy el barrio, la noche, la zona prohibida, el parque, la carrera y el mercado) cargan `public/assets/sprites/fondo-<ambiente>.png` + `.json`
   con los cuadros `far`, `mid` y `ground` y sus parejas apagadas (`far-apagado`…), y los colores del
   cielo en `meta.cielo`. Cada cuadro reemplaza a la capa dibujada por código si mide lo mismo; sin
   hoja queda el dibujo por código y no hay versión apagada. El fondo no lleva contorno, la capa
   lejana va velada con el tono del cielo y todo lleva menos detalle que los obstáculos. Los scripts
   están en `art-src/fondos/` (`python art-src/fondos/barrio.py <carpeta> --exportar`; la noche se calcula a partir del barrio).
+- Los interiores de los diálogos (`room-casa`, `room-tienda`, 320×144, piso desde la fila 112) se
+  dibujan por código en `src/art/backgrounds.js`. Los de `ROOM_SHEETS` (`src/art/sprites.js`; hoy la
+  casa) cargan `public/assets/sprites/fondo-<lugar>.png` + `.json` con un solo cuadro `room`, ya en
+  el tono con que sale en el juego (la casa, apagada), que reemplaza al dibujo por código si mide lo
+  mismo (`python art-src/fondos/casa.py <carpeta> --exportar`).
 - El color sigue la emoción: `backdrop(scene, ambiente, { tono })` de `src/scenes/common.js` acepta
   `'vivo'` o `'apagado'` (más frío y con menos color). La carrera empieza apagada y se enciende con
-  un fundido al arrancar (`encender()`); los diálogos van apagados salvo que la escena del guion
-  lleve `tono: 'vivo'`; el título, el mapa y los resultados van vivos.
+  un fundido al arrancar (`encender()`); el calentamiento de teclas va apagado; los diálogos van
+  apagados salvo que la escena del guion lleve `tono: 'vivo'`; el título, el mapa y los resultados
+  van vivos.
 - El fondo de cada nivel y de cada diálogo tiene detalles al fondo (gatos, bicis, botes, macetas,
   perros, carteles…) acomodados al azar pero siempre igual para el mismo nivel; dependen del lugar
   (`THEME_DETAILS` en `src/art/details.js`). Salen pocos y se apoyan en la base de las casas
@@ -207,7 +213,8 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   fiesta, de tianguis y de parque), la barda (de block, de tabique, aplanada de rosa, de lámina y de
   añil, cada una con su grafiti o cartel y, al pie, algo que no se pisa: cemento fresco con conos,
   una zanja, un registro sin tapa, nopales o una jardinera), el hoyo (un bache gigante y un
-  socavón con el tubo del drenaje roto, sin contorno), y de los niveles en construcción el
+  socavón con el tubo del drenaje roto, sin contorno y sin pavimento alrededor, así queda bien
+  sobre cualquier piso), y de los niveles en construcción el
   contenedor (contenedor de basura de lámina, congelador de paletas de la tiendita y gabinete de
   teléfonos grafiteado, todos con la cara de arriba plana para el salto de gato), el callejón (de
   vecindad, de mercado y de baldío: dos paredes del mismo material en perspectiva, donde Sofía apoya

@@ -2,11 +2,13 @@
 """Hoyo (50×14, textura `hole`): hoyos enormes de la calle. Se pasan con un brinco largo, como si
 volara, así que son planos, anchos y en el piso: nada sobresale.
 
-  v0 bache gigante: el pavimento roto deja ver el asfalto, la grava y la tierra
+  v0 bache gigante: el corte del asfalto, la grava y la tierra
   v1 socavón con el tubo del drenaje roto y agua al fondo
 
 Sin contorno (los autores eligieron la A entre tres orillas: sin contorno, de tinta o gris claro
 medio transparente como el charco). Con --opciones se vuelve a hacer la lámina con las tres.
+Sin el pavimento roto alrededor (`BORDE = False`): el hueco va directo sobre el piso de cada
+ambiente.
 
 Uso:
   python art-src/obstaculos/hoyo.py <carpeta_de_previas>             hoja de contacto
@@ -28,6 +30,7 @@ from pincel import Lienzo  # noqa: E402
 W, H = 50, 14
 TINTA = R["tinta"][1]
 ORILLA = "sin"                                       # elegida por los autores (opciones: "sin", "tinta", "gris")
+BORDE = False                                        # pavimento roto alrededor: no (opción C de los autores)
 GRIS, GRIS_ALFA = R["neutros"][3], 128
 ROTO, ROTO_L, ROTO_S = R["neutros"][1], R["neutros"][2], R["neutros"][0]
 # Cuánto se mete o se sale el borde en cada tramo: así el hoyo no queda como un óvalo perfecto.
@@ -45,6 +48,18 @@ def mordido(cx, cy, rx, ry, salto=0):
         m = 1 + MORDIDAS[(k + salto) % n] * abs(math.cos(a))
         pts.append((cx + rx * m * math.cos(a), cy + ry * m * math.sin(a)))
     return pts
+
+
+def sin_borde(L, salto):
+    """Quita el pavimento roto que queda fuera del hueco: el hoyo se ve directo sobre el piso del
+    ambiente (elegido por los autores el 17/11/2026, opción C; el gris se veía como parche de
+    asfalto sobre la tierra). Lo de dentro (canto y pedazos caídos) se queda."""
+    dentro = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(dentro).polygon([(round(x), round(y)) for x, y in mordido(24.5, 6.6, 19.5, 4.2, salto)],
+                                   fill=255, outline=255)
+    for q, c in list(L.p.items()):
+        if c in (ROTO, ROTO_L, ROTO_S) and not dentro.getpixel(q):
+            del L.p[q]
 
 
 def terminar(L, orilla):
@@ -86,6 +101,8 @@ def bache(orilla=ORILLA):
     for x, y in ((14, 8), (15, 8), (33, 9)):                             # pedazos de asfalto caídos
         L.px(x, y, ROTO, solo=(R["tierra"][1], R["tierra"][0]))
     L.px(14, 7, ROTO_L, solo=R["tierra"][1])
+    if not BORDE:
+        sin_borde(L, 5)
     return terminar(L, orilla)
 
 
@@ -101,6 +118,8 @@ def socavon(orilla=ORILLA):
     L.elipse(11, 4, 16, 8, tubo); L.rect(15, 5, 1, 3, tubo_s)
     L.rect(12, 5, 3, 3, R["tinta"][0]); L.px(12, 5, tubo); L.px(16, 4, None)
     L.px(13, 8, R["azul"][3]); L.px(13, 9, R["azul"][2])                 # chorrito
+    if not BORDE:
+        sin_borde(L, 2)
     return terminar(L, orilla)
 
 

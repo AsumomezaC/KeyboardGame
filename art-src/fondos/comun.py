@@ -147,8 +147,9 @@ def jugables():
     ]
 
 
-def lamina(titulo, capas, cielo, ruta, notas=(), avance=0):
-    """Las tres capas ampliadas a ×3, una sobre otra, y debajo la escena armada con lo jugable."""
+def lamina(titulo, capas, cielo, ruta, notas=(), avance=0, encima=None):
+    """Las tres capas ampliadas a ×3, una sobre otra, y debajo la escena armada con lo jugable
+    (`encima`; si no se da, lo de `jugables()`)."""
     margen = 12
     ancho = max(capas["mid"].width * ESC, ANCHO) + margen * 2
     alto = 40
@@ -173,7 +174,60 @@ def lamina(titulo, capas, cielo, ruta, notas=(), avance=0):
         y += c.height * ESC + 8
     d.text((margen, y), "Escena armada como en el juego (×3) con Sofía y obstáculos ya hechos:", fill="#ffd23f", font=fuente(13))
     y += 22
-    im.paste(escena(capas, cielo, jugables(), avance).convert("RGB"), (margen, y))
+    im.paste(escena(capas, cielo, encima or jugables(), avance).convert("RGB"), (margen, y))
+    y += ALTO + 10
+    for n in notas:
+        d.text((margen, y), n, fill="#a898ad", font=fuente(12))
+        y += 16
+    im.save(ruta)
+
+
+CUARTO = (320, 144)                 # interiores: ROOM de backgrounds.js
+PISO_CUARTO = 112                   # fila donde empieza el piso (ROOM.floor)
+CAM_Y = 110                         # la cámara del diálogo baja 110 px
+CAJA = (16, 372, 928, 120)          # caja de texto del diálogo (x, y, ancho, alto), fija en pantalla
+
+
+def escena_cuarto(cuarto, gente=()):
+    """La pantalla del diálogo (960×540) con un interior, como en DialogueScene: el cuarto a ×3 con
+    su piso en GROUND_TOP, la cámara 110 px abajo y la caja de texto encima. `gente`: lista de
+    (imagen, x de los pies, escala, mirando a la izquierda)."""
+    base = Image.new("RGBA", (ANCHO, ALTO), "#000000")
+    d = ImageDraw.Draw(base)
+    d.rectangle([0, 0, ANCHO, SUELO_Y - CAM_Y], fill=R["tinta"][1])
+    g = cuarto.resize((cuarto.width * ESC, cuarto.height * ESC), Image.NEAREST)
+    base.alpha_composite(g, (0, SUELO_Y - PISO_CUARTO * ESC - CAM_Y))
+    for im, x, esc, izquierda in gente:
+        p = im.resize((round(im.width * esc), round(im.height * esc)), Image.NEAREST)
+        if izquierda:
+            p = p.transpose(Image.FLIP_LEFT_RIGHT)
+        base.alpha_composite(p, (round(x - p.width / 2), PIES_Y - CAM_Y - p.height))
+    x, y, w, h = CAJA
+    d.rounded_rectangle([x, y, x + w, y + h], 10, fill=R["tinta"][1])
+    d.rounded_rectangle([x + 7, y + 7, x + w - 7, y + h - 7], 6, fill="#fff7e0")
+    d.text((x + 30, y + 40), "(caja de diálogo)", fill="#a898ad", font=fuente(16))
+    return base
+
+
+def lamina_cuarto(titulo, cuarto, ruta, gente=(), notas=()):
+    """El interior ampliado a ×3 y debajo la escena del diálogo con los personajes."""
+    margen = 12
+    ancho = cuarto.width * ESC + margen * 2
+    alto = 40 + 22 + cuarto.height * ESC + 10 + 22 + ALTO + 10 + 16 * len(notas) + 8
+    im = Image.new("RGB", (ancho, alto), "#211624")
+    d = ImageDraw.Draw(im)
+    d.text((margen, 8), titulo, fill="#f4ecd8", font=fuente(18))
+    y = 40
+    d.text((margen, y), f"Interior · {cuarto.width}×{cuarto.height} (×{ESC}); el piso empieza en la fila {PISO_CUARTO}",
+           fill="#ffd23f", font=fuente(13))
+    y += 22
+    g = cuarto.resize((cuarto.width * ESC, cuarto.height * ESC), Image.NEAREST)
+    im.paste(g, (margen, y), g)
+    y += g.height + 10
+    d.text((margen, y), "Escena del diálogo como en el juego (cámara 110 px abajo, caja de texto encima):",
+           fill="#ffd23f", font=fuente(13))
+    y += 22
+    im.paste(escena_cuarto(cuarto, gente).convert("RGB"), (margen, y))
     y += ALTO + 10
     for n in notas:
         d.text((margen, y), n, fill="#a898ad", font=fuente(12))
@@ -196,6 +250,18 @@ def exportar(ambiente, capas, cielo):
     hoja.save(SPRITES / f"{nombre}.png")
     meta = {"image": f"{nombre}.png", "size": {"w": hoja.width, "h": hoja.height}, "scale": "1", "license": AVISO,
             "cielo": {"vivo": list(cielo), "apagado": [apagar(c) for c in cielo]}}
+    (SPRITES / f"{nombre}.json").write_text(json.dumps({"frames": marcos, "meta": meta}, ensure_ascii=False, indent=1) + "\n",
+                                           encoding="utf-8")
+    print(f"hoja del juego: public/assets/sprites/{nombre}.png + {nombre}.json")
+
+
+def exportar_cuarto(lugar, im):
+    """Escribe public/assets/sprites/fondo-<lugar>.png + .json con un solo cuadro «room» (el interior
+    ya en el tono con que sale en el juego)."""
+    nombre = f"fondo-{lugar}"
+    im.save(SPRITES / f"{nombre}.png")
+    marcos = {"room": {"frame": {"x": 0, "y": 0, "w": im.width, "h": im.height}}}
+    meta = {"image": f"{nombre}.png", "size": {"w": im.width, "h": im.height}, "scale": "1", "license": AVISO}
     (SPRITES / f"{nombre}.json").write_text(json.dumps({"frames": marcos, "meta": meta}, ensure_ascii=False, indent=1) + "\n",
                                            encoding="utf-8")
     print(f"hoja del juego: public/assets/sprites/{nombre}.png + {nombre}.json")

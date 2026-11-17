@@ -2,8 +2,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { PNG_SHEETS, OTHER_SHEETS, OBSTACLE_SHEETS, obstacleSheet, BACKGROUND_SHEETS, BACKGROUND_LAYERS, DIM_SUFFIX, backgroundSheet, PORTRAITS, PORTRAIT_SIZE, PORTRAIT_MOODS, spriteUrl } from '../src/art/sprites.js';
-import { THEMES, FAR, MID, GROUND } from '../src/art/backgrounds.js';
+import { PNG_SHEETS, OTHER_SHEETS, OBSTACLE_SHEETS, obstacleSheet, BACKGROUND_SHEETS, BACKGROUND_LAYERS, DIM_SUFFIX, backgroundSheet, ROOM_SHEETS, ROOM_FRAME, PORTRAITS, PORTRAIT_SIZE, PORTRAIT_MOODS, spriteUrl } from '../src/art/sprites.js';
+import { THEMES, FAR, MID, GROUND, ROOM } from '../src/art/backgrounds.js';
 import { CAST } from '../src/data/cast.js';
 import { BUILDS, FRAME_NAMES } from '../src/art/kid.js';
 import { CAST_BUILDS } from '../src/art/index.js';
@@ -99,5 +99,17 @@ test('las hojas PNG de fondos traen las tres capas, viva y apagada, del tamaño 
       const sky = atlas.meta.cielo?.[tono];
       assert.ok(Array.isArray(sky) && sky.length === 2 && sky.every(c => /^#[0-9a-f]{6}$/.test(c)), `${id}: cielo ${tono}`);
     }
+  }
+});
+
+test('las hojas PNG de interiores traen un solo cuadro «room» del tamaño del cuarto', () => {
+  for (const place of ROOM_SHEETS) {
+    const id = backgroundSheet(place);
+    const atlas = JSON.parse(readFileSync(file(id, 'json'), 'utf8'));
+    const png = readFileSync(file(id, 'png'));
+    assert.deepEqual(Object.keys(atlas.frames), [ROOM_FRAME], `${id}: solo el cuadro ${ROOM_FRAME}`);
+    const { x, y, w, h } = atlas.frames[ROOM_FRAME].frame;
+    assert.deepEqual([w, h], [ROOM.w, ROOM.h], `${id}: tamaño del cuarto`);
+    assert.ok(x >= 0 && y >= 0 && x + w <= png.readUInt32BE(16) && y + h <= png.readUInt32BE(20), `${id}: cabe en el PNG`);
   }
 });

@@ -4,7 +4,7 @@
 // además tienen versión apagada; los demás se quedan con el dibujo por código.
 // Todo se dibuja para repetirse sin costuras: lo que cruza el borde se dibuja "dando la vuelta".
 import { makeCanvas, rng } from './pixel.js';
-import { applyBackgroundSheet } from './sprites.js';
+import { applyBackgroundSheet, applyRoomSheet } from './sprites.js';
 
 export const FAR = { w: 320, h: 80 };
 export const MID = { w: 384, h: 90 };
@@ -279,6 +279,7 @@ function ground(theme) {
   return c;
 }
 
+// Interiores: los de ROOM_SHEETS (sprites.js) usan su hoja PNG en lugar de este dibujo.
 // Interior de la casa de Sofía para los diálogos: sala-comedor con la mesa de las botellas.
 // 320×144 px: la pared ocupa hasta y=112 y el piso coincide con la banqueta de los exteriores.
 export const ROOM = { w: 320, h: 144, floor: 112 };
@@ -380,4 +381,5 @@ export function buildBackgrounds(scene) {
   }
   scene.textures.addCanvas('room-casa', room());
   scene.textures.addCanvas('room-tienda', store());
+  for (const place of ['casa', 'tienda']) applyRoomSheet(scene, place); // la hoja PNG reemplaza al dibujo por código
 }

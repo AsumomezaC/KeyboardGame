@@ -40,7 +40,7 @@ export class LessonScene extends Phaser.Scene {
   }
 
   create() {
-    backdrop(this, this.level.theme).scroll(0);
+    backdrop(this, this.level.theme, { tono: 'apagado' }).scroll(0); // todavía no corre: el mundo sigue apagado
     this.weather = addWeather(this, storyFor(this.chapter, this.level)?.weather);
     this.hero = this.level.hero || 'sofia';
     this.kid = this.add.sprite(170, FEET_Y, this.hero, 'idle0').setOrigin(0.5, 1).setScale(SCALE).setDepth(10);

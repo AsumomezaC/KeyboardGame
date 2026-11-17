@@ -18,10 +18,15 @@ export const obstacleSheet = key => `obst-${key}`;
 // «ground» (capa lejana, media y piso, del tamaño de FAR, MID y GROUND de backgrounds.js) y sus
 // parejas apagadas «far-apagado», «mid-apagado» y «ground-apagado». Los colores del cielo van en
 // meta.cielo: { vivo: [arriba, abajo], apagado: [arriba, abajo] }.
-export const BACKGROUND_SHEETS = ['barrio', 'noche', 'prohibida'];
+export const BACKGROUND_SHEETS = ['barrio', 'noche', 'prohibida', 'parque', 'carrera', 'mercado'];
 export const BACKGROUND_LAYERS = ['far', 'mid', 'ground'];
 export const DIM_SUFFIX = '-apagado';
 export const backgroundSheet = theme => `fondo-${theme}`;
+
+// Interiores con hoja PNG (fondo-<lugar>.png + .json): un solo cuadro «room» del tamaño de ROOM de
+// backgrounds.js, ya en el tono con que sale en los diálogos (la casa, apagada).
+export const ROOM_SHEETS = ['casa'];
+export const ROOM_FRAME = 'room';
 
 // Personajes con retrato para la caja de diálogo (hoja <id>-retrato.png + .json): un cuadro por
 // gesto, más «_m» (boca al hablar) y «_b» (parpadeo, solo en los gestos con los ojos abiertos).
@@ -37,6 +42,7 @@ const pngKey = id => `png-${id}`;
 export function preloadSprites(scene) {
   for (const id of [...PNG_SHEETS, ...OTHER_SHEETS]) scene.load.atlas(pngKey(id), spriteUrl(id, 'png'), spriteUrl(id, 'json'));
   for (const key of OBSTACLE_SHEETS) scene.load.atlas(pngKey(obstacleSheet(key)), spriteUrl(obstacleSheet(key), 'png'), spriteUrl(obstacleSheet(key), 'json'));
+  for (const place of ROOM_SHEETS) scene.load.atlas(pngKey(backgroundSheet(place)), spriteUrl(backgroundSheet(place), 'png'), spriteUrl(backgroundSheet(place), 'json'));
   for (const theme of BACKGROUND_SHEETS) scene.load.atlas(pngKey(backgroundSheet(theme)), spriteUrl(backgroundSheet(theme), 'png'), spriteUrl(backgroundSheet(theme), 'json'));
   for (const id of PORTRAITS) scene.load.atlas(portraitKey(id), spriteUrl(`${id}-retrato`, 'png'), spriteUrl(`${id}-retrato`, 'json'));
 }
@@ -125,6 +131,23 @@ export function applyBackgroundSheet(scene, theme) {
     }
   }
   return { layers, sky: png.customData?.meta?.cielo ?? null };
+}
+
+// Copia el cuadro «room» de la hoja PNG de un interior sobre su textura dibujada por código
+// (`room-casa`) si mide lo mismo. Devuelve true si la reemplazó; si no, queda el dibujo por código.
+export function applyRoomSheet(scene, place) {
+  const sheet = pngKey(backgroundSheet(place));
+  const key = `room-${place}`;
+  if (!ROOM_SHEETS.includes(place) || !scene.textures.exists(sheet) || !scene.textures.exists(key)) return false;
+  const png = scene.textures.get(sheet);
+  if (!png.has(ROOM_FRAME)) return false;
+  const a = png.get(ROOM_FRAME), tex = scene.textures.get(key);
+  if (a.cutWidth !== tex.width || a.cutHeight !== tex.height) return false;
+  const ctx = tex.getContext();
+  ctx.clearRect(0, 0, tex.width, tex.height);
+  ctx.drawImage(png.getSourceImage(), a.cutX, a.cutY, a.cutWidth, a.cutHeight, 0, 0, tex.width, tex.height);
+  tex.refresh();
+  return true;
 }
 
 // Cuadros de carrera de una hoja PNG como canvas sueltos, para dibujarlos fuera de Phaser

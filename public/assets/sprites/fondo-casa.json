@@ -1,0 +1,21 @@
+{
+ "frames": {
+  "room": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 320,
+    "h": 144
+   }
+  }
+ },
+ "meta": {
+  "image": "fondo-casa.png",
+  "size": {
+   "w": 320,
+   "h": 144
+  },
+  "scale": "1",
+  "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md)."
+ }
+}
