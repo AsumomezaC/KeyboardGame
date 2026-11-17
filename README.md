@@ -188,9 +188,10 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   están en `art-src/fondos/` (`python art-src/fondos/barrio.py <carpeta> --exportar`; la noche se calcula a partir del barrio).
 - Los interiores de los diálogos (`room-casa`, `room-tienda`, 320×144, piso desde la fila 112) se
   dibujan por código en `src/art/backgrounds.js`. Los de `ROOM_SHEETS` (`src/art/sprites.js`; hoy la
-  casa) cargan `public/assets/sprites/fondo-<lugar>.png` + `.json` con un solo cuadro `room`, ya en
-  el tono con que sale en el juego (la casa, apagada), que reemplaza al dibujo por código si mide lo
-  mismo (`python art-src/fondos/casa.py <carpeta> --exportar`).
+  casa y la tienda) cargan `public/assets/sprites/fondo-<lugar>.png` + `.json` con un solo cuadro
+  `room`, ya en el tono con que sale en el juego (la casa, apagada; la tienda, viva), que reemplaza
+  al dibujo por código si mide lo mismo (`python art-src/fondos/casa.py <carpeta> --exportar`, y
+  lo mismo con `tienda.py`).
 - El color sigue la emoción: `backdrop(scene, ambiente, { tono })` de `src/scenes/common.js` acepta
   `'vivo'` o `'apagado'` (más frío y con menos color). La carrera empieza apagada y se enciende con
   un fundido al arrancar (`encender()`); el calentamiento de teclas va apagado; los diálogos van

@@ -24,8 +24,8 @@ export const DIM_SUFFIX = '-apagado';
 export const backgroundSheet = theme => `fondo-${theme}`;
 
 // Interiores con hoja PNG (fondo-<lugar>.png + .json): un solo cuadro «room» del tamaño de ROOM de
-// backgrounds.js, ya en el tono con que sale en los diálogos (la casa, apagada).
-export const ROOM_SHEETS = ['casa'];
+// backgrounds.js, ya en el tono con que sale en los diálogos (la casa, apagada; la tienda, viva).
+export const ROOM_SHEETS = ['casa', 'tienda'];
 export const ROOM_FRAME = 'room';
 
 // Personajes con retrato para la caja de diálogo (hoja <id>-retrato.png + .json): un cuadro por
