@@ -1,10 +1,16 @@
 // Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).
 // Fondos en tres capas que se repiten (lejana, media y suelo), uno por ambiente.
+// Los ambientes con hoja PNG (BACKGROUND_SHEETS de sprites.js) la usan en lugar de este dibujo y
+// además tienen versión apagada; los demás se quedan con el dibujo por código.
 // Todo se dibuja para repetirse sin costuras: lo que cruza el borde se dibuja "dando la vuelta".
 import { makeCanvas, rng } from './pixel.js';
+import { applyBackgroundSheet } from './sprites.js';
 
-export const FAR = { w: 160, h: 80 };
-export const MID = { w: 192, h: 90 };
+export const FAR = { w: 320, h: 80 };
+export const MID = { w: 384, h: 90 };
+// El dibujo por código se hace en un tramo de la mitad de ancho y se repite dos veces.
+const FAR_TILE = FAR.w / 2;
+const MID_TILE = MID.w / 2;
 export const GROUND = { w: 64, h: 32 };
 
 export const THEMES = {
@@ -48,19 +54,19 @@ const wrap = (x, w) => ((x % w) + w) % w;
 
 function far(theme) {
   const t = THEMES[theme];
-  const { c, p } = makeCanvas(FAR.w, FAR.h);
+  const { c, p } = makeCanvas(FAR_TILE, FAR.h);
   if (t.plain) return c;
   const r = rng(theme.length * 97);
   if (theme === 'prohibida') {
     // Fábricas con chimeneas.
-    for (let x = 0; x < FAR.w; x += 40) {
+    for (let x = 0; x < FAR_TILE; x += 40) {
       const h = 30 + Math.floor(r() * 18);
       p.rect(x + 2, FAR.h - h, 34, h, t.far);
       p.rect(x + 8, FAR.h - h - 16, 5, 16, t.farDark);
       for (let k = 0; k < 4; k++) p.rect(x + 6 + k * 7, FAR.h - h + 6, 4, 3, '#f29e6d');
     }
   } else if (theme === 'noche') {
-    for (let x = 0; x < FAR.w; x += 20) {
+    for (let x = 0; x < FAR_TILE; x += 20) {
       const h = 25 + Math.floor(r() * 35);
       p.rect(x, FAR.h - h, 18, h, t.far);
       for (let wy = FAR.h - h + 4; wy < FAR.h - 4; wy += 6) {
@@ -69,18 +75,18 @@ function far(theme) {
     }
   } else if (theme === 'carrera') {
     // Gradas lejanas con banderines.
-    for (let x = 0; x < FAR.w; x++) {
-      const h = 30 + Math.round(4 * Math.sin((x / FAR.w) * Math.PI * 4));
+    for (let x = 0; x < FAR_TILE; x++) {
+      const h = 30 + Math.round(4 * Math.sin((x / FAR_TILE) * Math.PI * 4));
       p.rect(x, FAR.h - h, 1, h, t.far);
     }
-    for (let x = 6; x < FAR.w; x += 32) {
+    for (let x = 6; x < FAR_TILE; x += 32) {
       p.rect(x, FAR.h - 52, 1, 14, '#5b5b66');
       p.rect(x + 1, FAR.h - 52, 6, 4, ['#e94f64', '#ffd23f', '#3d5aa8'][(x / 32) % 3 | 0]);
     }
   } else {
     // Cerros con ondas que cierran en el borde.
-    for (let x = 0; x < FAR.w; x++) {
-      const k = (x / FAR.w) * Math.PI * 2;
+    for (let x = 0; x < FAR_TILE; x++) {
+      const k = (x / FAR_TILE) * Math.PI * 2;
       const h = 36 + 8 * Math.sin(k) + 5 * Math.sin(3 * k + 1);
       p.rect(x, FAR.h - h, 1, h, t.far);
       const h2 = 20 + 6 * Math.sin(2 * k + 2);
@@ -144,7 +150,7 @@ function poles(p, lamp) {
   for (const [a, b] of [[9, 105], [105, 201]]) {
     for (let x = a; x <= b; x++) {
       const t = (x - a) / (b - a);
-      p.px(wrap(x, MID.w), 14 + Math.round(7 * Math.sin(Math.PI * t)), '#2b2b2b');
+      p.px(wrap(x, MID_TILE), 14 + Math.round(7 * Math.sin(Math.PI * t)), '#2b2b2b');
     }
   }
 }
@@ -157,10 +163,10 @@ function chainFence(p) {
   p.rect(120, 46, 40, 44, '#4b4b58');
   // malla ciclónica
   for (let y = 38; y < MID.h; y++) {
-    for (let x = 0; x < MID.w; x++) if ((x + y) % 6 === 0 || wrap(x - y, 6) === 0) p.px(x, y, '#a7adb5');
+    for (let x = 0; x < MID_TILE; x++) if ((x + y) % 6 === 0 || wrap(x - y, 6) === 0) p.px(x, y, '#a7adb5');
   }
-  for (let x = 0; x < MID.w; x += 48) p.rect(x, 32, 3, MID.h - 32, '#7d838b');
-  for (let x = 0; x < MID.w; x++) p.px(x, 34 + (x % 4 === 0 ? -1 : 0), '#7d838b'); // alambre de púas
+  for (let x = 0; x < MID_TILE; x += 48) p.rect(x, 32, 3, MID.h - 32, '#7d838b');
+  for (let x = 0; x < MID_TILE; x++) p.px(x, 34 + (x % 4 === 0 ? -1 : 0), '#7d838b'); // alambre de púas
   // letrero rojo (sin texto)
   p.rect(130, 52, 30, 14, '#c62828');
   p.rect(133, 55, 24, 2, '#ffffff');
@@ -170,8 +176,8 @@ function chainFence(p) {
 function bleachers(p, r) {
   for (let row = 0; row < 5; row++) {
     const y = 34 + row * 11;
-    p.rect(0, y, MID.w, 11, row % 2 ? '#8d99ae' : '#7c879c');
-    for (let x = 2; x < MID.w; x += 5) {
+    p.rect(0, y, MID_TILE, 11, row % 2 ? '#8d99ae' : '#7c879c');
+    for (let x = 2; x < MID_TILE; x += 5) {
       if (r() < 0.8) {
         p.rect(x, y - 4, 3, 4, ['#e94f64', '#ffd23f', '#3d5aa8', '#80ed99', '#f4a261', '#ffffff'][Math.floor(r() * 6)]);
         p.rect(x, y - 7, 3, 3, ['#f2c29b', '#c98d62', '#8d5a3b'][Math.floor(r() * 3)]);
@@ -181,8 +187,8 @@ function bleachers(p, r) {
   // papel picado en dos cuerdas
   const colors = ['#e94f64', '#ffd23f', '#4cc9f0', '#80ed99', '#b388ff'];
   for (const base of [8, 20]) {
-    for (let x = 0; x < MID.w; x++) {
-      const y = base + Math.round(4 * Math.sin((x / MID.w) * Math.PI * 4));
+    for (let x = 0; x < MID_TILE; x++) {
+      const y = base + Math.round(4 * Math.sin((x / MID_TILE) * Math.PI * 4));
       p.px(x, y, '#2b2b2b');
       if (x % 8 === 0) p.rect(x + 1, y + 1, 6, 6, colors[(x / 8 + base) % colors.length]);
     }
@@ -209,7 +215,7 @@ function stalls(p) {
 
 // Parque: árboles redondos, una banca y un farol.
 function trees(p, r) {
-  for (let x = 6; x < MID.w; x += 48) {
+  for (let x = 6; x < MID_TILE; x += 48) {
     const h = 30 + Math.floor(r() * 12);
     p.rect(x + 14, MID.h - h, 5, h, '#6d4c41');
     p.disc(x + 16, MID.h - h - 10, 15, '#3f7d3a');
@@ -224,7 +230,7 @@ function trees(p, r) {
 
 function mid(theme) {
   const t = THEMES[theme];
-  const { c, p } = makeCanvas(MID.w, MID.h);
+  const { c, p } = makeCanvas(MID_TILE, MID.h);
   if (t.plain) return c;
   const r = rng(theme.length * 131 + 7);
   if (theme === 'prohibida') chainFence(p);
@@ -352,11 +358,25 @@ function store() {
   return c;
 }
 
+// Repite un tramo a lo ancho hasta llenar `w`.
+function tile(tramo, w) {
+  if (tramo.width >= w) return tramo;
+  const { c, ctx } = makeCanvas(w, tramo.height);
+  for (let x = 0; x < w; x += tramo.width) ctx.drawImage(tramo, x, 0);
+  return c;
+}
+
+// Colores del cielo de cada ambiente: { vivo: [arriba, abajo], apagado: [arriba, abajo] }.
+// Sin hoja PNG, el apagado es igual al vivo.
+export const SKIES = {};
+
 export function buildBackgrounds(scene) {
   for (const theme of Object.keys(THEMES)) {
-    scene.textures.addCanvas(`far-${theme}`, far(theme));
-    scene.textures.addCanvas(`mid-${theme}`, mid(theme));
+    scene.textures.addCanvas(`far-${theme}`, tile(far(theme), FAR.w));
+    scene.textures.addCanvas(`mid-${theme}`, tile(mid(theme), MID.w));
     scene.textures.addCanvas(`ground-${theme}`, ground(theme));
+    const sheet = applyBackgroundSheet(scene, theme); // la hoja PNG reemplaza al dibujo por código
+    SKIES[theme] = { vivo: THEMES[theme].sky, apagado: THEMES[theme].sky, ...(sheet?.sky || {}) };
   }
   scene.textures.addCanvas('room-casa', room());
   scene.textures.addCanvas('room-tienda', store());

@@ -60,7 +60,8 @@ export class DialogueScene extends Phaser.Scene {
       this.add.image(0, GROUND_TOP - ROOM.floor * SCALE, ROOMS[this.sc.place]).setOrigin(0).setScale(SCALE);
       this.weather = null;
     } else {
-      backdrop(this, this.sc.place, { seed: `${this.level.id}-${this.part}` }).scroll(this.sc.scroll ?? 0);
+      // Los diálogos van apagados; una escena del guion puede pedir `tono: 'vivo'`.
+      backdrop(this, this.sc.place, { seed: `${this.level.id}-${this.part}`, tono: this.sc.tono === 'vivo' ? 'vivo' : 'apagado' }).scroll(this.sc.scroll ?? 0);
       this.weather = addWeather(this, this.sc.weather ?? story.weather);
     }
     for (const [id, x, face = 'right', mood = 'idle'] of this.sc.cast) this.spawn(id, x, face, mood);

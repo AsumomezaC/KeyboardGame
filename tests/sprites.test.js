@@ -2,7 +2,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { PNG_SHEETS, OTHER_SHEETS, OBSTACLE_SHEETS, obstacleSheet, PORTRAITS, PORTRAIT_SIZE, PORTRAIT_MOODS, spriteUrl } from '../src/art/sprites.js';
+import { PNG_SHEETS, OTHER_SHEETS, OBSTACLE_SHEETS, obstacleSheet, BACKGROUND_SHEETS, BACKGROUND_LAYERS, DIM_SUFFIX, backgroundSheet, PORTRAITS, PORTRAIT_SIZE, PORTRAIT_MOODS, spriteUrl } from '../src/art/sprites.js';
+import { THEMES, FAR, MID, GROUND } from '../src/art/backgrounds.js';
 import { CAST } from '../src/data/cast.js';
 import { BUILDS, FRAME_NAMES } from '../src/art/kid.js';
 import { CAST_BUILDS } from '../src/art/index.js';
@@ -76,6 +77,27 @@ test('los retratos traen los 8 gestos con su boca al hablar, en cuadros del tama
       assert.match(name, new RegExp(`^(${PORTRAIT_MOODS.join('|')})(_m|_b)?$`), `${id}: «${name}» no es un gesto`);
       assert.deepEqual([w, h], [PORTRAIT_SIZE, PORTRAIT_SIZE], `${id}/${name}: tamaño de cuadro`);
       assert.ok(x >= 0 && y >= 0 && x + w <= width && y + h <= height, `${id}/${name}: cabe en el PNG`);
+    }
+  }
+});
+
+test('las hojas PNG de fondos traen las tres capas, viva y apagada, del tamaño acordado, y su cielo', () => {
+  const sizes = { far: [FAR.w, FAR.h], mid: [MID.w, MID.h], ground: [GROUND.w, GROUND.h] };
+  for (const theme of BACKGROUND_SHEETS) {
+    assert.ok(THEMES[theme] && !THEMES[theme].plain, `${theme}: es un ambiente con fondo`);
+    const id = backgroundSheet(theme);
+    const atlas = JSON.parse(readFileSync(file(id, 'json'), 'utf8'));
+    const png = readFileSync(file(id, 'png'));
+    const width = png.readUInt32BE(16), height = png.readUInt32BE(20);
+    const expected = BACKGROUND_LAYERS.flatMap(l => [l, l + DIM_SUFFIX]).sort();
+    assert.deepEqual(Object.keys(atlas.frames).sort(), expected, `${id}: tres capas vivas y tres apagadas`);
+    for (const [name, { frame: { x, y, w, h } }] of Object.entries(atlas.frames)) {
+      assert.deepEqual([w, h], sizes[name.replace(DIM_SUFFIX, '')], `${id}/${name}: tamaño de la capa`);
+      assert.ok(x >= 0 && y >= 0 && x + w <= width && y + h <= height, `${id}/${name}: cabe en el PNG`);
+    }
+    for (const tono of ['vivo', 'apagado']) {
+      const sky = atlas.meta.cielo?.[tono];
+      assert.ok(Array.isArray(sky) && sky.length === 2 && sky.every(c => /^#[0-9a-f]{6}$/.test(c)), `${id}: cielo ${tono}`);
     }
   }
 });

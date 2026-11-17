@@ -14,6 +14,15 @@ export const OTHER_SHEETS = ['dog'];
 export const OBSTACLE_SHEETS = ['chair', 'chalk', 'puddle', 'fence', 'table', 'wall', 'hole', 'container', 'alley', 'highwall', 'rail', 'bus', 'stalls'];
 export const obstacleSheet = key => `obst-${key}`;
 
+// Ambientes con hoja PNG de fondo (fondo-<ambiente>.png + .json): los cuadros «far», «mid» y
+// «ground» (capa lejana, media y piso, del tamaño de FAR, MID y GROUND de backgrounds.js) y sus
+// parejas apagadas «far-apagado», «mid-apagado» y «ground-apagado». Los colores del cielo van en
+// meta.cielo: { vivo: [arriba, abajo], apagado: [arriba, abajo] }.
+export const BACKGROUND_SHEETS = ['barrio', 'noche', 'prohibida'];
+export const BACKGROUND_LAYERS = ['far', 'mid', 'ground'];
+export const DIM_SUFFIX = '-apagado';
+export const backgroundSheet = theme => `fondo-${theme}`;
+
 // Personajes con retrato para la caja de diálogo (hoja <id>-retrato.png + .json): un cuadro por
 // gesto, más «_m» (boca al hablar) y «_b» (parpadeo, solo en los gestos con los ojos abiertos).
 export const PORTRAITS = ['sofia', 'dani', 'kevin', 'yesi', 'chuy', 'brayan', 'memo', 'ramiro', 'leticia', 'tomasito', 'tomas', 'tata', 'panadero'];
@@ -28,6 +37,7 @@ const pngKey = id => `png-${id}`;
 export function preloadSprites(scene) {
   for (const id of [...PNG_SHEETS, ...OTHER_SHEETS]) scene.load.atlas(pngKey(id), spriteUrl(id, 'png'), spriteUrl(id, 'json'));
   for (const key of OBSTACLE_SHEETS) scene.load.atlas(pngKey(obstacleSheet(key)), spriteUrl(obstacleSheet(key), 'png'), spriteUrl(obstacleSheet(key), 'json'));
+  for (const theme of BACKGROUND_SHEETS) scene.load.atlas(pngKey(backgroundSheet(theme)), spriteUrl(backgroundSheet(theme), 'png'), spriteUrl(backgroundSheet(theme), 'json'));
   for (const id of PORTRAITS) scene.load.atlas(portraitKey(id), spriteUrl(`${id}-retrato`, 'png'), spriteUrl(`${id}-retrato`, 'json'));
 }
 
@@ -86,6 +96,35 @@ export function applyObstacleSheet(scene, key, variants) {
     n++;
   }
   return n;
+}
+
+// Copia las capas de la hoja PNG de un ambiente sobre sus texturas dibujadas por código
+// (`far-barrio`, `mid-barrio`, `ground-barrio`) si miden lo mismo, y crea las texturas apagadas
+// (`far-barrio-apagado`…). Devuelve { layers, sky } o null si el ambiente no tiene hoja: entonces
+// queda el dibujo por código y no hay versión apagada.
+export function applyBackgroundSheet(scene, theme) {
+  const sheet = pngKey(backgroundSheet(theme));
+  if (!BACKGROUND_SHEETS.includes(theme) || !scene.textures.exists(sheet)) return null;
+  const png = scene.textures.get(sheet);
+  const src = png.getSourceImage();
+  let layers = 0;
+  for (const layer of BACKGROUND_LAYERS) {
+    const key = `${layer}-${theme}`;
+    if (!scene.textures.exists(key)) continue;
+    const base = scene.textures.get(key);
+    for (const suffix of ['', DIM_SUFFIX]) {
+      if (!png.has(layer + suffix)) continue;
+      const a = png.get(layer + suffix);
+      if (a.cutWidth !== base.width || a.cutHeight !== base.height) continue;
+      const tex = suffix ? scene.textures.createCanvas(key + suffix, base.width, base.height) : base;
+      const ctx = tex.getContext();
+      ctx.clearRect(0, 0, tex.width, tex.height);
+      ctx.drawImage(src, a.cutX, a.cutY, a.cutWidth, a.cutHeight, 0, 0, tex.width, tex.height);
+      tex.refresh();
+      layers++;
+    }
+  }
+  return { layers, sky: png.customData?.meta?.cielo ?? null };
 }
 
 // Cuadros de carrera de una hoja PNG como canvas sueltos, para dibujarlos fuera de Phaser

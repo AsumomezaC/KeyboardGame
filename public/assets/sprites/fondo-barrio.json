@@ -1,0 +1,71 @@
+{
+ "frames": {
+  "far": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 320,
+    "h": 80
+   }
+  },
+  "mid": {
+   "frame": {
+    "x": 0,
+    "y": 80,
+    "w": 384,
+    "h": 90
+   }
+  },
+  "ground": {
+   "frame": {
+    "x": 0,
+    "y": 170,
+    "w": 64,
+    "h": 32
+   }
+  },
+  "far-apagado": {
+   "frame": {
+    "x": 0,
+    "y": 202,
+    "w": 320,
+    "h": 80
+   }
+  },
+  "mid-apagado": {
+   "frame": {
+    "x": 0,
+    "y": 282,
+    "w": 384,
+    "h": 90
+   }
+  },
+  "ground-apagado": {
+   "frame": {
+    "x": 0,
+    "y": 372,
+    "w": 64,
+    "h": 32
+   }
+  }
+ },
+ "meta": {
+  "image": "fondo-barrio.png",
+  "size": {
+   "w": 384,
+   "h": 404
+  },
+  "scale": "1",
+  "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).",
+  "cielo": {
+   "vivo": [
+    "#9ad8ff",
+    "#f4ecd8"
+   ],
+   "apagado": [
+    "#a3bfd8",
+    "#c4c4c5"
+   ]
+  }
+ }
+}

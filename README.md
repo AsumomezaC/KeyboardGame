@@ -178,6 +178,18 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   sorprende, se encoge si está triste, tiembla si llora, rebota si está feliz). La cámara solo se
   mueve en los momentos marcados con `fx`. Quien no habla parpadea de vez en cuando y reacciona
   (se hace para atrás) a las sacudidas y destellos.
+- El fondo tiene tres capas que se repiten con paralaje (`src/art/backgrounds.js`): lejana (320×80),
+  media (384×90) y piso (64×32). Un ambiente puede venir de una hoja PNG: los de `BACKGROUND_SHEETS`
+  (`src/art/sprites.js`; hoy el barrio, la noche y la zona prohibida) cargan `public/assets/sprites/fondo-<ambiente>.png` + `.json`
+  con los cuadros `far`, `mid` y `ground` y sus parejas apagadas (`far-apagado`…), y los colores del
+  cielo en `meta.cielo`. Cada cuadro reemplaza a la capa dibujada por código si mide lo mismo; sin
+  hoja queda el dibujo por código y no hay versión apagada. El fondo no lleva contorno, la capa
+  lejana va velada con el tono del cielo y todo lleva menos detalle que los obstáculos. Los scripts
+  están en `art-src/fondos/` (`python art-src/fondos/barrio.py <carpeta> --exportar`; la noche se calcula a partir del barrio).
+- El color sigue la emoción: `backdrop(scene, ambiente, { tono })` de `src/scenes/common.js` acepta
+  `'vivo'` o `'apagado'` (más frío y con menos color). La carrera empieza apagada y se enciende con
+  un fundido al arrancar (`encender()`); los diálogos van apagados salvo que la escena del guion
+  lleve `tono: 'vivo'`; el título, el mapa y los resultados van vivos.
 - El fondo de cada nivel y de cada diálogo tiene detalles al fondo (gatos, bicis, botes, macetas,
   perros, carteles…) acomodados al azar pero siempre igual para el mismo nivel; dependen del lugar
   (`THEME_DETAILS` en `src/art/details.js`). Salen pocos y se apoyan en la base de las casas
