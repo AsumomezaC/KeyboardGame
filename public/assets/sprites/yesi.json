@@ -224,7 +224,7 @@
     "h": 36
    }
   },
-  "idle0_b": {
+  "takeoff": {
    "frame": {
     "x": 672,
     "y": 0,
@@ -232,7 +232,7 @@
     "h": 36
    }
   },
-  "idle1_b": {
+  "land": {
    "frame": {
     "x": 696,
     "y": 0,
@@ -240,7 +240,7 @@
     "h": 36
    }
   },
-  "cheer0_b": {
+  "roll": {
    "frame": {
     "x": 720,
     "y": 0,
@@ -248,7 +248,7 @@
     "h": 36
    }
   },
-  "talk_b": {
+  "flip_in": {
    "frame": {
     "x": 744,
     "y": 0,
@@ -256,7 +256,7 @@
     "h": 36
    }
   },
-  "sad_b": {
+  "flip_out": {
    "frame": {
     "x": 768,
     "y": 0,
@@ -264,7 +264,7 @@
     "h": 36
    }
   },
-  "angry_b": {
+  "wallrun0": {
    "frame": {
     "x": 792,
     "y": 0,
@@ -272,9 +272,97 @@
     "h": 36
    }
   },
-  "shock_b": {
+  "wallrun1": {
    "frame": {
     "x": 816,
+    "y": 0,
+    "w": 24,
+    "h": 36
+   }
+  },
+  "wallrun2": {
+   "frame": {
+    "x": 840,
+    "y": 0,
+    "w": 24,
+    "h": 36
+   }
+  },
+  "wallrun3": {
+   "frame": {
+    "x": 864,
+    "y": 0,
+    "w": 24,
+    "h": 36
+   }
+  },
+  "wallrun4": {
+   "frame": {
+    "x": 888,
+    "y": 0,
+    "w": 24,
+    "h": 36
+   }
+  },
+  "wallrun5": {
+   "frame": {
+    "x": 912,
+    "y": 0,
+    "w": 24,
+    "h": 36
+   }
+  },
+  "idle0_b": {
+   "frame": {
+    "x": 936,
+    "y": 0,
+    "w": 24,
+    "h": 36
+   }
+  },
+  "idle1_b": {
+   "frame": {
+    "x": 960,
+    "y": 0,
+    "w": 24,
+    "h": 36
+   }
+  },
+  "cheer0_b": {
+   "frame": {
+    "x": 984,
+    "y": 0,
+    "w": 24,
+    "h": 36
+   }
+  },
+  "talk_b": {
+   "frame": {
+    "x": 1008,
+    "y": 0,
+    "w": 24,
+    "h": 36
+   }
+  },
+  "sad_b": {
+   "frame": {
+    "x": 1032,
+    "y": 0,
+    "w": 24,
+    "h": 36
+   }
+  },
+  "angry_b": {
+   "frame": {
+    "x": 1056,
+    "y": 0,
+    "w": 24,
+    "h": 36
+   }
+  },
+  "shock_b": {
+   "frame": {
+    "x": 1080,
     "y": 0,
     "w": 24,
     "h": 36
@@ -284,10 +372,14 @@
  "meta": {
   "image": "yesi.png",
   "size": {
-   "w": 840,
+   "w": 1104,
    "h": 36
   },
   "scale": "1",
-  "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md)."
+  "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).",
+  "pivotes": {
+   "roll": 10,
+   "tuck": 20
+  }
  }
 }

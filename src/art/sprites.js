@@ -47,6 +47,18 @@ export function preloadSprites(scene) {
   for (const id of PORTRAITS) scene.load.atlas(portraitKey(id), spriteUrl(`${id}-retrato`, 'png'), spriteUrl(`${id}-retrato`, 'json'));
 }
 
+// ¿La hoja PNG del personaje `key` trae el cuadro `frame`? Sirve para las poses que solo existen en
+// algunas hojas PNG (PNG_ONLY_FRAMES de kid.js): quien no las trae sigue con las de siempre.
+export function hasPngFrame(scene, key, frame) {
+  return scene.textures.exists(pngKey(key)) && scene.textures.get(pngKey(key)).has(frame);
+}
+
+// Sobre qué punto gira un cuadro de la hoja PNG (px sobre los pies), si la hoja lo dice en
+// meta.pivotes (p. ej. { roll: 9 }: el centro de la bolita de la rodada, que cambia con la complexión).
+export function pngPivot(scene, key, frame) {
+  return scene.textures.exists(pngKey(key)) ? scene.textures.get(pngKey(key)).customData?.meta?.pivotes?.[frame] : undefined;
+}
+
 // Cada cuántos ciclos de carrera entra el ciclo con tropiezo (para quien trae cuadros «runN_t»).
 export const STUMBLE_EVERY = 4;
 

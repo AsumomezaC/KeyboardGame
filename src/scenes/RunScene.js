@@ -14,6 +14,7 @@ import { levelName } from '../data/chapters.js';
 import { CORRE, CAST } from '../data/cast.js';
 import { rng } from '../data/rng.js';
 import { OBSTACLE_VARIANTS } from '../art/props.js';
+import { hasPngFrame, pngPivot } from '../art/sprites.js';
 import { W, SCALE, FEET_Y, FONT, INK, px, text, backdrop, formatTime } from './common.js';
 import { addWeather } from './weather.js';
 import { LONG_TYPES, LONG_PROPS, longPose } from './choreo.js';
@@ -46,14 +47,39 @@ const WALL_RUN_HEIGHT = 78;   // a qué altura de la barda corre
 const WALL_TILT = 16;         // inclinación hacia la pared mientras corre en ella
 const TRAIL_EVERY_MS = 55;    // cada cuánto deja una silueta en la estela
 
+// Hoyo como salto de longitud (solo para quien trae takeoff, land y roll en su hoja PNG): llega
+// corriendo, pisa fuerte antes de la orilla, vuela más bajo, cae pasando el hoyo y rueda una vez.
+const HOLE_FRAMES = ['takeoff', 'land', 'roll'];
+const HOLE = { plant: 0.17, rise: 0.2, leave: 0.25, land: 0.8, roll: 0.82, height: 100, pivot: 9 }; // pivot: si la hoja no dice
+// Silla con voltereta real (para quien trae flip_in y flip_out): más baja y más rápida (el 80 % del
+// obstáculo, centrada sobre la silla; antes y después corre), girando sobre el centro del cuerpo.
+const FLIP_FRAMES = ['flip_in', 'flip_out'];
+const CHAIR = { from: 0.125, to: 0.925, height: 80 };
+const TUCK_PIVOT = 18;        // centro de la voltereta si la hoja no lo dice
+// Barda (para quien además trae wallrun0…5): corre con su propio ciclo, apoyada en la pared y
+// tanteándola con la mano; cambia de cuadro cada tanto recorrido, como su carrera a 12 cuadros/s.
+const WALL_FRAMES = [...Array.from({ length: 6 }, (_, i) => `wallrun${i}`), 'flip_out'];
+const WALL_RUN_STEP = BASE_SPEED / 12;
+
 // Cómo se ve alguien mientras pasa un obstáculo (prog de 0 a 1).
-// frame: cuadro fijo; run: sigue con la animación de correr; dy: altura; angle: giro.
-function obstaclePose(type, prog) {
+// frame: cuadro fijo; run: sigue con la animación de correr; dy: altura; angle: giro;
+// pivot: gira sobre el punto que está a esos px del cuadro arriba de los pies.
+// sheet.has(frame): si la hoja de quien pasa trae una pose nueva (si no, se usa la de siempre);
+// sheet.pivot(frame): sobre qué punto gira ese cuadro según su hoja. dist: px recorridos en el obstáculo.
+const NO_SHEET = { has: () => false, pivot: () => undefined };
+function obstaclePose(type, prog, sheet = NO_SHEET, dist = 0) {
   const arc = Math.sin(Math.PI * prog);
   switch (type) {
     case 'puddle': return { frame: 'hop', dy: -arc * 48 };
     case 'fence': return { frame: prog > 0.1 && prog < 0.9 ? 'slide' : 'ready', dy: 0, dust: true };
-    case 'chair': return { frame: prog > 0.15 && prog < 0.85 ? 'tuck' : 'hop', dy: -arc * 150, angle: 360 * Phaser.Math.Clamp((prog - 0.15) / 0.7, 0, 1) };
+    case 'chair': {
+      if (!FLIP_FRAMES.every(sheet.has)) return { frame: prog > 0.15 && prog < 0.85 ? 'tuck' : 'hop', dy: -arc * 150, angle: 360 * Phaser.Math.Clamp((prog - 0.15) / 0.7, 0, 1) };
+      if (prog < CHAIR.from || prog > CHAIR.to) return { run: true, dy: 0 };
+      const q = (prog - CHAIR.from) / (CHAIR.to - CHAIR.from);
+      const dy = -Math.sin(Math.PI * q) * CHAIR.height;
+      if (q <= 0.15 || q >= 0.85) return { frame: q <= 0.15 ? 'flip_in' : 'flip_out', dy };
+      return { frame: 'tuck', dy, angle: 360 * (q - 0.15) / 0.7, pivot: sheet.pivot('tuck') ?? TUCK_PIVOT };
+    }
     case 'table': {
       const top = PROPS.table.h;
       if (prog < 0.2) return { frame: 'hop', dy: -top * (prog / 0.2) - Math.sin(Math.PI * prog / 0.2) * 16 };
@@ -64,18 +90,29 @@ function obstaclePose(type, prog) {
       // Carrera por la pared, como en los juegos de parkour: brinca a la barda, corre a lo largo
       // de ella inclinada (con estela) sobre el cemento fresco y se impulsa con una voltereta.
       const H = WALL_RUN_HEIGHT;
+      const own = WALL_FRAMES.every(sheet.has);
       if (prog < 0.2) {
         const q = prog / 0.2;
         return { frame: 'hop', dy: -H * q - Math.sin(Math.PI * q) * 18, angle: -WALL_TILT * q };
       }
       if (prog < 0.76) {
         const q = (prog - 0.2) / 0.56;
-        return { run: true, dy: -H - Math.sin(Math.PI * q) * 12, angle: -WALL_TILT, trail: true, spark: true };
+        const pose = { dy: -H - Math.sin(Math.PI * q) * 12, angle: -WALL_TILT, trail: true, spark: true };
+        return own ? { ...pose, frame: `wallrun${Math.floor(dist / WALL_RUN_STEP) % 6}` } : { ...pose, run: true };
       }
       const q = (prog - 0.76) / 0.24;
-      return { frame: q < 0.75 ? 'tuck' : 'hop', dy: -H * (1 - q) - Math.sin(Math.PI * q) * 45, angle: 360 * Math.min(1, q / 0.75) };
+      const dy = -H * (1 - q) - Math.sin(Math.PI * q) * 45;
+      if (q >= 0.75) return { frame: own ? 'flip_out' : 'hop', dy };
+      return { frame: 'tuck', dy, angle: 360 * q / 0.75, ...(own && { pivot: sheet.pivot('tuck') ?? TUCK_PIVOT }) };
     }
-    case 'hole': return { frame: 'fly', dy: -arc * 150 };
+    case 'hole': {
+      if (!HOLE_FRAMES.every(sheet.has)) return { frame: 'fly', dy: -arc * 150 };
+      if (prog < HOLE.plant) return { run: true, dy: 0 };
+      if (prog >= HOLE.roll) return { frame: 'roll', dy: 0, angle: 360 * (prog - HOLE.roll) / (1 - HOLE.roll), pivot: sheet.pivot('roll') ?? HOLE.pivot };
+      if (prog >= HOLE.land) return { frame: 'land', dy: 0 };
+      const dy = prog < HOLE.rise ? 0 : -Math.sin(Math.PI * (prog - HOLE.rise) / (HOLE.land - HOLE.rise)) * HOLE.height;
+      return { frame: prog < HOLE.leave ? 'takeoff' : 'fly', dy };
+    }
     default: return null;
   }
 }
@@ -412,7 +449,10 @@ export class RunScene extends Phaser.Scene {
   applyObstaclePose(sprite, o, x, baseY, runKey, dustX) {
     const pose = LONG_TYPES.has(o.type)
       ? longPose(o.type, Phaser.Math.Clamp(x - o.start, 0, o.end - o.start), sprite.texture.key)
-      : obstaclePose(o.type, Phaser.Math.Clamp((x - o.start) / (o.end - o.start), 0, 1));
+      : obstaclePose(o.type, Phaser.Math.Clamp((x - o.start) / (o.end - o.start), 0, 1), {
+        has: f => hasPngFrame(this, sprite.texture.key, f),
+        pivot: f => pngPivot(this, sprite.texture.key, f),
+      }, Math.max(0, x - o.start));
     if (!pose) return false;
     if (pose.run) {
       if (sprite.anims.currentAnim?.key !== runKey || !sprite.anims.isPlaying) sprite.play(runKey);

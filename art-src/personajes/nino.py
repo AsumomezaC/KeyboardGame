@@ -551,7 +551,7 @@ def estirar(j):
         eb -= 0.05                                                 # las manos se salían por arriba
     atras = 10 if PEINADO in ("gorra", "chongo") else 7            # la visera o el chongo salen por detrás
     x0 = min(min(n[k][0] for k in PUNTOS) - 1, n["cabeza"][0] - atras)
-    x1 = max(max(n[k][0] for k in PUNTOS) + 3, n["cabeza"][0] + 6)
+    x1 = max(max(n[k][0] for k in PUNTOS) + 3 + j.get("margen", 0), n["cabeza"][0] + 6)  # margen: lo que el grosor saca al frente
     k = min(1, (W - 2) / (x1 - x0))                                # aprieta a lo ancho si no cabe
     medio = (x0 + x1) / 2
     dx = CORRE_X
@@ -589,7 +589,7 @@ def figura(pose, parpadeo=False):
         brazo(L, j["hom_c"], j["codo_c"], j["mano_c"], False)
     if PEINADO in ("trenza", "cola"):
         trenza(L, h, j["trenza"])
-    cabeza(L, h, j.get("cara", "corre"), parpadeo)
+    cabeza(L, h, j.get("cara", "corre"), parpadeo or j.get("cerrados", False))
     if frente:
         brazo(L, j["hom_l"], j["codo_l"], j["mano_l"], False)
     if not detras:
@@ -694,6 +694,47 @@ POSES.update({
 })
 PARPADEAN = ["idle0", "idle1", "cheer0", "talk", "sad", "angry", "shock"]
 
+# Poses nuevas de obstáculo. Solo las trae la hoja de quien las pide con vestir(POSES_NUEVAS=True)
+# (las del hoyo) y vestir(VOLTERETA=True) (las de la silla y la barda); quien no las tiene sigue con
+# las de hoy (el juego usa la pose vieja si la hoja no trae la nueva).
+POSES_NUEVAS = False
+VOLTERETA = False
+# Carrera por la pared (barda), como el wall-run de los juegos de parkour: las piernas de su carrera,
+# la trenza hacia arriba y la mano del lado de la pared estirada hacia atrás, tocándola; a la mitad
+# del ciclo la separa un poco (tantea la distancia). El juego inclina el cuadro hacia la pared.
+PARED_TOCA, PARED_TANTEA = (-75, -95), (-90, -75)    # brazo lejano (alto, bajo), en grados: a la cadera
+
+
+def pared(i):
+    p = dict(CARRERA(i))
+    for k in ("codo_l", "mano_l"):
+        p.pop(k, None)
+    p.update(brazo_l=PARED_TOCA if i < 3 else PARED_TANTEA, largo_l=(4, 5), cara="aprieta", trenza=SUBE)
+    return p
+
+
+NUEVAS = {
+    # despegue de salto de longitud: pisa fuerte con la pierna de atrás, sube la rodilla de adelante
+    # y lanza el brazo contrario arriba
+    "takeoff": P((12, 20), (14, 13), (16, 8), (17, 18), (18, 23), (10, 25), (7, 29), (10, 17), (7, 20), (18, 14), (21, 13),
+                 "aprieta", VIENTO, margen=2),
+    # hoyo: cae agachada con las manos al frente y rueda para no frenar en seco
+    "land": P((9, 25), (14, 19), (17, 15), (15, 23), (14, 29), (12, 24), (8, 29), (17, 22), (20, 27), (15, 21), (18, 27),
+              "aprieta", SUBE, margen=2),
+    "roll": P((9, 26), (12, 21), (15, 21), (16, 22), (12, 27), (15, 24), (11, 28), (15, 23), (17, 26), (13, 23), (15, 27),
+              "aprieta", [(-1, 1), (-2, 2), (-2, 3), (-2, 4), (-1, 5), (0, 6), (1, 6)], cerrados=True, margen=2),
+}
+VOLTERETAS = {
+    # silla (y salida de la barda): despega estirada con los brazos arriba al frente para la voltereta
+    # (por delante de la cara, sin taparla)...
+    "flip_in": P((10, 21), (11, 15), (10, 10), (12, 25), (12, 29), (9, 25), (7, 28), (18, 14), (20, 8), (17, 13), (19, 6),
+                 "aprieta", CAE, margen=2),
+    # ...y se abre para caer: piernas abajo buscando el piso, un brazo al frente bajo la barbilla y el
+    # otro atrás, abiertos para equilibrarse
+    "flip_out": P((11, 21), (12, 14), (14, 9), (15, 24), (15, 28), (10, 25), (9, 29), (16, 17), (20, 16), (9, 13), (5, 11),
+                  "aprieta", SUBE, margen=2),
+}
+
 
 def cuadros():
     if SOLO_PARADO:
@@ -703,12 +744,23 @@ def cuadros():
     if PERSIGUE:
         out = [(f"run{i}", figura(CARRERA(i))) for i in range(6)]
         out += [(n, figura(POSES[n])) for n in PARADO + PERSECUCION]
+        out += nuevas()
         out += [(f"{n}_b", figura(POSES[n], parpadeo=True)) for n in PARPADEAN]
         return out
     out = [(f"run{i}", figura(CARRERA(i))) for i in range(6)]
     out += [(n, figura(p)) for n, p in POSES.items()]
     out += [(n, figura(p)) for n, p in EXTRAS.items()]
+    out += nuevas()
     out += [(f"{n}_b", figura(POSES[n], parpadeo=True)) for n in PARPADEAN]
+    return out
+
+
+def nuevas():
+    """Los cuadros de las poses nuevas de obstáculo que pide el personaje: las del hoyo (NUEVAS) y las
+    de la silla y la barda (VOLTERETAS y la carrera por la pared)."""
+    out = [(n, figura(p)) for n, p in NUEVAS.items()] if POSES_NUEVAS else []
+    if VOLTERETA:
+        out += [(n, figura(p)) for n, p in VOLTERETAS.items()] + [(f"wallrun{i}", figura(pared(i))) for i in range(6)]
     return out
 
 
@@ -772,6 +824,12 @@ def gif(cs, nombres, ruta, ms, fondo, esc=8):
     fr[0].save(ruta, save_all=True, append_images=fr[1:], duration=ms, loop=0, optimize=False)
 
 
+def pivote(cuadro):
+    """Px sobre los pies del centro de la figura: sobre ese punto gira el juego la rodada y la voltereta."""
+    caja = cuadro.getbbox()
+    return round(H - (caja[1] + caja[3]) / 2)
+
+
 def exportar(cs, carpeta, nombre):
     carpeta.mkdir(parents=True, exist_ok=True)
     tira = Image.new("RGBA", (W * len(cs), H), (0, 0, 0, 0))
@@ -782,11 +840,16 @@ def exportar(cs, carpeta, nombre):
     tira.save(carpeta / f"{nombre}.png")
     meta = {"image": f"{nombre}.png", "size": {"w": tira.width, "h": H}, "scale": "1",
             "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md)."}
+    if "roll" in marcos:
+        meta["pivotes"] = {"roll": pivote(dict(cs)["roll"])}
+    if "flip_in" in dict(cs):
+        meta.setdefault("pivotes", {})["tuck"] = pivote(dict(cs)["tuck"])
     (carpeta / f"{nombre}.json").write_text(json.dumps({"frames": marcos, "meta": meta}, ensure_ascii=False, indent=1) + "\n",
                                         encoding="utf-8")
 
 
 APOYADOS = ("run1", "run4", "idle", "cheer0", "ready", "set", "slide", "down", "getup", "stretch", "lunge",
+            "takeoff", "land", "roll",
             "talk", "sad", "angry", "cry", "shock")
 
 

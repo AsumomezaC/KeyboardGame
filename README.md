@@ -89,10 +89,13 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   Las palabras salen de un banco de palabras reales sin acentos (`src/data/levelgen.js`); los
   niveles de cada capítulo se definen en `src/data/chapters.js`.
 - Obstáculos según su largo: 1-2 tramo plano, 3-4 charco (salto), 5-6 barrera (deslizarse por
-  debajo), 7-8 silla (salto con giro), 9-10 mesa larga (se desliza encima), 11-12 barda con cemento
-  fresco al pie (corre a lo largo de la pared, con estela, y se impulsa con una voltereta), 13-14
-  hoyo enorme (lo brinca como si volara). En los niveles en construcción hay obstáculos más
-  largos: 15-17 contenedor (salto de gato), 18-20 callejón con portón (rebota de pared en pared),
+  debajo), 7-8 silla (salto con giro; Sofía niña y quienes corren con ella dan un mortal más bajo y
+  rápido, girando sobre el centro del cuerpo), 9-10 mesa larga (se desliza encima), 11-12 barda
+  con cemento fresco al pie (corre a lo largo de la pared, con estela, y se impulsa con una
+  voltereta; Sofía niña y quienes corren con ella corren apoyados en ella, tanteándola con la
+  mano), 13-14 hoyo enorme (lo brinca como si volara; Sofía niña y quienes corren con ella lo
+  pasan como un salto de longitud: pisa fuerte antes de la orilla, vuela, cae pasando el hoyo y
+  rueda). En los niveles en construcción hay obstáculos más largos: 15-17 contenedor (salto de gato), 18-20 callejón con portón (rebota de pared en pared),
   21-24 barda alta, 25-28 barandal, 29-33 microbús y 34-40 puestos de un tianguis (de toldo en
   toldo). Su coreografía está en `src/scenes/choreo.js`.
 - Los obstáculos de 21 caracteres o más se pasan por etapas: su texto se parte en tramos
@@ -149,7 +152,15 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   obstáculo; el perro guardián también tiene hoja (`dog.png`, de `art-src/personajes/perro.py`, en `OTHER_SHEETS`); el muñeco común está en `art-src/personajes/nino.py` (niño de 24×32; encogido, niño chiquito de 20×26; estirado,
   adolescente de 24×36 y adulto de 28×46) y cada personaje pone su
   aspecto y su carrera en su script (Dani corre torpe y trae `run4_t`, un cuadro en el que casi
-  tropieza y que la animación usa en uno de cada `STUMBLE_EVERY` ciclos)
+  tropieza y que la animación usa en uno de cada `STUMBLE_EVERY` ciclos). Algunas poses de obstáculo
+  solo existen en PNG (`PNG_ONLY_FRAMES` de `src/art/kid.js`): `takeoff`, `land` y `roll` (hoyo;
+  `vestir(POSES_NUEVAS=True)`), y `flip_in`, `flip_out` (silla y barda) y `wallrun0`…`wallrun5`
+  (carrera por la pared; `vestir(VOLTERETA=True)`), que traen las hojas de Sofía, Dani, Kevin,
+  Yesenia, Chuy, Leticia y la Tata. `obstaclePose` de
+  `src/scenes/RunScene.js` las usa solo si la hoja PNG de quien pasa el obstáculo las trae
+  (`hasPngFrame`) y, si no, pasa el obstáculo como siempre. La rodada y la voltereta giran sobre
+  el centro de la figura, que cambia con la complexión: cada hoja lo dice en `meta.pivotes` de su `.json`
+  (`pngPivot`). `art-src/personajes/poses_obstaculo.py` hace las previas de esas maniobras
   (`python art-src/personajes/sofia.py <carpeta de previas> --exportar` los regenera; usa la
   paleta de `art-src/paleta.py`).
 - Retratos en los diálogos: quien está en `PORTRAITS` (`src/art/sprites.js`) muestra un retrato de

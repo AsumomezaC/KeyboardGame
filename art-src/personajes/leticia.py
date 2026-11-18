@@ -52,5 +52,7 @@ nino.POSES["idle1"] = P((12, 20), (12, 16), (14, 12), (13, 25), (13, 29), (11, 2
 # Triste: el brazo lejano queda escondido tras el cuerpo (con el torso angosto asomaba un pixel).
 nino.POSES["sad"] = dict(nino.POSES["sad"], codo_l=(12, 20), mano_l=(12, 23))
 
+nino.vestir(POSES_NUEVAS=True, VOLTERETA=True)   # hoyo, silla y barda
+
 if __name__ == "__main__":
     nino.main("leticia", "Leticia")

@@ -374,10 +374,22 @@ function frame(name, joints, pal, build = BUILDS.kid) {
   return { name, canvas: c };
 }
 
+// Poses de obstáculo que solo traen algunas hojas PNG (el despegue, la caída y la rodada del hoyo;
+// la entrada y la salida de la voltereta de la silla y la barda; la carrera por la pared).
+// La hoja dibujada por código les guarda lugar con una pose de hoy, para que el PNG pueda copiarse
+// encima; ese dibujo no se llega a ver: el juego solo usa la pose nueva si la hoja PNG la trae y, si
+// no, pasa el obstáculo como siempre (ver obstaclePose en RunScene.js).
+export const PNG_ONLY_FRAMES = {
+  takeoff: 'hop', land: 'ready', roll: 'tuck',
+  flip_in: 'hop', flip_out: 'hop',
+  ...Object.fromEntries(Array.from({ length: RUN_FRAMES }, (_, i) => [`wallrun${i}`, 'hop'])),
+};
+
 // Todos los nombres de cuadro de una hoja de personaje (los que piden las escenas).
 export const FRAME_NAMES = [
   ...Array.from({ length: RUN_FRAMES }, (_, i) => `run${i}`),
   ...Object.keys(POSES),
+  ...Object.keys(PNG_ONLY_FRAMES),
   ...BLINKABLE.map(name => `${name}_b`),
 ];
 
@@ -390,6 +402,7 @@ export function buildKidSheet(scene, key, pal) {
   const frames = [];
   for (let i = 0; i < RUN_FRAMES; i++) frames.push(frame(`run${i}`, runPose(i / RUN_FRAMES), pal));
   for (const [name, joints] of Object.entries(POSES)) frames.push(frame(name, joints, pal));
+  for (const [name, like] of Object.entries(PNG_ONLY_FRAMES)) frames.push(frame(name, POSES[like], pal));
   for (const name of BLINKABLE) frames.push(frame(`${name}_b`, { ...POSES[name], blink: true }, pal));
   addSheet(scene, key, frames, FRAME_W, FRAME_H);
 }
@@ -403,6 +416,7 @@ export function buildBuildSheet(scene, key, pal, buildName) {
   const frames = [];
   for (let i = 0; i < RUN_FRAMES; i++) frames.push(frame(`run${i}`, runPose(i / RUN_FRAMES), pal, build));
   for (const [name, joints] of Object.entries(POSES)) frames.push(frame(name, joints, pal, build));
+  for (const [name, like] of Object.entries(PNG_ONLY_FRAMES)) frames.push(frame(name, POSES[like], pal, build));
   for (const name of BLINKABLE) frames.push(frame(`${name}_b`, { ...POSES[name], blink: true }, pal, build));
   addSheet(scene, key, frames, build.w, build.h);
 }

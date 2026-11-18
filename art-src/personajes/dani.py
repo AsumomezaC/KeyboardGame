@@ -55,5 +55,7 @@ nino.POSES["idle0"] = P((12, 20), (12, 14), (13, 9), (13, 25), (13, 29), (11, 25
 nino.POSES["idle1"] = P((12, 20), (12, 15), (13, 10), (13, 25), (13, 29), (11, 25), (10, 29),
                         (11, 19), (11, 22), (13, 19), (14, 22), "corre", [])
 
+nino.vestir(POSES_NUEVAS=True, VOLTERETA=True)   # hoyo, silla y barda
+
 if __name__ == "__main__":
     nino.main("dani", "Dani")
