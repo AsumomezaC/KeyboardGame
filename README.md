@@ -284,8 +284,10 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
       historia, primero se ven sus escenas.
   - El modo desarrollador, sus opciones y «Jugar sin diálogos» no se guardan: al recargar la página
     se apagan.
-- El juego necesita un teclado físico (`src/ui/keyboard-notice.js`). En celulares y tablets (puntero
-  principal táctil y sin ratón ni trackpad) no se carga de inmediato: aparece un aviso de que hace
+- El juego necesita un teclado físico (`src/ui/keyboard-notice.js`). En celulares y tablets (el
+  navegador dice que es un dispositivo móvil o su puntero principal es táctil; no se pregunta si hay
+  algún puntero fino porque muchos Android, como los Samsung con S Pen, dicen tenerlo aunque no lo
+  haya) no se carga de inmediato: aparece un aviso de que hace
   falta un teclado físico, con un botón para compartir o copiar el enlace, y el juego arranca en
   cuanto se presiona una tecla de un teclado conectado (el aviso dice que no se detectó un teclado
   físico y que, si hay uno, basta con presionar una tecla). El teclado de la pantalla no lo desbloquea

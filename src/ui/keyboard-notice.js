@@ -3,12 +3,18 @@
 // botón para copiar o compartir el enlace, y el juego arranca en cuanto se presiona una tecla de un
 // teclado físico conectado (Bluetooth o USB).
 
-// El navegador no dice si hay un teclado conectado. Lo que sí sabe es si el puntero principal es
-// táctil: ahí se pide el teclado. Las computadoras (y las tablets con ratón o trackpad, que casi
-// siempre traen teclado) juegan directo.
+// El navegador no dice si hay un teclado conectado. Lo que sí sabe es si es un celular o tablet, o
+// si el puntero principal es táctil: ahí se pide el teclado (quien sí lo tiene solo presiona una
+// tecla). Las computadoras, aunque tengan pantalla táctil, juegan directo: su puntero principal es
+// el ratón o el trackpad.
+// No se usa «any-pointer: fine»: muchos Android (sobre todo Samsung, por el lápiz S Pen) dicen tener
+// un puntero fino aunque no lo haya, y el aviso no salía.
 export function needsKeyboardCheck() {
   try {
-    return window.matchMedia('(pointer: coarse)').matches && !window.matchMedia('(any-pointer: fine)').matches;
+    if (navigator.userAgentData?.mobile) return true;
+    if (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)) return true;
+    if (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) return true; // iPad que se presenta como Mac
+    return window.matchMedia('(pointer: coarse)').matches;
   } catch {
     return false;
   }
