@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { PNG_SHEETS, OTHER_SHEETS, OBSTACLE_SHEETS, obstacleSheet, BACKGROUND_SHEETS, BACKGROUND_LAYERS, DIM_SUFFIX, backgroundSheet, ROOM_SHEETS, ROOM_FRAME, PORTRAITS, PORTRAIT_SIZE, PORTRAIT_MOODS, spriteUrl } from '../src/art/sprites.js';
+import { PNG_SHEETS, OTHER_SHEETS, ICON_SHEET, OBSTACLE_SHEETS, obstacleSheet, BACKGROUND_SHEETS, BACKGROUND_LAYERS, DIM_SUFFIX, backgroundSheet, ROOM_SHEETS, ROOM_FRAME, PORTRAITS, PORTRAIT_SIZE, PORTRAIT_MOODS, spriteUrl } from '../src/art/sprites.js';
 import { THEMES, FAR, MID, GROUND, ROOM } from '../src/art/backgrounds.js';
 import { CAST } from '../src/data/cast.js';
 import { BUILDS, FRAME_NAMES } from '../src/art/kid.js';
@@ -44,6 +44,17 @@ test('la hoja PNG del perro trae su galope y su ladrido en cuadros de 32×20', (
   for (const [name, { frame: { x, y, w, h } }] of Object.entries(atlas.frames)) {
     assert.deepEqual([w, h], [32, 20], `dog/${name}: tamaño de cuadro`);
     assert.ok(x >= 0 && y >= 0 && x + w <= width && y + h <= height, `dog/${name}: cabe en el PNG`);
+  }
+});
+
+test('la hoja de íconos trae la cabeza de Sofía del mapa en 14×14', () => {
+  const atlas = JSON.parse(readFileSync(file(ICON_SHEET, 'json'), 'utf8'));
+  const png = readFileSync(file(ICON_SHEET, 'png'));
+  const width = png.readUInt32BE(16), height = png.readUInt32BE(20);
+  assert.deepEqual(Object.keys(atlas.frames), ['sofia-head']);
+  for (const [name, { frame: { x, y, w, h } }] of Object.entries(atlas.frames)) {
+    assert.deepEqual([w, h], [14, 14], `iconos/${name}: tamaño de cuadro (el de buildKidHead)`);
+    assert.ok(x >= 0 && y >= 0 && x + w <= width && y + h <= height, `iconos/${name}: cabe en el PNG`);
   }
 });
 

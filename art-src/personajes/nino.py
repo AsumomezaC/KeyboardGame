@@ -693,6 +693,12 @@ POSES.update({
     "shock": P((12, 20), (12, 14), (13, 9), (15, 24), (16, 29), (10, 24), (8, 29), (15, 18), (18, 16), (9, 17), (6, 15), "susto", SUBE),
 })
 PARPADEAN = ["idle0", "idle1", "cheer0", "talk", "sad", "angry", "shock"]
+# Quieto derecho y tranquilo, con los brazos a los lados y una sonrisa: para quien no tiene postura
+# propia (la de Sofía, encogida, es solo suya). Es la misma de Dani; la trenza o cola cuelga.
+QUIETO_DERECHO = {
+    "idle0": P((12, 20), (12, 14), (13, 9), (13, 25), (13, 29), (11, 25), (10, 29), (11, 18), (11, 21), (13, 18), (14, 21), "corre", CUELGA),
+    "idle1": P((12, 20), (12, 15), (13, 10), (13, 25), (13, 29), (11, 25), (10, 29), (11, 19), (11, 22), (13, 19), (14, 22), "corre", CUELGA),
+}
 
 # Poses nuevas de obstáculo. Solo las trae la hoja de quien las pide con vestir(POSES_NUEVAS=True)
 # (las del hoyo) y vestir(VOLTERETA=True) (las de la silla y la barda); quien no las tiene sigue con

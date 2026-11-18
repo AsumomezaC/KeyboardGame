@@ -146,17 +146,20 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
 - El arte puede venir de una hoja PNG: los personajes de `PNG_SHEETS` (`src/art/sprites.js`) cargan
   `public/assets/sprites/<id>.png` + `.json` al arrancar, y cada cuadro del PNG reemplaza al dibujado
   por código con el mismo nombre y tamaño; los cuadros que el PNG no trae, o todos si el PNG no
-  carga, se quedan con el dibujo por código. Hoy Sofía, Dani, Kevin, Yesenia, Chuy, Brayan y Memo tienen en PNG todos sus
+  carga, se quedan con el dibujo por código. Hoy Sofía, Dani, Kevin, Yesenia, Chuy, Brayan, Memo y los corredores rivales A, B y C
+  (`art-src/personajes/rivalA.py`, `rivalB.py` y `rivalC.py`) tienen en PNG todos sus
   cuadros, Ramiro, Tomasito, Tomás y Don Chema, que no corren en ningún nivel, solo los de pie que usan los diálogos (quieto,
   festejo y gestos), y Leticia y la Tata, que solo corren para perseguir, los de pie, su carrera y las poses de
-  obstáculo; el perro guardián también tiene hoja (`dog.png`, de `art-src/personajes/perro.py`, en `OTHER_SHEETS`); el muñeco común está en `art-src/personajes/nino.py` (niño de 24×32; encogido, niño chiquito de 20×26; estirado,
+  obstáculo; el perro guardián también tiene hoja (`dog.png`, de `art-src/personajes/perro.py`, en `OTHER_SHEETS`), y la cabeza de
+  Sofía que marca el nivel en el mapa (`sofia-head`, 14×14) viene de `iconos.png` (`ICON_SHEET`, de
+  `art-src/personajes/iconos.py`): `applyIcons` la copia sobre la dibujada por código si mide lo mismo; el muñeco común está en `art-src/personajes/nino.py` (niño de 24×32; encogido, niño chiquito de 20×26; estirado,
   adolescente de 24×36 y adulto de 28×46) y cada personaje pone su
   aspecto y su carrera en su script (Dani corre torpe y trae `run4_t`, un cuadro en el que casi
   tropieza y que la animación usa en uno de cada `STUMBLE_EVERY` ciclos). Algunas poses de obstáculo
   solo existen en PNG (`PNG_ONLY_FRAMES` de `src/art/kid.js`): `takeoff`, `land` y `roll` (hoyo;
   `vestir(POSES_NUEVAS=True)`), y `flip_in`, `flip_out` (silla y barda) y `wallrun0`…`wallrun5`
   (carrera por la pared; `vestir(VOLTERETA=True)`), que traen las hojas de Sofía, Dani, Kevin,
-  Yesenia, Chuy, Leticia y la Tata. `obstaclePose` de
+  Yesenia, Chuy, Leticia, la Tata y los tres rivales. `obstaclePose` de
   `src/scenes/RunScene.js` las usa solo si la hoja PNG de quien pasa el obstáculo las trae
   (`hasPngFrame`) y, si no, pasa el obstáculo como siempre. La rodada y la voltereta giran sobre
   el centro de la figura, que cambia con la complexión: cada hoja lo dice en `meta.pivotes` de su `.json`

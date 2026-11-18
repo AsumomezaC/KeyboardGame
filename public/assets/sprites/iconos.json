@@ -1,0 +1,21 @@
+{
+ "frames": {
+  "sofia-head": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 14,
+    "h": 14
+   }
+  }
+ },
+ "meta": {
+  "image": "iconos.png",
+  "size": {
+   "w": 14,
+   "h": 14
+  },
+  "scale": "1",
+  "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md)."
+ }
+}

@@ -3,11 +3,16 @@
 // como estaba. Si el PNG no carga, el juego sigue con el dibujo por código.
 
 // Personajes que tienen hoja PNG.
-export const PNG_SHEETS = ['sofia', 'dani', 'kevin', 'yesi', 'chuy', 'brayan', 'memo', 'ramiro', 'leticia', 'tomasito', 'tomas', 'tata', 'panadero'];
+export const PNG_SHEETS = ['sofia', 'dani', 'kevin', 'yesi', 'chuy', 'brayan', 'memo', 'ramiro', 'leticia', 'tomasito', 'tomas', 'tata', 'panadero',
+  'rivalA', 'rivalB', 'rivalC'];
 
 // Hojas PNG que no son de un personaje del reparto: el perro guardián (textura `dog`, 32×20, con
 // los cuadros run0…run3 y bark).
 export const OTHER_SHEETS = ['dog'];
+
+// Íconos chicos (iconos.png + .json): cada cuadro se llama como la textura dibujada por código que
+// reemplaza y mide lo mismo (hoy, «sofia-head»: la cabeza de Sofía de 14×14 que marca el nivel en el mapa).
+export const ICON_SHEET = 'iconos';
 
 // Obstáculos con hoja PNG (obst-<clave>.png + .json): una tira con un cuadro por variante, «v0»,
 // «v1»…, del mismo tamaño que el obstáculo dibujado por código (OBSTACLE_SIZES de props.js).
@@ -40,7 +45,7 @@ const pngKey = id => `png-${id}`;
 
 // Se llama en el preload de la escena de arranque.
 export function preloadSprites(scene) {
-  for (const id of [...PNG_SHEETS, ...OTHER_SHEETS]) scene.load.atlas(pngKey(id), spriteUrl(id, 'png'), spriteUrl(id, 'json'));
+  for (const id of [...PNG_SHEETS, ...OTHER_SHEETS, ICON_SHEET]) scene.load.atlas(pngKey(id), spriteUrl(id, 'png'), spriteUrl(id, 'json'));
   for (const key of OBSTACLE_SHEETS) scene.load.atlas(pngKey(obstacleSheet(key)), spriteUrl(obstacleSheet(key), 'png'), spriteUrl(obstacleSheet(key), 'json'));
   for (const place of ROOM_SHEETS) scene.load.atlas(pngKey(backgroundSheet(place)), spriteUrl(backgroundSheet(place), 'png'), spriteUrl(backgroundSheet(place), 'json'));
   for (const theme of BACKGROUND_SHEETS) scene.load.atlas(pngKey(backgroundSheet(theme)), spriteUrl(backgroundSheet(theme), 'png'), spriteUrl(backgroundSheet(theme), 'json'));
@@ -90,6 +95,27 @@ export function applySprites(scene, key) {
     n++;
   }
   if (n) tex.refresh();
+  return n;
+}
+
+// Copia cada cuadro de la hoja de íconos sobre la textura dibujada por código del mismo nombre, si
+// mide lo mismo; si no, se queda el dibujo por código. Devuelve cuántos reemplazó.
+export function applyIcons(scene) {
+  const sheet = pngKey(ICON_SHEET);
+  if (!scene.textures.exists(sheet)) return 0;
+  const png = scene.textures.get(sheet);
+  const src = png.getSourceImage();
+  let n = 0;
+  for (const name of png.getFrameNames()) {
+    if (!scene.textures.exists(name)) continue;
+    const a = png.get(name), tex = scene.textures.get(name);
+    if (!tex.getContext || a.cutWidth !== tex.width || a.cutHeight !== tex.height) continue;
+    const ctx = tex.getContext();
+    ctx.clearRect(0, 0, tex.width, tex.height);
+    ctx.drawImage(src, a.cutX, a.cutY, a.cutWidth, a.cutHeight, 0, 0, tex.width, tex.height);
+    tex.refresh();
+    n++;
+  }
   return n;
 }
 
