@@ -2,7 +2,7 @@
 // personajes y textos, y los tintes solo cubren el cielo y las casas. Así el recorrido se lee
 // igual con lluvia, niebla o atardecer, también para quien ve poco.
 import Phaser from 'phaser';
-import { makeCanvas } from '../art/pixel.js';
+import { makeCanvas, apagarColor } from '../art/pixel.js';
 import { W, GROUND_TOP, CELESTIAL_DEPTH } from './common.js';
 
 export { WEATHER_NAMES } from '../data/weathers.js';
@@ -28,14 +28,17 @@ function ensureTextures(scene) {
     p.ellipse(20, 9, 18, 5, '#c9ced6');
     p.disc(14, 6, 5, '#d5dae1'); p.disc(24, 5, 6, '#d5dae1');
   });
-  tex('wx-sun', 26, 26, p => {
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2;
-      p.line(13 + Math.cos(a) * 9, 13 + Math.sin(a) * 9, 13 + Math.cos(a) * 12, 13 + Math.sin(a) * 12, '#ffe066', 2);
-    }
-    p.disc(13, 13, 7, '#ffd23f');
-    p.disc(12, 12, 5, '#fff3b0');
-  });
+  // El sol, vivo y apagado (para cuando el fondo está apagado).
+  for (const [key, c] of [['wx-sun', x => x], ['wx-sun-apagado', apagarColor]]) {
+    tex(key, 26, 26, p => {
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        p.line(13 + Math.cos(a) * 9, 13 + Math.sin(a) * 9, 13 + Math.cos(a) * 12, 13 + Math.sin(a) * 12, c('#ffe066'), 2);
+      }
+      p.disc(13, 13, 7, c('#ffd23f'));
+      p.disc(12, 12, 5, c('#fff3b0'));
+    });
+  }
 }
 
 const fixedAll = (...objs) => objs.forEach(o => o.setScrollFactor(0));
@@ -65,9 +68,11 @@ function fall(scene, key, cfg) {
 }
 
 // Devuelve { update(dt) } para lo que se anima a mano (nubes, niebla).
-export function addWeather(scene, kind) {
+// bg: el fondo de backdrop(); el sol sigue su tono (apagado o vivo) con bg.celeste().
+export function addWeather(scene, kind, bg = null) {
   ensureTextures(scene);
   const parts = [];
+  const celestes = []; // [vivo, apagado]
   const movers = [];
   const drift = (key, n, { y0, y1, speed, alpha, scale }) => {
     for (let i = 0; i < n; i++) {
@@ -82,7 +87,8 @@ export function addWeather(scene, kind) {
     case 'sol': {
       parts.push(tint(scene, 0xfff1c1, 0.18, 0xffe0a0, 0.05));
       // El sol queda fijo y detrás de las casas.
-      parts.push(scene.add.image(W - 120, 90, 'wx-sun').setScale(4).setDepth(CELESTIAL_DEPTH));
+      const sol = key => scene.add.image(W - 120, 90, key).setScale(4).setDepth(CELESTIAL_DEPTH);
+      celestes.push([sol('wx-sun'), sol('wx-sun-apagado')]);
       break;
     }
     case 'jacaranda':
@@ -104,7 +110,8 @@ export function addWeather(scene, kind) {
     case 'atardecer':
       parts.push(tint(scene, 0x5a2a6e, 0.3, 0xff8c42, 0.28));
       // Sol poniéndose: medio escondido detrás de los cerros y las casas.
-      parts.push(scene.add.circle(W - 200, 205, 46, 0xffb347, 1).setDepth(CELESTIAL_DEPTH));
+      const sol = c => scene.add.circle(W - 200, 205, 46, Phaser.Display.Color.HexStringToColor(c).color, 1).setDepth(CELESTIAL_DEPTH);
+      celestes.push([sol('#ffb347'), sol(apagarColor('#ffb347'))]);
       break;
     case 'viento':
       parts.push(tint(scene, 0xd9c7a0, 0.15, 0xd9c7a0, 0.05));
@@ -129,7 +136,11 @@ export function addWeather(scene, kind) {
     default:
       break;
   }
-  fixedAll(...parts);
+  fixedAll(...parts, ...celestes.flat());
+  for (const [vivo, apagado] of celestes) {
+    if (bg) bg.celeste(vivo, apagado);
+    else apagado.destroy();
+  }
   return {
     update(dt) {
       for (const m of movers) {

@@ -43,6 +43,21 @@ export function scheduledMs(level, member) {
   return Math.round(levelRules(level).limitMs * (member.factor ?? 1));
 }
 
+// Cómo se ganó una carrera (jefe 'race'), para que el diálogo final lo cuente:
+// 'paliza'  con la estrella de velocidad (el rival más rápido ni se le acercó),
+// 'reñida'  el rival más rápido llegó a menos de RACE_CLOSE (5 %) de su tiempo,
+// 'holgada' lo de en medio. null si no es una carrera ganada.
+export const RACE_OUTCOMES = ['reñida', 'holgada', 'paliza'];
+const RACE_CLOSE = 0.05;
+
+export function raceOutcome(level, result) {
+  const rivals = (level.crew || []).filter(m => m.mode === 'rival');
+  if (level.boss?.type !== 'race' || !rivals.length || !result?.passed || result.timeMs == null) return null;
+  if (result.timeMs <= levelRules(level).fastMs) return 'paliza';
+  const rivalMs = Math.min(...rivals.map(m => scheduledMs(level, m)));
+  return rivalMs - result.timeMs < rivalMs * RACE_CLOSE ? 'reñida' : 'holgada';
+}
+
 export function canFail(level) {
   return level.ppm.pass != null || !!level.boss;
 }

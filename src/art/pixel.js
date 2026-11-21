@@ -106,3 +106,28 @@ export function rng(seed) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+// Pareja apagada de un color ('#rrggbb'), con la misma fórmula que apagar() de art-src/paleta.py
+// (versión «fría»): 55 % de la saturación, 90 % del brillo y un velo azulado del 18 %. Sirve para lo
+// que se dibuja por código y debe seguir el tono del fondo (el sol, la luna, las estrellas).
+const VELO_FRIO = [0x56, 0x68, 0x9c];
+export function apagarColor(hex) {
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const v = max, s = max ? (max - min) / max : 0;
+  let h = 0;
+  if (max !== min) {
+    const d = max - min;
+    h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    h /= 6;
+  }
+  // de vuelta a RGB con s × 0.55 y v × 0.90
+  const s2 = s * 0.55, v2 = v * 0.9;
+  const i = Math.floor(h * 6), f = h * 6 - i;
+  const p = v2 * (1 - s2), q = v2 * (1 - f * s2), t = v2 * (1 - (1 - f) * s2);
+  const rgb = [[v2, t, p], [q, v2, p], [p, v2, t], [p, q, v2], [t, p, v2], [v2, p, q]][i % 6];
+  return '#' + rgb.map((c, k) => {
+    const x = c * 255;
+    return Math.round(x + (VELO_FRIO[k] - x) * 0.18).toString(16).padStart(2, '0');
+  }).join('');
+}

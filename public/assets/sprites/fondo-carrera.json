@@ -47,13 +47,29 @@
     "w": 64,
     "h": 32
    }
+  },
+  "mid-porra0": {
+   "frame": {
+    "x": 0,
+    "y": 404,
+    "w": 384,
+    "h": 90
+   }
+  },
+  "mid-porra1": {
+   "frame": {
+    "x": 0,
+    "y": 494,
+    "w": 384,
+    "h": 90
+   }
   }
  },
  "meta": {
   "image": "fondo-carrera.png",
   "size": {
    "w": 384,
-   "h": 404
+   "h": 584
   },
   "scale": "1",
   "license": "Contenido creativo © 2026 AsumomezaC y Esraly · CC BY-NC 4.0 (ver LICENSE-CONTENIDO.md).",

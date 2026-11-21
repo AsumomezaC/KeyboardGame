@@ -44,7 +44,7 @@ function finishTarget(chapter, level, result, { story }) {
   const results = { key: 'Results', data: { chapter, level, result } };
   const firstPass = result.passed && !Save.level(level.id).passed;
   if (!Dev.noDialogues && result.passed && (story || firstPass) && storyFor(chapter, level)?.after) {
-    return { key: 'Dialogue', data: { chapter, level, part: 'after', then: results, canSkip: !firstPass } };
+    return { key: 'Dialogue', data: { chapter, level, part: 'after', then: results, canSkip: !firstPass, result } };
   }
   return results;
 }

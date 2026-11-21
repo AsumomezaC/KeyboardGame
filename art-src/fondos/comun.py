@@ -235,10 +235,12 @@ def lamina_cuarto(titulo, cuarto, ruta, gente=(), notas=()):
     im.save(ruta)
 
 
-def exportar(ambiente, capas, cielo):
-    """Escribe public/assets/sprites/fondo-<ambiente>.png + .json (seis cuadros y los cielos)."""
+def exportar(ambiente, capas, cielo, extra=None):
+    """Escribe public/assets/sprites/fondo-<ambiente>.png + .json (seis cuadros y los cielos).
+    `extra`: cuadros de más, solo vivos (p. ej. {"mid-porra0": imagen}), que van al final de la hoja."""
     orden = [("far", capas["far"]), ("mid", capas["mid"]), ("ground", capas["ground"])]
     orden += [(f"{n}-apagado", apagada(c)) for n, c in orden]
+    orden += list((extra or {}).items())
     ancho = max(c.width for _, c in orden)
     hoja = Image.new("RGBA", (ancho, sum(c.height for _, c in orden)), (0, 0, 0, 0))
     marcos, y = {}, 0

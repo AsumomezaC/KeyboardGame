@@ -23,9 +23,13 @@ export const obstacleSheet = key => `obst-${key}`;
 // «ground» (capa lejana, media y piso, del tamaño de FAR, MID y GROUND de backgrounds.js) y sus
 // parejas apagadas «far-apagado», «mid-apagado» y «ground-apagado». Los colores del cielo van en
 // meta.cielo: { vivo: [arriba, abajo], apagado: [arriba, abajo] }.
+// Una hoja puede traer además cuadros de porra («mid-porra0», «mid-porra1»…): la misma capa viva con
+// otro grupo del público saltando. Se vuelven las texturas `mid-<ambiente>-porra0`… y la carrera
+// los alterna (ver backdrop() en common.js).
 export const BACKGROUND_SHEETS = ['barrio', 'noche', 'prohibida', 'parque', 'carrera', 'mercado'];
 export const BACKGROUND_LAYERS = ['far', 'mid', 'ground'];
 export const DIM_SUFFIX = '-apagado';
+export const CHEER_FRAME = /^(far|mid|ground)-porra\d+$/;
 export const backgroundSheet = theme => `fondo-${theme}`;
 
 // Interiores con hoja PNG (fondo-<lugar>.png + .json): un solo cuadro «room» del tamaño de ROOM de
@@ -167,6 +171,17 @@ export function applyBackgroundSheet(scene, theme) {
       tex.refresh();
       layers++;
     }
+  }
+  for (const name of png.getFrameNames().filter(n => CHEER_FRAME.test(n))) {
+    const [layer, porra] = name.split('-');
+    const key = `${layer}-${theme}`;
+    const a = png.get(name);
+    if (!scene.textures.exists(key) || scene.textures.exists(`${key}-${porra}`)) continue;
+    const base = scene.textures.get(key);
+    if (a.cutWidth !== base.width || a.cutHeight !== base.height) continue;
+    const tex = scene.textures.createCanvas(`${key}-${porra}`, base.width, base.height);
+    tex.getContext().drawImage(src, a.cutX, a.cutY, a.cutWidth, a.cutHeight, 0, 0, tex.width, tex.height);
+    tex.refresh();
   }
   return { layers, sky: png.customData?.meta?.cielo ?? null };
 }

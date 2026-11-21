@@ -15,6 +15,7 @@ import { CAST, NARRATOR_VOICE } from '../data/cast.js';
 import { BLINKABLE } from '../art/kid.js';
 import { addWeather } from './weather.js';
 import { storyFor } from './flow.js';
+import { raceOutcome } from '../game/rules.js';
 import { W, SCALE, FEET_Y, GROUND_TOP, FONT, px, backdrop, keyLegend, openSettings } from './common.js';
 
 const CAM_Y = 110;            // la cámara baja para que los personajes queden sobre la caja de texto
@@ -42,6 +43,9 @@ export class DialogueScene extends Phaser.Scene {
     this.part = data.part;
     this.then = data.then;
     this.canSkip = data.canSkip;
+    // Cómo le fue en la carrera: las líneas con `si` solo salen si coincide (ver raceOutcome en rules.js).
+    // Sin resultado (modo «solo cinemáticas») se cuenta la versión reñida.
+    this.outcome = raceOutcome(data.level, data.result) ?? 'reñida';
     this.index = -1;
     this.actors = {};
     this.typing = null;
@@ -61,8 +65,9 @@ export class DialogueScene extends Phaser.Scene {
       this.weather = null;
     } else {
       // Los diálogos van apagados; una escena del guion puede pedir `tono: 'vivo'`.
-      backdrop(this, this.sc.place, { seed: `${this.level.id}-${this.part}`, tono: this.sc.tono === 'vivo' ? 'vivo' : 'apagado' }).scroll(this.sc.scroll ?? 0);
-      this.weather = addWeather(this, this.sc.weather ?? story.weather);
+      const bg = backdrop(this, this.sc.place, { seed: `${this.level.id}-${this.part}`, tono: this.sc.tono === 'vivo' ? 'vivo' : 'apagado' });
+      bg.scroll(this.sc.scroll ?? 0);
+      this.weather = addWeather(this, this.sc.weather ?? story.weather, bg);
     }
     for (const [id, x, face = 'right', mood = 'idle'] of this.sc.cast) this.spawn(id, x, face, mood);
 
@@ -262,6 +267,10 @@ export class DialogueScene extends Phaser.Scene {
     const line = this.sc.lines[this.index];
     if (!line) {
       this.end();
+      return;
+    }
+    if (line.si && line.si !== this.outcome) {
+      this.next();
       return;
     }
     if (line.music) Music.play(line.music);

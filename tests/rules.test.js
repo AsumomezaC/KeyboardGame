@@ -209,3 +209,16 @@ test('tabla de niveles (informativa)', () => {
     console.log(`${level.id.padEnd(6)} límite ${s(r.limitMs).padStart(7)}  velocidad ${s(r.fastMs).padStart(7)}  ${Math.round(accuracyTarget(level) * 100)} %  ${level.obstacles.slice(0, 6).join(' | ')}${boss}`);
   }
 });
+
+test('cómo se ganó la carrera: reñida, holgada o paliza', async () => {
+  const { raceOutcome, scheduledMs } = await import('../src/game/rules.js');
+  const { CHAPTER1 } = await import('../src/data/chapters.js');
+  const race = CHAPTER1.levels[6];
+  const { fastMs } = levelRules(race);
+  const rivalMs = Math.min(...race.crew.map(m => scheduledMs(race, m)));
+  assert.equal(raceOutcome(race, { passed: true, timeMs: rivalMs - 500 }), 'reñida');
+  assert.equal(raceOutcome(race, { passed: true, timeMs: Math.round(rivalMs * 0.93) }), 'holgada');
+  assert.equal(raceOutcome(race, { passed: true, timeMs: fastMs }), 'paliza');
+  assert.equal(raceOutcome(race, { passed: false, timeMs: fastMs }), null, 'perder no cuenta');
+  assert.equal(raceOutcome(CHAPTER1.levels[0], { passed: true, timeMs: 1000 }), null, 'solo en carreras');
+});

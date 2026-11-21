@@ -5,6 +5,7 @@ import { CAST } from '../src/data/cast.js';
 import { WEATHER_NAMES } from '../src/data/weathers.js';
 import { TRACKS } from '../src/audio/tracks.js';
 import { parseLine } from '../src/audio/music.js';
+import { RACE_OUTCOMES } from '../src/game/rules.js';
 
 const MOODS = new Set(['idle', 'talk', 'sad', 'angry', 'cry', 'shock', 'happy', 'cheer']);
 const FX = new Set(['shake', 'zoom', 'flash']);
@@ -46,6 +47,15 @@ test('las escenas usan personajes, gestos, efectos, música y lugares que existe
         }
         if (line.fx) assert.ok(FX.has(line.fx), `${where}: efecto ${line.fx}`);
         if (line.t) assert.ok(line.t.length <= 115, `${where}: línea demasiado larga para la caja (${line.t.length})`);
+        if (line.si) assert.ok(RACE_OUTCOMES.includes(line.si), `${where}: condición «si: ${line.si}»`);
+      }
+      // Si una escena cuenta cómo se ganó la carrera, trae una versión para cada caso.
+      const ifs = new Set(sc.lines.map(l => l.si).filter(Boolean));
+      if (ifs.size) {
+        const level = PLAYABLE.flatMap(allLevels).find(l => l.id === id);
+        assert.equal(level?.boss?.type, 'race', `${where}: «si» solo en carreras`);
+        assert.equal(part, 'after', `${where}: «si» solo en el diálogo final`);
+        assert.deepEqual([...ifs].sort(), [...RACE_OUTCOMES].sort(), `${where}: falta una versión de la carrera`);
       }
     }
   }

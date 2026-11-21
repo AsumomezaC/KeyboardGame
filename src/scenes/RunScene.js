@@ -138,9 +138,10 @@ export class RunScene extends Phaser.Scene {
     this.runner = new Runner(level, {
       getupMs: this.rules.getupMs, limitMs: this.rules.limitMs, maxFalls: this.rules.maxFalls, maxErrors: this.rules.maxErrors,
     });
-    this.bg = backdrop(this, level.theme, { seed: level.id, tono: 'apagado' }); // se enciende al arrancar
+    // se enciende al arrancar; el público del fondo (si hay) echa porras
+    this.bg = backdrop(this, level.theme, { seed: level.id, tono: 'apagado', publico: true });
     this.tale = storyFor(this.chapter, level);
-    this.weather = addWeather(this, this.tale?.weather);
+    this.weather = addWeather(this, this.tale?.weather, this.bg);
     const bossMusic = { race: 'final', chase: 'perro', catch: 'perro' }[level.boss?.type];
     Music.play(this.tale?.music || bossMusic || (level.kind === 'secret' ? 'secreto' : 'carrera'));
     this.countdownLeft = COUNTDOWN_MS;

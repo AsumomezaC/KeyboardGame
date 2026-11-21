@@ -129,6 +129,11 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
 - La primera vez los diálogos siempre se ven. Al repetir un nivel superado aparece un menú para
   jugar sin diálogos o verlos de nuevo (H es atajo para verlos); en resultados, Enter reintenta
   sin diálogos y H con diálogos. Dentro de un diálogo repetido, Esc lo omite.
+- El diálogo final de una carrera (jefe `race`) puede contar cómo ganaste: una línea con
+  `si: 'reñida' | 'holgada' | 'paliza'` solo sale si coincide (`raceOutcome()` de
+  `src/game/rules.js`): paliza con la estrella de velocidad, reñida si el rival más rápido llegó a
+  menos del 5 % de tu tiempo, holgada en medio. Si una escena usa `si`, trae las tres versiones
+  (lo revisan las pruebas). En «solo cinemáticas» sale la reñida.
 - Antes de cada nivel hay una lección: las teclas nuevas (5 veces cada una) o, si el nivel no
   tiene, un calentamiento de 4 grupos de 3 letras distintas ya aprendidas (p. ej. «f d j»), que
   mezclan el último par con otros anteriores. Sale la primera vez y cada vez que se juega con historia.
@@ -210,7 +215,15 @@ Desde la selección de capítulo, Esc regresa a la pantalla de modos.
   `'vivo'` o `'apagado'` (más frío y con menos color). La carrera empieza apagada y se enciende con
   un fundido al arrancar (`encender()`); el calentamiento de teclas va apagado; los diálogos van
   apagados salvo que la escena del guion lleve `tono: 'vivo'`; el título, el mapa y los resultados
-  van vivos.
+  van vivos. El sol, la luna y las estrellas siguen ese tono: con el fondo apagado se ven apagados
+  (`apagarColor()` de `src/art/pixel.js`, la misma fórmula que `apagar()` de `art-src/paleta.py`) y
+  se encienden con él.
+- El público de las gradas de la carrera salta echando porras de vez en cuando mientras se corre:
+  la hoja `fondo-carrera` trae dos cuadros más de la capa media, `mid-porra0` y `mid-porra1`, cada
+  uno con otro grupo de gente de pie y con los brazos arriba (`gradas(porra=…)` en
+  `art-src/fondos/carrera.py`). `backdrop(…, { publico: true })` los pone encima de la capa media y
+  solo cambia cuál se ve, sin volver a dibujar ni subir texturas. Cualquier ambiente con cuadros
+  `<capa>-porra<n>` en su hoja los usa igual.
 - El fondo de cada nivel y de cada diálogo tiene detalles al fondo (gatos, bicis, botes, macetas,
   perros, carteles…) acomodados al azar pero siempre igual para el mismo nivel; dependen del lugar
   (`THEME_DETAILS` en `src/art/details.js`). Salen pocos y se apoyan en la base de las casas

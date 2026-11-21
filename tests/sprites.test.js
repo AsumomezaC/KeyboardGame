@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { PNG_SHEETS, OTHER_SHEETS, ICON_SHEET, OBSTACLE_SHEETS, obstacleSheet, BACKGROUND_SHEETS, BACKGROUND_LAYERS, DIM_SUFFIX, backgroundSheet, ROOM_SHEETS, ROOM_FRAME, PORTRAITS, PORTRAIT_SIZE, PORTRAIT_MOODS, spriteUrl } from '../src/art/sprites.js';
+import { PNG_SHEETS, OTHER_SHEETS, ICON_SHEET, OBSTACLE_SHEETS, obstacleSheet, BACKGROUND_SHEETS, BACKGROUND_LAYERS, DIM_SUFFIX, CHEER_FRAME, backgroundSheet, ROOM_SHEETS, ROOM_FRAME, PORTRAITS, PORTRAIT_SIZE, PORTRAIT_MOODS, spriteUrl } from '../src/art/sprites.js';
 import { THEMES, FAR, MID, GROUND, ROOM } from '../src/art/backgrounds.js';
 import { CAST } from '../src/data/cast.js';
 import { BUILDS, FRAME_NAMES } from '../src/art/kid.js';
@@ -101,9 +101,10 @@ test('las hojas PNG de fondos traen las tres capas, viva y apagada, del tamaño 
     const png = readFileSync(file(id, 'png'));
     const width = png.readUInt32BE(16), height = png.readUInt32BE(20);
     const expected = BACKGROUND_LAYERS.flatMap(l => [l, l + DIM_SUFFIX]).sort();
-    assert.deepEqual(Object.keys(atlas.frames).sort(), expected, `${id}: tres capas vivas y tres apagadas`);
+    const layers = Object.keys(atlas.frames).filter(n => !CHEER_FRAME.test(n));
+    assert.deepEqual(layers.sort(), expected, `${id}: tres capas vivas y tres apagadas (y, si acaso, cuadros de porra)`);
     for (const [name, { frame: { x, y, w, h } }] of Object.entries(atlas.frames)) {
-      assert.deepEqual([w, h], sizes[name.replace(DIM_SUFFIX, '')], `${id}/${name}: tamaño de la capa`);
+      assert.deepEqual([w, h], sizes[name.replace(DIM_SUFFIX, '').replace(/-porra\d+$/, '')], `${id}/${name}: tamaño de la capa`);
       assert.ok(x >= 0 && y >= 0 && x + w <= width && y + h <= height, `${id}/${name}: cabe en el PNG`);
     }
     for (const tono of ['vivo', 'apagado']) {

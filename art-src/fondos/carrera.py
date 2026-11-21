@@ -93,18 +93,28 @@ def lejana():
 
 # ───────────────────────── capa media ─────────────────────────
 
-def persona(L, x, y, playera, piel, brazos=False):
+def persona(L, x, y, playera, piel, brazos=False, salto=False):
     """Alguien sentado en la grada, visto de frente: cabeza 3×3 y torso 3×3; `y` es la fila del
-    asiento."""
+    asiento. Con `salto`, de pie y 2 px más arriba, con los brazos arriba y las piernas a la vista."""
+    if salto:
+        y -= 2
+        L.px(x, y, N[1]); L.px(x + 2, y, N[1]); L.px(x, y + 1, N[1]); L.px(x + 2, y + 1, N[1])   # piernas
+        L.px(x - 1, y - 7, piel); L.px(x - 1, y - 6, piel); L.px(x - 1, y - 5, playera)
+        L.px(x + 3, y - 7, piel); L.px(x + 3, y - 6, piel); L.px(x + 3, y - 5, playera)
     L.rect(x, y - 3, 3, 3, playera)
     L.rect(x, y - 6, 3, 3, piel)
     L.rect(x, y - 7, 3, 1, T[0])                            # pelo
-    if brazos:                                              # echando porras
+    if brazos and not salto:                                # echando porras
         L.px(x - 1, y - 6, piel); L.px(x - 1, y - 5, playera); L.px(x + 3, y - 6, piel); L.px(x + 3, y - 5, playera)
 
 
-def gradas(L, x0, x1):
-    """Gradas de concreto, cuatro escalones, con poca gente."""
+PORRAS = 2                       # cuadros de porra: en cada uno salta otro grupo del público
+
+
+def gradas(L, x0, x1, porra=None):
+    """Gradas de concreto, cuatro escalones, con poca gente. Con `porra` (0 o 1) dibuja de pie y
+    saltando al grupo de gente de ese número; los lugares y colores son los mismos en todos los
+    cuadros."""
     filas = (48, 56, 64, 72)
     L.rect(x0, filas[0] - 2, x1 - x0, PRETIL - filas[0] + 2, N[3])
     for k, y in enumerate(filas):
@@ -117,12 +127,15 @@ def gradas(L, x0, x1):
         L.rect(x, filas[0] - 9, 1, 7, N[2])
     L.rect(x0, filas[0] - 9, x1 - x0, 1, N[2])
     r = random.Random(7)
+    grupos = random.Random(11)                              # aparte, para no mover a nadie de lugar
     pieles = [P[1], P[2], P[3], P[4]]
     for k, y in enumerate(filas):
         x = x0 + 4 + r.randint(0, 6)
         while x < x1 - 6:
             if r.random() < 0.55:
-                persona(L, x, y, r.choice(FIESTA + [N[5], Az[1]]), r.choice(pieles), brazos=r.random() < 0.3)
+                playera, piel, brazos = r.choice(FIESTA + [N[5], Az[1]]), r.choice(pieles), r.random() < 0.3
+                grupo = grupos.choice([0, 1, None])         # un tercio se queda sentado
+                persona(L, x, y, playera, piel, brazos=brazos, salto=porra is not None and grupo == porra)
             x += r.randint(6, 12)
 
 
@@ -166,13 +179,15 @@ def torre(L, x):
 
 
 def bandera(L, x):
-    """Asta con la bandera de México ondeando (los tres colores; el escudo, apenas una mancha)."""
+    """Asta con la bandera de México ondeando (los tres colores; el escudo, apenas una mancha
+    centrada en la franja blanca que sigue la ondulación de la tela)."""
     L.rect(x, 8, 2, PRETIL - 8, N[2]); L.px(x, 7, Am[1]); L.px(x + 1, 7, Am[1])
+    ola = lambda i: round(1.5 * math.sin(i / 3.2))
     for i in range(24):
-        ola = round(1.5 * math.sin(i / 3.2))
         c = V[1] if i < 8 else (N[5] if i < 16 else Ro[1])
-        L.rect(x + 2 + i, 10 + ola, 1, 14, c)
-    L.rect(x + 16, 15, 3, 3, T[2], solo=N[5])
+        L.rect(x + 2 + i, 10 + ola(i), 1, 14, c)
+    for i in range(10, 14):                                 # franja blanca: columnas 8-15
+        L.rect(x + 2 + i, 15 + ola(i), 1, 3, T[2], solo=N[5])
 
 
 def banderines(L, a, b, comba, k0=0):
@@ -201,11 +216,11 @@ def pretil(L):
         L.px(x + 2, PRETIL + 3, c); L.rect(x + 1, PRETIL + 4, 3, 1, c); L.px(x + 2, PRETIL + 5, c)
 
 
-def media():
+def media(porra=None):
     L = Vuelta(WM, HM)
     L.rect(0, PRETIL - 6, WM, 6, V[1])                      # pasto entre el pretil y lo de atrás
     L.rect(0, PRETIL - 6, WM, 1, V[2])
-    gradas(L, 0, 132)
+    gradas(L, 0, 132, porra)
     carpa(L, 168, 222)
     torre(L, 276)
     bandera(L, 336)
@@ -263,5 +278,6 @@ if __name__ == "__main__":
     lamina("Fondo de la carrera · versión APAGADA (quieta, tristeza; calculada con apagar())", apagadas,
            tuple(apagar(c) for c in CIELO), previas / "carrera-apagada.png", encima=jugables())
     print("láminas:", previas / "carrera-viva.png", "y", previas / "carrera-apagada.png")
+    porras = {f"mid-porra{k}": media(k) for k in range(PORRAS)}   # el público saltando (solo vivos)
     if "--exportar" in sys.argv:
-        exportar("carrera", vivas, CIELO)
+        exportar("carrera", vivas, CIELO, extra=porras)

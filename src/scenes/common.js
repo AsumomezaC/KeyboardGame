@@ -2,6 +2,7 @@
 import Phaser from 'phaser';
 import { THEMES, SKIES, FAR, MID, GROUND } from '../art/backgrounds.js';
 import { DIM_SUFFIX } from '../art/sprites.js';
+import { apagarColor } from '../art/pixel.js';
 import { THEME_DETAILS } from '../art/details.js';
 import { Music } from '../audio/music.js';
 import { Save } from '../core/save.js';
@@ -100,34 +101,67 @@ function detailLayer(scene, theme, seed) {
 
 // tono: 'vivo' o 'apagado' (el color sigue la emoción). El apagado solo existe en los ambientes
 // con hoja PNG; en los demás se ve igual que el vivo. encender() pasa de apagado a vivo con un
-// fundido: es el destello de color al arrancar a correr.
-export function backdrop(scene, theme, { seed = theme, tono = 'vivo' } = {}) {
+// fundido: es el destello de color al arrancar a correr. El sol, la luna y las estrellas siguen el
+// mismo tono: celeste(vivo, apagado) pone la versión apagada encima mientras el fondo esté apagado.
+// publico: true hace que el público del fondo (los ambientes con cuadros de porra, hoy la carrera)
+// salte echando porras de vez en cuando; sin cuadros de porra no hace nada.
+// Un ciclo dura ~1.5 s: tres saltos (un grupo, el otro y el primero otra vez) y un descanso sentados.
+const PORRA_PASOS = [[0, 170], [-1, 130], [1, 170], [-1, 130], [0, 170], [-1, 730]]; // [cuadro, ms]; -1 = sentados
+
+export function backdrop(scene, theme, { seed = theme, tono = 'vivo', publico = false } = {}) {
   const t = THEMES[theme];
   const skies = SKIES[theme] || { vivo: t.sky, apagado: t.sky };
-  const paintSky = ([a, b]) => {
+  const paintSky = ([a, b], apagado = false) => {
     const g = scene.add.graphics().setDepth(SKY_DEPTH);
     const top = Phaser.Display.Color.HexStringToColor(a).color;
     const bottom = Phaser.Display.Color.HexStringToColor(b).color;
-    return g.fillGradientStyle(top, top, bottom, bottom, 1).fillRect(0, 0, W, GROUND_TOP);
+    g.fillGradientStyle(top, top, bottom, bottom, 1).fillRect(0, 0, W, GROUND_TOP);
+    if (t.stars) {
+      const r = new Phaser.Math.RandomDataGenerator(['estrellas']);
+      const star = Phaser.Display.Color.HexStringToColor(apagado ? apagarColor('#ffffff') : '#ffffff').color;
+      for (let i = 0; i < 70; i++) g.fillStyle(star, r.realInRange(0.3, 1)).fillRect(r.between(0, W), r.between(0, 260), 2, 2);
+    }
+    return g;
   };
-  const sky = paintSky(skies.vivo);
-  if (t.stars) {
-    const r = new Phaser.Math.RandomDataGenerator(['estrellas']);
-    for (let i = 0; i < 70; i++) sky.fillStyle(0xffffff, r.realInRange(0.3, 1)).fillRect(r.between(0, W), r.between(0, 260), 2, 2);
-    // Luna fija en el cielo, detrás de las casas.
+  // Luna fija en el cielo, detrás de las casas.
+  const paintMoon = apagado => {
+    const c = hex => Phaser.Display.Color.HexStringToColor(apagado ? apagarColor(hex) : hex).color;
     const moon = scene.add.graphics().setDepth(CELESTIAL_DEPTH).setScrollFactor(0);
-    moon.fillStyle(0xfff6d5, 1).fillCircle(W - 150, 90, 30);
-    moon.fillStyle(0xe6dcb8, 1).fillCircle(W - 160, 82, 6).fillCircle(W - 140, 100, 4).fillCircle(W - 136, 78, 3);
-  }
+    moon.fillStyle(c('#fff6d5'), 1).fillCircle(W - 150, 90, 30);
+    moon.fillStyle(c('#e6dcb8'), 1).fillCircle(W - 160, 82, 6).fillCircle(W - 140, 100, 4).fillCircle(W - 136, 78, 3);
+    return moon;
+  };
+  paintSky(skies.vivo);
+  const moon = t.stars ? paintMoon(false) : null;
   const layers = (suffix = '') => ({
     far: scene.add.tileSprite(0, GROUND_TOP - FAR.h * SCALE + 30, W / SCALE, FAR.h, `far-${theme}${suffix}`).setOrigin(0).setScale(SCALE).setDepth(LAYER_DEPTH.far),
     mid: scene.add.tileSprite(0, GROUND_TOP - MID.h * SCALE, W / SCALE, MID.h, `mid-${theme}${suffix}`).setOrigin(0).setScale(SCALE).setDepth(LAYER_DEPTH.mid),
     ground: scene.add.tileSprite(0, GROUND_TOP, W / SCALE, GROUND.h, `ground-${theme}${suffix}`).setOrigin(0).setScale(SCALE).setDepth(LAYER_DEPTH.ground),
   });
   const live = layers();
+  // Público saltando: cada cuadro de porra va encima de la capa media viva, oculto hasta su turno.
+  // Solo se alterna la visibilidad (no se vuelve a subir ninguna textura), así que casi no cuesta.
+  const porras = [];
+  if (publico) {
+    for (let k = 0; scene.textures.exists(`mid-${theme}-porra${k}`); k++) {
+      porras.push(scene.add.tileSprite(0, live.mid.y, W / SCALE, MID.h, `mid-${theme}-porra${k}`)
+        .setOrigin(0).setScale(SCALE).setDepth(LAYER_DEPTH.mid).setVisible(false));
+    }
+    if (porras.length) {
+      let paso = 0;
+      const siguiente = () => {
+        const [cuadro, ms] = PORRA_PASOS[paso];
+        porras.forEach((p, k) => p.setVisible(k === cuadro % porras.length && cuadro >= 0));
+        paso = (paso + 1) % PORRA_PASOS.length;
+        scene.time.delayedCall(ms, siguiente);
+      };
+      scene.time.delayedCall(800, siguiente);
+    }
+  }
   // La versión apagada va encima de la viva, capa por capa, y se desvanece al encender.
   const hasDim = ['far', 'mid', 'ground'].every(l => scene.textures.exists(`${l}-${theme}${DIM_SUFFIX}`));
-  let dim = tono === 'apagado' && hasDim ? { sky: paintSky(skies.apagado), ...layers(DIM_SUFFIX) } : null;
+  let dim = tono === 'apagado' && hasDim ? { sky: paintSky(skies.apagado, true), ...layers(DIM_SUFFIX) } : null;
+  const dimCelestial = [];
   let fading = false;
   const details = detailLayer(scene, theme, seed);
   const place = (set, x) => {
@@ -135,23 +169,33 @@ export function backdrop(scene, theme, { seed = theme, tono = 'vivo' } = {}) {
     set.mid.tilePositionX = (x * 0.45) / SCALE;
     set.ground.tilePositionX = x / SCALE;
   };
-  return {
+  const bg = {
     get tono() { return dim && !fading ? 'apagado' : 'vivo'; },
     scroll(x) {
       place(live, x);
+      for (const p of porras) p.tilePositionX = live.mid.tilePositionX;
       if (dim) place(dim, x);
       details.scroll(x);
+    },
+    // Sol, luna…: con el fondo apagado se queda la versión apagada encima de la viva (y se desvanece
+    // con él al encender); con el fondo vivo, la apagada sobra.
+    celeste(vivo, apagado) {
+      if (!dim || fading) { apagado.destroy(); return; }
+      apagado.setDepth(vivo.depth + 0.5);
+      dimCelestial.push(apagado);
     },
     encender(ms = 450) {
       if (!dim || fading) return;
       fading = true; // las capas apagadas siguen moviéndose con el fondo mientras se desvanecen
-      const targets = Object.values(dim);
+      const targets = [...Object.values(dim), ...dimCelestial];
       scene.tweens.add({
         targets, alpha: 0, duration: ms,
         onComplete: () => { dim = null; targets.forEach(o => o.destroy()); },
       });
     },
   };
+  if (moon) bg.celeste(moon, paintMoon(true));
+  return bg;
 }
 
 // Atajos de teclado para menús, sin capturar teclas (no interfieren con el texto).
